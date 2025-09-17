@@ -25,8 +25,6 @@ export default class DBSchemeManager {
                 table.boolean('locked').defaultTo(false)
                 table.boolean('hidden').defaultTo(false)
                 table.boolean('is_deleted').defaultTo(false)
-
-                table.foreign('parent_id').references(RESOURCE_DATA_TABLE + '.id').onDelete('CASCADE')
             })
             return true
         },
@@ -47,6 +45,7 @@ export default class DBSchemeManager {
                 table.integer('order_index').defaultTo(0)
 
                 table.foreign('id').references(RESOURCE_DATA_TABLE + '.id').onDelete('CASCADE')
+                table.foreign('parent_id').references(RESOURCE_DATA_TABLE + '.id').onDelete('CASCADE')
             })
             return true
         },

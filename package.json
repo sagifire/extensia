@@ -1,8 +1,8 @@
 {
   "name": "@sagifire/extensia",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Extensia is a library for managing media resources with a flexible tagging and organization storage system.",
-  "license": "ISC",
+  "license": "MIT",
   "author": "achvyl@gmail.com",
   "type": "module",
   "main": "./dist/index.cjs",
