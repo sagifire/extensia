@@ -40,6 +40,10 @@ export default class Storage extends Plugin {
         return this.api.createResource(factoryData)
     }
 
+    public appendChild(parentId: IDString, childId: IDString): PromisedContext {
+        return this.api.appendChild(parentId, childId)
+    }
+
     public createRepresentation(resourceId: IDString, factoryData: {
         data: {
             type: string

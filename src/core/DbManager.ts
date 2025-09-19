@@ -2,7 +2,7 @@ import { type Knex } from 'knex'
 import Config from './Config.js'
 import {
     IDString,
-    ILogger, IMarkDataRecord, IMarkKVRecord,
+    ILogger, IMarkCriteria, IMarkData, IMarkDataRecord, IMarkItemCriteria, IMarkKVRecord,
     IRepresentationDataRecord,
     IRepresentationDTE, IRepresentationInfoDTC,
     IRepresentationInfoRecord,
@@ -408,16 +408,243 @@ export default class DbManager {
         return ctx
     }
 
-    public async getMarkListByType(type: string): PromisedContext<{ name: string, resources: number }[]> {
-        let ctx = new Context<{ name: string, resources: number }[]>([])
+    public async getMarkStatListByType(type: string): PromisedContext<{ name: string, resources: number, min_value: number, max_value: number }[]> {
+        let ctx = new Context<{ name: string, resources: number, min_value: number, max_value: number }[]>([])
         try {
             ctx.result = await this.db<IMarkDataRecord>(MARK_DATA_TABLE)
                 .where({ type: type })
                 .groupBy('name')
-                .select('name', this.db.raw('count(resource_id) as resources'))
+                .select(
+                    'name',
+                    this.db.raw('count(resource_id) as resources'),
+                    this.db.raw('min(value) as min_value'),
+                    this.db.raw('max(value) as max_value')
+                )
         } catch (e) {
             ctx.applyException(e)
         }
+        return ctx
+    }
+
+    public async getMarkList(): PromisedContext<Record<string, string[]>> {
+        let ctx = new Context<Record<string, string[]>>({})
+        try {
+            let queryResult = await this.db<IMarkDataRecord>(MARK_DATA_TABLE)
+                .groupBy(['type', 'name'])
+                .select(
+                    'type',
+                    'name',
+                )
+            for (const record of queryResult) {
+                if ('undefined' === typeof ctx.result[record.type]) {
+                    ctx.result[record.type] = []
+                }
+                ctx.result[record.type].push(record.name)
+            }
+        } catch (e) {
+            ctx.applyException(e)
+        }
+        return ctx
+    }
+
+    public async findResources(criteria: {
+        data?: {
+            id?: IDString
+        }
+        hierarchy?: {
+            parent_id?: IDString
+            order?: 'asc' | 'desc'
+        }
+        representation?: {
+            id?: IDString
+            type?: string
+            role?: string
+            mime?: string
+            extension?: string
+            is_external?: boolean
+            is_primary?: boolean
+            uploading?: boolean
+        }
+        mark?: IMarkCriteria
+    }): PromisedContext<Object[]> {
+        let ctx = new Context<Object[]>([])
+
+        const db = this.db
+
+        const columnsConfig = {
+            data_id: RESOURCE_DATA_TABLE + '.id',
+            data_created_at: RESOURCE_DATA_TABLE + '.created_at',
+            data_updated_at: RESOURCE_DATA_TABLE + '.updated_at',
+            data_locked: RESOURCE_DATA_TABLE + '.locked',
+            data_hidden: RESOURCE_DATA_TABLE + '.hidden',
+            data_is_deleted: RESOURCE_DATA_TABLE + '.is_deleted',
+
+            info_title: RESOURCE_INFO_TABLE + '.title',
+            info_description: RESOURCE_INFO_TABLE + '.description',
+
+            hierarchy_parent_id: RESOURCE_HIERARCHY_TABLE + '.parent_id',
+            hierarchy_order_index: RESOURCE_HIERARCHY_TABLE + '.order_index',
+
+            representation_data_id: REPRESENTATION_DATA_TABLE + '.id',
+            representation_data_created_at: REPRESENTATION_DATA_TABLE + '.created_at',
+            representation_data_updated_at: REPRESENTATION_DATA_TABLE + '.updated_at',
+            representation_data_type: REPRESENTATION_DATA_TABLE + '.type',
+            representation_data_role: REPRESENTATION_DATA_TABLE + '.role',
+            representation_data_mime: REPRESENTATION_DATA_TABLE + '.mime',
+            representation_data_extension: REPRESENTATION_DATA_TABLE + '.extension',
+            representation_data_is_external: REPRESENTATION_DATA_TABLE + '.is_external',
+            representation_data_is_primary: REPRESENTATION_DATA_TABLE + '.is_primary',
+            representation_data_uploading: REPRESENTATION_DATA_TABLE + '.uploading',
+
+            representation_source_url: REPRESENTATION_SOURCE_TABLE + '.url',
+            representation_source_derived_from: REPRESENTATION_SOURCE_TABLE + '.derived_from',
+
+            representation_info_data: REPRESENTATION_INFO_TABLE + '.data',
+
+            mark_data_name: MARK_DATA_TABLE + '.name',
+            mark_data_type: MARK_DATA_TABLE + '.type',
+            mark_data_value: MARK_DATA_TABLE + '.value',
+
+            kv_component: MARK_KV_TABLE + '.component',
+            kv_attribute: MARK_KV_TABLE + '.attribute',
+            kv_value: MARK_KV_TABLE + '.value',
+        }
+
+        let query = this.db<typeof columnsConfig>(RESOURCE_DATA_TABLE)
+            .select()
+            .column(columnsConfig)
+
+        // resource tables:
+        query = query
+            .innerJoin(RESOURCE_INFO_TABLE, function () {
+                this.on(RESOURCE_INFO_TABLE + '.id', '=', RESOURCE_DATA_TABLE + '.id')
+            })
+            .innerJoin(RESOURCE_HIERARCHY_TABLE, function () {
+                let onCondition = this.on(RESOURCE_HIERARCHY_TABLE + '.id', '=', RESOURCE_DATA_TABLE + '.id')
+                if (criteria.hierarchy && criteria.hierarchy.parent_id) {
+                    onCondition.andOn(RESOURCE_HIERARCHY_TABLE + '.parent_id', '=', db.raw('?', [criteria.hierarchy.parent_id]))
+                }
+            })
+
+        // representation tables
+        query = query
+            .leftJoin(REPRESENTATION_DATA_TABLE, function () {
+                this.on(REPRESENTATION_DATA_TABLE + '.resource_id', '=', RESOURCE_DATA_TABLE + '.id')
+            })
+            .leftJoin(REPRESENTATION_INFO_TABLE, function () {
+                this.on(REPRESENTATION_INFO_TABLE + '.id', '=', REPRESENTATION_DATA_TABLE + '.id')
+            })
+            .leftJoin(REPRESENTATION_SOURCE_TABLE, function () {
+                this.on(REPRESENTATION_SOURCE_TABLE + '.id', '=', REPRESENTATION_DATA_TABLE + '.id')
+            })
+
+        // mark tables
+        query = query
+            .leftJoin(MARK_DATA_TABLE, function () {
+                this.on(MARK_DATA_TABLE + '.resource_id', '=', RESOURCE_DATA_TABLE + '.id')
+            })
+            .leftJoin(MARK_KV_TABLE, function () {
+                this.on(MARK_KV_TABLE + '.resource_id', '=', RESOURCE_DATA_TABLE + '.id')
+            })
+
+        // CONDITION JOINS
+
+        if (criteria.representation && Object.keys(criteria.representation).length > 0) {
+            query = query
+                .innerJoin(REPRESENTATION_DATA_TABLE + ' as repCon', function () {
+                    let onCondition = this.on(REPRESENTATION_DATA_TABLE + '.resource_id', '=', RESOURCE_DATA_TABLE + '.id')
+                    if (criteria.representation?.id) {
+                        onCondition.andOn(REPRESENTATION_DATA_TABLE + '.id', '=', db.raw('?', [criteria.representation.id]))
+                    }
+                    if (criteria.representation?.type) {
+                        onCondition.andOn(REPRESENTATION_DATA_TABLE + '.type', '=', db.raw('?', [criteria.representation.type]))
+                    }
+                    if (criteria.representation?.role) {
+                        onCondition.andOn(REPRESENTATION_DATA_TABLE + '.role', '=', db.raw('?', [criteria.representation.role]))
+                    }
+                    if (criteria.representation?.mime) {
+                        onCondition.andOn(REPRESENTATION_DATA_TABLE + '.mime', '=', db.raw('?', [criteria.representation.mime]))
+                    }
+                    if (criteria.representation?.extension) {
+                        onCondition.andOn(REPRESENTATION_DATA_TABLE + '.extension', '=', db.raw('?', [criteria.representation.extension]))
+                    }
+                    if (criteria.representation?.is_external) {
+                        onCondition.andOn(REPRESENTATION_DATA_TABLE + '.is_external', '=', db.raw('?', [criteria.representation.is_external]))
+                    }
+                    if (criteria.representation?.is_primary) {
+                        onCondition.andOn(REPRESENTATION_DATA_TABLE + '.is_primary', '=', db.raw('?', [criteria.representation.is_primary]))
+                    }
+                    if (criteria.representation?.uploading) {
+                        onCondition.andOn(REPRESENTATION_DATA_TABLE + '.uploading', '=', db.raw('?', [criteria.representation.uploading]))
+                    }
+                })
+        }
+
+        const getMarkValueRawCondition = (value: IMarkItemCriteria['value']) => {
+            let condition: Knex.Raw = db.raw(MARK_DATA_TABLE + '.value = ?', [value])
+            if (value === null) {
+                condition = db.raw(MARK_DATA_TABLE + '.value IS NULL')
+            } else if (value === 'not null') {
+                condition = db.raw(MARK_DATA_TABLE + '.value IS NOT NULL')
+            } else if (Array.isArray(value)) {
+                if ('string' === typeof value[0]) {
+                    condition = db.raw(MARK_DATA_TABLE + '.value ' + value[0] + ' ?', [value[1]])
+                } else {
+                    condition = db.raw(MARK_DATA_TABLE + '.value >= ? AND ' + MARK_DATA_TABLE + '.value <= ?', [value[0], value[1]])
+                }
+            }
+            return condition
+        }
+
+        if (criteria.mark && (!Array.isArray(criteria.mark) || Object.keys(criteria.mark).length > 0)) {
+            if (!Array.isArray(criteria.mark)) {
+                criteria.mark = [criteria.mark]
+            }
+            let joinCount = 0
+            for (const markAndCondition of criteria.mark) {
+                query = query
+                    .innerJoin(MARK_DATA_TABLE + ' as mark' + joinCount, function () {
+                        let onCondition = this.on(MARK_DATA_TABLE + '.resource_id', '=', RESOURCE_DATA_TABLE + '.id')
+                        if (!Array.isArray(markAndCondition)) {
+                            onCondition.andOn(MARK_DATA_TABLE + '.type', '=', db.raw('?', [markAndCondition.type]))
+                            onCondition.andOn(MARK_DATA_TABLE + '.name', '=', db.raw('?', [markAndCondition.name]))
+                            if (markAndCondition.value !== undefined) {
+                                onCondition.andOn(getMarkValueRawCondition(markAndCondition.value))
+                            }
+                        } else {
+                            onCondition.andOn(function () {
+                                for (const markOrCondition of markAndCondition) {
+                                    this.orOn(function () {
+                                        this.andOn(MARK_DATA_TABLE + '.type', '=', db.raw('?', [markOrCondition.type]))
+                                        this.andOn(MARK_DATA_TABLE + '.name', '=', db.raw('?', [markOrCondition.name]))
+                                        if (markOrCondition.value !== undefined) {
+                                            this.andOn(getMarkValueRawCondition(markOrCondition.value))
+                                        }
+                                    })
+                                }
+                            })
+
+                        }
+                    })
+            }
+        }
+
+        // resource conditions
+        if (criteria.data) {
+            if (criteria.data.id) {
+                query = query.andWhere({
+                    'data_id': criteria.data.id
+                })
+            }
+        }
+        if (criteria.hierarchy && criteria.hierarchy.parent_id) {
+            query = query.orderBy(RESOURCE_HIERARCHY_TABLE + '.order_index', criteria.hierarchy.order || 'asc')
+        }
+
+        // console.log(query.toSQL())
+
+        ctx.result = await query
+
         return ctx
     }
 }

@@ -159,6 +159,16 @@ export interface IMarkKVRecord {
     value: string
 }
 
+export type CriteriaConditionOperator = '<'|'<='|'>='|'>'|'='|'!='|'<>'
+
+export interface IMarkItemCriteria {
+    name: string,
+    type: string,
+    value?: number | null | [CriteriaConditionOperator, number] | [number, number] | 'not null',
+}
+
+export type IMarkCriteria = IMarkItemCriteria | IMarkItemCriteria[] | Array<IMarkItemCriteria | IMarkItemCriteria[]>
+
 // CORE CONTRACTS
 
 export type DBSchemePatch = (db: Knex) => Promise<boolean>

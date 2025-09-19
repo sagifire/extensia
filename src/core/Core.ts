@@ -13,7 +13,7 @@ import {
     ON_MARK_CREATED_EVENT,
     ON_REPRESENTATION_CREATED_EVENT,
     ON_RESOURCE_CREATED_EVENT,
-    ON_RESOURCE_KV_CREATED_EVENT, IUploadingPartReport, IInitiable, IMarkParam
+    ON_RESOURCE_KV_CREATED_EVENT, IUploadingPartReport, IInitiable, IMarkParam, IMarkCriteria
 } from './contracts.js'
 
 import type Config from './Config.js'
@@ -101,7 +101,7 @@ export default class Core extends EventEmitter {
         let ctx = new Context<IDString|null>(null)
 
         try {
-            if (hierarchy.parent_id && await this.dbManager.resourceExists(hierarchy.parent_id)) {
+            if (hierarchy.parent_id && !await this.dbManager.resourceExists(hierarchy.parent_id)) {
                 ctx.setError(ErrorCodes.PARENT_NOT_FOUND, { entity: 'resource' }, { parent_id: hierarchy.parent_id })
                 return ctx
             }
@@ -118,7 +118,7 @@ export default class Core extends EventEmitter {
                 },
                 hierarchy: {
                     path: [],
-                    parent_id: hierarchy?.parent_id || null,
+                    parent_id: null, // hierarchy?.parent_id || null,
                     order_index: hierarchy?.order_index || 0,
                     children: []
                 },
@@ -173,6 +173,19 @@ export default class Core extends EventEmitter {
                         }
                     }
                 }
+            }
+        } catch (e) {
+            ctx.applyException(e)
+        }
+        return ctx
+    }
+
+    public async appendChild(parentId: IDString, childId: IDString): PromisedContext {
+        let ctx = new Context()
+        try {
+            ctx.apply(await this.fsManager.appendChild(parentId, childId))
+            if (ctx.isSuccess()) {
+                ctx.apply(await this.dbManager.appendChild(parentId, childId))
             }
         } catch (e) {
             ctx.applyException(e)
@@ -398,8 +411,35 @@ export default class Core extends EventEmitter {
         return this.dbManager.resourceKVExists(id, component, attribute)
     }
 
-    public async getMarkListByType(type: string): PromisedContext<{ name: string, resources: number }[]> {
-        return await this.dbManager.getMarkListByType(type)
+    public async getMarkStatListByType(type: string): PromisedContext<{ name: string, resources: number }[]> {
+        return await this.dbManager.getMarkStatListByType(type)
+    }
+
+    public async getMarkList(): PromisedContext<Record<string, string[]>> {
+        return await this.dbManager.getMarkList()
+    }
+
+    public async findResources(criteria: {
+        data?: {
+            id?: IDString
+        }
+        hierarchy?: {
+            parent_id?: IDString
+            order?: 'asc' | 'desc'
+        }
+        representation?: {
+            id?: IDString
+            type?: string
+            role?: string
+            mime?: string
+            extension?: string
+            is_external?: boolean
+            is_primary?: boolean
+            uploading?: boolean
+        }
+        mark?: IMarkCriteria
+    }): PromisedContext<Object[]> {
+        return await this.dbManager.findResources(criteria)
     }
 
     public async fullRescan(reportCallback: (report: { resources: number, representations: number }) => Promise<void>): PromisedContext {

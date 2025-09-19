@@ -67,11 +67,17 @@ import {
     IResourceHierarchyMetaComponent,
     DBSchemePatch,
 
+    CriteriaConditionOperator,
+    IMarkItemCriteria,
+    IMarkCriteria,
+
     ILogger,
     IUploadingPartReport,
     IInitiable
 
 } from './core/contracts.js'
+
+import { Context, PromisedContext } from './core/Context.js'
 
 import {
     makeIndexFromResourceEntity
@@ -155,9 +161,16 @@ export {
     IResourceHierarchyMetaComponent,
     DBSchemePatch,
 
+    CriteriaConditionOperator,
+    IMarkItemCriteria,
+    IMarkCriteria,
+
     ILogger,
     IUploadingPartReport,
     IInitiable,
 
     makeIndexFromResourceEntity,
+
+    Context,
+    PromisedContext,
 }

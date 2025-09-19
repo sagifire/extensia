@@ -1,6 +1,6 @@
 import Plugin from '../core/Plugin.js'
 import type Core from '../core/Core.js'
-import { IDString } from '../core/contracts.js'
+import { IDString, IMarkCriteria } from '../core/contracts.js'
 import { Context, PromisedContext } from '../core/Context.js'
 
 export default class Query extends Plugin {
@@ -30,7 +30,34 @@ export default class Query extends Plugin {
         return this.api.resourceKVExists(id, component, attribute)
     }
 
-    public async getMarkListByType(type: string): PromisedContext<{ name: string, resources: number }[]> {
-        return await this.api.getMarkListByType(type)
+    public getMarkStatListByType(type: string): PromisedContext<{ name: string, resources: number }[]> {
+        return this.api.getMarkStatListByType(type)
+    }
+
+    public  getMarkList(): PromisedContext<Record<string, string[]>> {
+        return this.api.getMarkList()
+    }
+
+    public async findResources(criteria: {
+        data?: {
+            id?: IDString
+        }
+        hierarchy?: {
+            parent_id?: IDString
+            order?: 'asc' | 'desc'
+        }
+        representation?: {
+            id?: IDString
+            type?: string
+            role?: string
+            mime?: string
+            extension?: string
+            is_external?: boolean
+            is_primary?: boolean
+            uploading?: boolean
+        }
+        mark?: IMarkCriteria
+    }): PromisedContext<Object[]> {
+        return await this.api.findResources(criteria)
     }
 }

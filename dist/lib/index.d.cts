@@ -199,10 +199,33 @@ declare class DbManager {
     setResourceKV(resourceId: IDString, componentKeys: IResourceKV): PromisedContext;
     makeRepresentationPrimary(resourceId: IDString, representationId: IDString): PromisedContext;
     deleteAllRecords(): PromisedContext;
-    getMarkListByType(type: string): PromisedContext<{
+    getMarkStatListByType(type: string): PromisedContext<{
         name: string;
         resources: number;
+        min_value: number;
+        max_value: number;
     }[]>;
+    getMarkList(): PromisedContext<Record<string, string[]>>;
+    findResources(criteria: {
+        data?: {
+            id?: IDString;
+        };
+        hierarchy?: {
+            parent_id?: IDString;
+            order?: 'asc' | 'desc';
+        };
+        representation?: {
+            id?: IDString;
+            type?: string;
+            role?: string;
+            mime?: string;
+            extension?: string;
+            is_external?: boolean;
+            is_primary?: boolean;
+            uploading?: boolean;
+        };
+        mark?: IMarkCriteria;
+    }): PromisedContext<Object[]>;
 }
 
 declare class Namer {
@@ -239,6 +262,7 @@ declare class Core extends EventEmitter {
         marks?: IMarkParam[];
         kv?: IResourceKV;
     }): PromisedContext<IDString | null>;
+    appendChild(parentId: IDString, childId: IDString): PromisedContext;
     createRepresentation(resourceId: IDString, { data, infoData, source }: {
         data: {
             type: string;
@@ -272,10 +296,31 @@ declare class Core extends EventEmitter {
     representationExists(id: IDString): Promise<boolean>;
     markExists(id: IDString, name: string, type: string): Promise<boolean>;
     resourceKVExists(id: IDString, component: string, attribute: string): Promise<boolean>;
-    getMarkListByType(type: string): PromisedContext<{
+    getMarkStatListByType(type: string): PromisedContext<{
         name: string;
         resources: number;
     }[]>;
+    getMarkList(): PromisedContext<Record<string, string[]>>;
+    findResources(criteria: {
+        data?: {
+            id?: IDString;
+        };
+        hierarchy?: {
+            parent_id?: IDString;
+            order?: 'asc' | 'desc';
+        };
+        representation?: {
+            id?: IDString;
+            type?: string;
+            role?: string;
+            mime?: string;
+            extension?: string;
+            is_external?: boolean;
+            is_primary?: boolean;
+            uploading?: boolean;
+        };
+        mark?: IMarkCriteria;
+    }): PromisedContext<Object[]>;
     fullRescan(reportCallback: (report: {
         resources: number;
         representations: number;
@@ -422,6 +467,13 @@ interface IMarkKVRecord {
     attribute: string;
     value: string;
 }
+type CriteriaConditionOperator = '<' | '<=' | '>=' | '>' | '=' | '!=' | '<>';
+interface IMarkItemCriteria {
+    name: string;
+    type: string;
+    value?: number | null | [CriteriaConditionOperator, number] | [number, number] | 'not null';
+}
+type IMarkCriteria = IMarkItemCriteria | IMarkItemCriteria[] | Array<IMarkItemCriteria | IMarkItemCriteria[]>;
 type DBSchemePatch = (db: Knex) => Promise<boolean>;
 interface IPlugin {
     init(): PromisedContext;
@@ -493,6 +545,7 @@ declare class Storage extends Plugin {
         marks?: IMarkParam[];
         kv?: IResourceKV;
     }): PromisedContext<IDString | null>;
+    appendChild(parentId: IDString, childId: IDString): PromisedContext;
     createRepresentation(resourceId: IDString, factoryData: {
         data: {
             type: string;
@@ -531,10 +584,31 @@ declare class Query extends Plugin {
     representationExists(id: IDString): Promise<boolean>;
     markExists(id: IDString, name: string, type: string): Promise<boolean>;
     resourceKVExists(id: IDString, component: string, attribute: string): Promise<boolean>;
-    getMarkListByType(type: string): PromisedContext<{
+    getMarkStatListByType(type: string): PromisedContext<{
         name: string;
         resources: number;
     }[]>;
+    getMarkList(): PromisedContext<Record<string, string[]>>;
+    findResources(criteria: {
+        data?: {
+            id?: IDString;
+        };
+        hierarchy?: {
+            parent_id?: IDString;
+            order?: 'asc' | 'desc';
+        };
+        representation?: {
+            id?: IDString;
+            type?: string;
+            role?: string;
+            mime?: string;
+            extension?: string;
+            is_external?: boolean;
+            is_primary?: boolean;
+            uploading?: boolean;
+        };
+        mark?: IMarkCriteria;
+    }): PromisedContext<Object[]>;
 }
 
 declare class Extensia {
@@ -549,4 +623,4 @@ declare class Extensia {
     storage(): Storage;
 }
 
-export { APPLY_PATCH_TABLE, type AppliedPatchRecord, Config, type DBSchemePatch, Extensia, type IDString, type IInitiable, type ILogger, type IMarkData, type IMarkDataRecord, type IMarkKVRecord, type IMarkParam, type IPlugin, type IRepresentationDTE, type IRepresentationDataDTC, type IRepresentationDataRecord, type IRepresentationInfoDTC, type IRepresentationInfoRecord, type IRepresentationSourceDTC, type IRepresentationSourceRecord, type IResourceComponentsIndex, type IResourceDTE, type IResourceDataDTC, type IResourceDataRecord, type IResourceHierarchyDTC, type IResourceHierarchyMetaComponent, type IResourceHierarchyRecord, type IResourceInfoDTC, type IResourceInfoRecord, type IResourceKV, type IResourceMetafile, type IUploadingPartReport, MARK_DATA_TABLE, MARK_KV_TABLE, ON_CORE_INIT_EVENT, ON_DB_CLEAN_EVENT, ON_DB_FULL_DROP_EVENT, ON_FULL_RESCAN, ON_MARK_CREATED_EVENT, ON_MARK_DELETED_EVENT, ON_MARK_UPDATED_EVENT, ON_PLUGIN_INIT_EVENT, ON_REPRESENTATION_CREATED_EVENT, ON_REPRESENTATION_DELETED_EVENT, ON_REPRESENTATION_UPDATED_EVENT, ON_RESOURCE_CREATED_EVENT, ON_RESOURCE_DELETED_EVENT, ON_RESOURCE_KV_CREATED_EVENT, ON_RESOURCE_KV_DELETED_EVENT, ON_RESOURCE_KV_UPDATED_EVENT, ON_RESOURCE_UPDATED_EVENT, ON_STARTED_EVENT, Plugin, type PluginConstructor, REPRESENTATION_DATA_TABLE, REPRESENTATION_INFO_TABLE, REPRESENTATION_SOURCE_TABLE, RESOURCE_DATA_TABLE, RESOURCE_HIERARCHY_TABLE, RESOURCE_INFO_TABLE, type Timestamp, makeIndexFromResourceEntity };
+export { APPLY_PATCH_TABLE, type AppliedPatchRecord, Config, Context, type CriteriaConditionOperator, type DBSchemePatch, Extensia, type IDString, type IInitiable, type ILogger, type IMarkCriteria, type IMarkData, type IMarkDataRecord, type IMarkItemCriteria, type IMarkKVRecord, type IMarkParam, type IPlugin, type IRepresentationDTE, type IRepresentationDataDTC, type IRepresentationDataRecord, type IRepresentationInfoDTC, type IRepresentationInfoRecord, type IRepresentationSourceDTC, type IRepresentationSourceRecord, type IResourceComponentsIndex, type IResourceDTE, type IResourceDataDTC, type IResourceDataRecord, type IResourceHierarchyDTC, type IResourceHierarchyMetaComponent, type IResourceHierarchyRecord, type IResourceInfoDTC, type IResourceInfoRecord, type IResourceKV, type IResourceMetafile, type IUploadingPartReport, MARK_DATA_TABLE, MARK_KV_TABLE, ON_CORE_INIT_EVENT, ON_DB_CLEAN_EVENT, ON_DB_FULL_DROP_EVENT, ON_FULL_RESCAN, ON_MARK_CREATED_EVENT, ON_MARK_DELETED_EVENT, ON_MARK_UPDATED_EVENT, ON_PLUGIN_INIT_EVENT, ON_REPRESENTATION_CREATED_EVENT, ON_REPRESENTATION_DELETED_EVENT, ON_REPRESENTATION_UPDATED_EVENT, ON_RESOURCE_CREATED_EVENT, ON_RESOURCE_DELETED_EVENT, ON_RESOURCE_KV_CREATED_EVENT, ON_RESOURCE_KV_DELETED_EVENT, ON_RESOURCE_KV_UPDATED_EVENT, ON_RESOURCE_UPDATED_EVENT, ON_STARTED_EVENT, Plugin, type PluginConstructor, type PromisedContext, REPRESENTATION_DATA_TABLE, REPRESENTATION_INFO_TABLE, REPRESENTATION_SOURCE_TABLE, RESOURCE_DATA_TABLE, RESOURCE_HIERARCHY_TABLE, RESOURCE_INFO_TABLE, type Timestamp, makeIndexFromResourceEntity };

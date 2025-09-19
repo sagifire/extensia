@@ -411,7 +411,6 @@ export default class FsManager implements IInitiable {
 
             let resourceEntity = resourceEntityCtx.result
             let childEntity = childEntityCtx.result
-            let oldParentEntity = oldParentCtx?.result || undefined
 
             childEntity.hierarchy.parent_id = resourceID
 
@@ -444,6 +443,9 @@ export default class FsManager implements IInitiable {
 
                 if (ctx.isSuccess()) {
                     let childNode = this.hierarchyIndexMap.get(childID)
+                    if (oldParentId === null) {
+                        delete this.hierarchyIndexTree.children[childID]
+                    }
                     if (resourceNode && childNode) {
                         resourceNode.children[childID] = childNode
                         childNode.parent = resourceID

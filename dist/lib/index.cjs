@@ -32,6 +32,7 @@ var index_exports = {};
 __export(index_exports, {
   APPLY_PATCH_TABLE: () => APPLY_PATCH_TABLE,
   Config: () => Config,
+  Context: () => Context,
   Extensia: () => Extensia,
   MARK_DATA_TABLE: () => MARK_DATA_TABLE,
   MARK_KV_TABLE: () => MARK_KV_TABLE,
@@ -92,39 +93,6 @@ var ON_RESOURCE_KV_DELETED_EVENT = "on_resource_kv_deleted";
 var ON_DB_FULL_DROP_EVENT = "on_db_full_drop";
 var ON_DB_CLEAN_EVENT = "on_db_clean";
 var ON_FULL_RESCAN = "on_full_rescan";
-
-// src/core/utils.ts
-function nowInS() {
-  return Math.trunc(Date.now() / 1e3);
-}
-function makeIndexFromResourceEntity(resourceEntity) {
-  let representationsIndex = {};
-  let marksIndex = {};
-  let kvIndex = {};
-  for (const representation of resourceEntity.representations || []) {
-    representationsIndex[representation.data.id] = true;
-  }
-  for (const mark of resourceEntity.marks || []) {
-    marksIndex[mark.name + "|" + mark.type] = true;
-  }
-  const kvComponents = resourceEntity.kv || {};
-  for (const kvComponent in kvComponents) {
-    for (const kvAttribute in kvComponents[kvComponent]) {
-      kvIndex[kvComponent + "|" + kvAttribute] = true;
-    }
-  }
-  return {
-    id: resourceEntity.data.id,
-    hierarchy: resourceEntity.hierarchy,
-    representations: representationsIndex,
-    marks: marksIndex,
-    kv: kvIndex
-  };
-}
-
-// src/core/Core.ts
-var import_node_events = require("events");
-var import_knex = __toESM(require("knex"), 1);
 
 // src/core/ErrorCodes.ts
 var Codes = {
@@ -242,6 +210,39 @@ var Context = class {
     return this;
   }
 };
+
+// src/core/utils.ts
+function nowInS() {
+  return Math.trunc(Date.now() / 1e3);
+}
+function makeIndexFromResourceEntity(resourceEntity) {
+  let representationsIndex = {};
+  let marksIndex = {};
+  let kvIndex = {};
+  for (const representation of resourceEntity.representations || []) {
+    representationsIndex[representation.data.id] = true;
+  }
+  for (const mark of resourceEntity.marks || []) {
+    marksIndex[mark.name + "|" + mark.type] = true;
+  }
+  const kvComponents = resourceEntity.kv || {};
+  for (const kvComponent in kvComponents) {
+    for (const kvAttribute in kvComponents[kvComponent]) {
+      kvIndex[kvComponent + "|" + kvAttribute] = true;
+    }
+  }
+  return {
+    id: resourceEntity.data.id,
+    hierarchy: resourceEntity.hierarchy,
+    representations: representationsIndex,
+    marks: marksIndex,
+    kv: kvIndex
+  };
+}
+
+// src/core/Core.ts
+var import_node_events = require("events");
+var import_knex = __toESM(require("knex"), 1);
 
 // src/core/DBSchemeManager.ts
 var DBSchemeManager = class {
@@ -970,7 +971,6 @@ var FsManager = class {
       }
       let resourceEntity = resourceEntityCtx.result;
       let childEntity = childEntityCtx.result;
-      let oldParentEntity = oldParentCtx?.result || void 0;
       childEntity.hierarchy.parent_id = resourceID;
       resourceEntity.hierarchy.children = resourceEntity.hierarchy.children.concat({
         id: childID,
@@ -996,6 +996,9 @@ var FsManager = class {
         }
         if (ctx.isSuccess()) {
           let childNode2 = this.hierarchyIndexMap.get(childID);
+          if (oldParentId === null) {
+            delete this.hierarchyIndexTree.children[childID];
+          }
           if (resourceNode && childNode2) {
             resourceNode.children[childID] = childNode2;
             childNode2.parent = resourceID;
@@ -1944,13 +1947,178 @@ var DbManager = class {
     }
     return ctx;
   }
-  async getMarkListByType(type) {
+  async getMarkStatListByType(type) {
     let ctx = new Context([]);
     try {
-      ctx.result = await this.db(MARK_DATA_TABLE).where({ type }).groupBy("name").select("name", this.db.raw("count(resource_id) as resources"));
+      ctx.result = await this.db(MARK_DATA_TABLE).where({ type }).groupBy("name").select(
+        "name",
+        this.db.raw("count(resource_id) as resources"),
+        this.db.raw("min(value) as min_value"),
+        this.db.raw("max(value) as max_value")
+      );
     } catch (e) {
       ctx.applyException(e);
     }
+    return ctx;
+  }
+  async getMarkList() {
+    let ctx = new Context({});
+    try {
+      let queryResult = await this.db(MARK_DATA_TABLE).groupBy(["type", "name"]).select(
+        "type",
+        "name"
+      );
+      for (const record of queryResult) {
+        if ("undefined" === typeof ctx.result[record.type]) {
+          ctx.result[record.type] = [];
+        }
+        ctx.result[record.type].push(record.name);
+      }
+    } catch (e) {
+      ctx.applyException(e);
+    }
+    return ctx;
+  }
+  async findResources(criteria) {
+    let ctx = new Context([]);
+    const db = this.db;
+    const columnsConfig = {
+      data_id: RESOURCE_DATA_TABLE + ".id",
+      data_created_at: RESOURCE_DATA_TABLE + ".created_at",
+      data_updated_at: RESOURCE_DATA_TABLE + ".updated_at",
+      data_locked: RESOURCE_DATA_TABLE + ".locked",
+      data_hidden: RESOURCE_DATA_TABLE + ".hidden",
+      data_is_deleted: RESOURCE_DATA_TABLE + ".is_deleted",
+      info_title: RESOURCE_INFO_TABLE + ".title",
+      info_description: RESOURCE_INFO_TABLE + ".description",
+      hierarchy_parent_id: RESOURCE_HIERARCHY_TABLE + ".parent_id",
+      hierarchy_order_index: RESOURCE_HIERARCHY_TABLE + ".order_index",
+      representation_data_id: REPRESENTATION_DATA_TABLE + ".id",
+      representation_data_created_at: REPRESENTATION_DATA_TABLE + ".created_at",
+      representation_data_updated_at: REPRESENTATION_DATA_TABLE + ".updated_at",
+      representation_data_type: REPRESENTATION_DATA_TABLE + ".type",
+      representation_data_role: REPRESENTATION_DATA_TABLE + ".role",
+      representation_data_mime: REPRESENTATION_DATA_TABLE + ".mime",
+      representation_data_extension: REPRESENTATION_DATA_TABLE + ".extension",
+      representation_data_is_external: REPRESENTATION_DATA_TABLE + ".is_external",
+      representation_data_is_primary: REPRESENTATION_DATA_TABLE + ".is_primary",
+      representation_data_uploading: REPRESENTATION_DATA_TABLE + ".uploading",
+      representation_source_url: REPRESENTATION_SOURCE_TABLE + ".url",
+      representation_source_derived_from: REPRESENTATION_SOURCE_TABLE + ".derived_from",
+      representation_info_data: REPRESENTATION_INFO_TABLE + ".data",
+      mark_data_name: MARK_DATA_TABLE + ".name",
+      mark_data_type: MARK_DATA_TABLE + ".type",
+      mark_data_value: MARK_DATA_TABLE + ".value",
+      kv_component: MARK_KV_TABLE + ".component",
+      kv_attribute: MARK_KV_TABLE + ".attribute",
+      kv_value: MARK_KV_TABLE + ".value"
+    };
+    let query = this.db(RESOURCE_DATA_TABLE).select().column(columnsConfig);
+    query = query.innerJoin(RESOURCE_INFO_TABLE, function() {
+      this.on(RESOURCE_INFO_TABLE + ".id", "=", RESOURCE_DATA_TABLE + ".id");
+    }).innerJoin(RESOURCE_HIERARCHY_TABLE, function() {
+      let onCondition = this.on(RESOURCE_HIERARCHY_TABLE + ".id", "=", RESOURCE_DATA_TABLE + ".id");
+      if (criteria.hierarchy && criteria.hierarchy.parent_id) {
+        onCondition.andOn(RESOURCE_HIERARCHY_TABLE + ".parent_id", "=", db.raw("?", [criteria.hierarchy.parent_id]));
+      }
+    });
+    query = query.leftJoin(REPRESENTATION_DATA_TABLE, function() {
+      this.on(REPRESENTATION_DATA_TABLE + ".resource_id", "=", RESOURCE_DATA_TABLE + ".id");
+    }).leftJoin(REPRESENTATION_INFO_TABLE, function() {
+      this.on(REPRESENTATION_INFO_TABLE + ".id", "=", REPRESENTATION_DATA_TABLE + ".id");
+    }).leftJoin(REPRESENTATION_SOURCE_TABLE, function() {
+      this.on(REPRESENTATION_SOURCE_TABLE + ".id", "=", REPRESENTATION_DATA_TABLE + ".id");
+    });
+    query = query.leftJoin(MARK_DATA_TABLE, function() {
+      this.on(MARK_DATA_TABLE + ".resource_id", "=", RESOURCE_DATA_TABLE + ".id");
+    }).leftJoin(MARK_KV_TABLE, function() {
+      this.on(MARK_KV_TABLE + ".resource_id", "=", RESOURCE_DATA_TABLE + ".id");
+    });
+    if (criteria.representation && Object.keys(criteria.representation).length > 0) {
+      query = query.innerJoin(REPRESENTATION_DATA_TABLE + " as repCon", function() {
+        let onCondition = this.on(REPRESENTATION_DATA_TABLE + ".resource_id", "=", RESOURCE_DATA_TABLE + ".id");
+        if (criteria.representation?.id) {
+          onCondition.andOn(REPRESENTATION_DATA_TABLE + ".id", "=", db.raw("?", [criteria.representation.id]));
+        }
+        if (criteria.representation?.type) {
+          onCondition.andOn(REPRESENTATION_DATA_TABLE + ".type", "=", db.raw("?", [criteria.representation.type]));
+        }
+        if (criteria.representation?.role) {
+          onCondition.andOn(REPRESENTATION_DATA_TABLE + ".role", "=", db.raw("?", [criteria.representation.role]));
+        }
+        if (criteria.representation?.mime) {
+          onCondition.andOn(REPRESENTATION_DATA_TABLE + ".mime", "=", db.raw("?", [criteria.representation.mime]));
+        }
+        if (criteria.representation?.extension) {
+          onCondition.andOn(REPRESENTATION_DATA_TABLE + ".extension", "=", db.raw("?", [criteria.representation.extension]));
+        }
+        if (criteria.representation?.is_external) {
+          onCondition.andOn(REPRESENTATION_DATA_TABLE + ".is_external", "=", db.raw("?", [criteria.representation.is_external]));
+        }
+        if (criteria.representation?.is_primary) {
+          onCondition.andOn(REPRESENTATION_DATA_TABLE + ".is_primary", "=", db.raw("?", [criteria.representation.is_primary]));
+        }
+        if (criteria.representation?.uploading) {
+          onCondition.andOn(REPRESENTATION_DATA_TABLE + ".uploading", "=", db.raw("?", [criteria.representation.uploading]));
+        }
+      });
+    }
+    const getMarkValueRawCondition = (value) => {
+      let condition = db.raw(MARK_DATA_TABLE + ".value = ?", [value]);
+      if (value === null) {
+        condition = db.raw(MARK_DATA_TABLE + ".value IS NULL");
+      } else if (value === "not null") {
+        condition = db.raw(MARK_DATA_TABLE + ".value IS NOT NULL");
+      } else if (Array.isArray(value)) {
+        if ("string" === typeof value[0]) {
+          condition = db.raw(MARK_DATA_TABLE + ".value " + value[0] + " ?", [value[1]]);
+        } else {
+          condition = db.raw(MARK_DATA_TABLE + ".value >= ? AND " + MARK_DATA_TABLE + ".value <= ?", [value[0], value[1]]);
+        }
+      }
+      return condition;
+    };
+    if (criteria.mark && (!Array.isArray(criteria.mark) || Object.keys(criteria.mark).length > 0)) {
+      if (!Array.isArray(criteria.mark)) {
+        criteria.mark = [criteria.mark];
+      }
+      let joinCount = 0;
+      for (const markAndCondition of criteria.mark) {
+        query = query.innerJoin(MARK_DATA_TABLE + " as mark" + joinCount, function() {
+          let onCondition = this.on(MARK_DATA_TABLE + ".resource_id", "=", RESOURCE_DATA_TABLE + ".id");
+          if (!Array.isArray(markAndCondition)) {
+            onCondition.andOn(MARK_DATA_TABLE + ".type", "=", db.raw("?", [markAndCondition.type]));
+            onCondition.andOn(MARK_DATA_TABLE + ".name", "=", db.raw("?", [markAndCondition.name]));
+            if (markAndCondition.value !== void 0) {
+              onCondition.andOn(getMarkValueRawCondition(markAndCondition.value));
+            }
+          } else {
+            onCondition.andOn(function() {
+              for (const markOrCondition of markAndCondition) {
+                this.orOn(function() {
+                  this.andOn(MARK_DATA_TABLE + ".type", "=", db.raw("?", [markOrCondition.type]));
+                  this.andOn(MARK_DATA_TABLE + ".name", "=", db.raw("?", [markOrCondition.name]));
+                  if (markOrCondition.value !== void 0) {
+                    this.andOn(getMarkValueRawCondition(markOrCondition.value));
+                  }
+                });
+              }
+            });
+          }
+        });
+      }
+    }
+    if (criteria.data) {
+      if (criteria.data.id) {
+        query = query.andWhere({
+          "data_id": criteria.data.id
+        });
+      }
+    }
+    if (criteria.hierarchy && criteria.hierarchy.parent_id) {
+      query = query.orderBy(RESOURCE_HIERARCHY_TABLE + ".order_index", criteria.hierarchy.order || "asc");
+    }
+    ctx.result = await query;
     return ctx;
   }
 };
@@ -2014,7 +2182,7 @@ var Core = class extends import_node_events.EventEmitter {
   async createResource({ info, data = {}, hierarchy = {}, marks = [], kv = {} }) {
     let ctx = new Context(null);
     try {
-      if (hierarchy.parent_id && await this.dbManager.resourceExists(hierarchy.parent_id)) {
+      if (hierarchy.parent_id && !await this.dbManager.resourceExists(hierarchy.parent_id)) {
         ctx.setError(ErrorCodes.PARENT_NOT_FOUND, { entity: "resource" }, { parent_id: hierarchy.parent_id });
         return ctx;
       }
@@ -2030,7 +2198,8 @@ var Core = class extends import_node_events.EventEmitter {
         },
         hierarchy: {
           path: [],
-          parent_id: hierarchy?.parent_id || null,
+          parent_id: null,
+          // hierarchy?.parent_id || null,
           order_index: hierarchy?.order_index || 0,
           children: []
         },
@@ -2079,6 +2248,18 @@ var Core = class extends import_node_events.EventEmitter {
             }
           }
         }
+      }
+    } catch (e) {
+      ctx.applyException(e);
+    }
+    return ctx;
+  }
+  async appendChild(parentId, childId) {
+    let ctx = new Context();
+    try {
+      ctx.apply(await this.fsManager.appendChild(parentId, childId));
+      if (ctx.isSuccess()) {
+        ctx.apply(await this.dbManager.appendChild(parentId, childId));
       }
     } catch (e) {
       ctx.applyException(e);
@@ -2266,8 +2447,14 @@ var Core = class extends import_node_events.EventEmitter {
   resourceKVExists(id, component, attribute) {
     return this.dbManager.resourceKVExists(id, component, attribute);
   }
-  async getMarkListByType(type) {
-    return await this.dbManager.getMarkListByType(type);
+  async getMarkStatListByType(type) {
+    return await this.dbManager.getMarkStatListByType(type);
+  }
+  async getMarkList() {
+    return await this.dbManager.getMarkList();
+  }
+  async findResources(criteria) {
+    return await this.dbManager.findResources(criteria);
   }
   async fullRescan(reportCallback) {
     let ctx = new Context();
@@ -2295,6 +2482,9 @@ var Storage = class extends Plugin {
   }
   createResource(factoryData) {
     return this.api.createResource(factoryData);
+  }
+  appendChild(parentId, childId) {
+    return this.api.appendChild(parentId, childId);
   }
   createRepresentation(resourceId, factoryData) {
     return this.api.createRepresentation(resourceId, factoryData);
@@ -2349,8 +2539,14 @@ var Query = class extends Plugin {
   resourceKVExists(id, component, attribute) {
     return this.api.resourceKVExists(id, component, attribute);
   }
-  async getMarkListByType(type) {
-    return await this.api.getMarkListByType(type);
+  getMarkStatListByType(type) {
+    return this.api.getMarkStatListByType(type);
+  }
+  getMarkList() {
+    return this.api.getMarkList();
+  }
+  async findResources(criteria) {
+    return await this.api.findResources(criteria);
   }
 };
 
@@ -2420,6 +2616,7 @@ var Config = class {
 0 && (module.exports = {
   APPLY_PATCH_TABLE,
   Config,
+  Context,
   Extensia,
   MARK_DATA_TABLE,
   MARK_KV_TABLE,
