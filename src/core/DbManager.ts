@@ -466,8 +466,8 @@ export default class DbManager {
             uploading?: boolean
         }
         mark?: IMarkCriteria
-    }): PromisedContext<Object[]> {
-        let ctx = new Context<Object[]>([])
+    }): PromisedContext<IResourceDTE[]> {
+        let ctx = new Context<IResourceDTE[]>([])
 
         const db = this.db
 
@@ -580,7 +580,7 @@ export default class DbManager {
                 })
         }
 
-        const getMarkValueRawCondition = (value: IMarkItemCriteria['value']) => {
+        const getMarkValueRawCondition = (value: IMarkItemCriteria['value']): Knex.Raw => {
             let condition: Knex.Raw = db.raw(MARK_DATA_TABLE + '.value = ?', [value])
             if (value === null) {
                 condition = db.raw(MARK_DATA_TABLE + '.value IS NULL')
@@ -643,7 +643,102 @@ export default class DbManager {
 
         // console.log(query.toSQL())
 
-        ctx.result = await query
+        // populate data
+        const resourcesIndex = new Map<IDString, IResourceDTE>()
+        const representationsIndex = new Set<IDString>()
+        const markIndex = new Set<string>()
+        const kvIndex = new Set<string>()
+
+        const result = await query
+
+        for (const record of result) {
+            if (!resourcesIndex.has(record.data_id)) {
+                let resourceEntity: IResourceDTE = {
+                    data: {
+                        id: record.data_id,
+                        created_at: record.data_created_at,
+                        updated_at: record.data_updated_at,
+                        hidden: record.data_hidden,
+                        locked: record.data_locked,
+                        is_deleted: record.data_is_deleted
+                    },
+                    hierarchy: {
+                        parent_id: record.hierarchy_parent_id,
+                        order_index: record.hierarchy_order_index,
+                        path: this.getPaths(record.data_id),
+                        children: []
+                    },
+                    info: {
+                        title: record.info_title,
+                        description: record.info_description
+                    },
+                    representations: [],
+                    marks: [],
+                    kv: {}
+                }
+                ctx.result.push(resourceEntity)
+                resourcesIndex.set(record.data_id, resourceEntity)
+            }
+            if (!representationsIndex.has(record.representation_data_id)) {
+                let representationEntity = {
+                    data: {
+                        id: record.representation_data_id,
+                        type: record.representation_data_type,
+                        role: record.representation_data_role,
+                        mime: record.representation_data_mime,
+                        extension: record.representation_data_extension,
+                        created_at: record.representation_data_created_at,
+                        updated_at: record.representation_data_updated_at,
+                        is_primary: record.representation_data_is_primary,
+                        is_external: record.representation_data_is_external,
+                        uploading: record.representation_data_uploading
+                    },
+                    source: {
+                        url: record.representation_source_url,
+                        derived_from: record.representation_source_derived_from
+                    },
+                    info: {
+                        data: record.representation_info_data as (Record<string, unknown> | null)
+                    }
+                }
+
+                resourcesIndex.get(record.data_id)!.representations.push(representationEntity)
+                representationsIndex.add(record.representation_data_id)
+            }
+            const markKey = '' + record.data_id + record.mark_data_type + record.mark_data_name
+            if (!markIndex.has(markKey)) {
+                const markEntity = {
+                    type: record.mark_data_type,
+                    name: record.mark_data_name,
+                    value: record.mark_data_value
+                }
+
+                resourcesIndex.get(record.data_id)!.marks.push(markEntity)
+                markIndex.add(markKey)
+            }
+            const kvKey = '' + record.kv_component + record.kv_attribute + record.kv_value
+            if (!kvIndex.has(kvKey)) {
+                let resourceEntity = resourcesIndex.get(record.data_id)!
+                if ('undefined' === typeof resourceEntity.kv[record.kv_component]) {
+                    resourceEntity.kv[record.kv_component] = {}
+                }
+                resourceEntity.kv[record.kv_component][record.kv_attribute] = record.kv_value
+                kvIndex.add(kvKey)
+            }
+        }
+
+        const childrenResult = await this.db<IResourceHierarchyRecord>(RESOURCE_HIERARCHY_TABLE)
+            .select()
+            .whereIn('parent_id', Array.from(resourcesIndex.keys()))
+            .orderBy([{column: 'parent_id'} , {column: 'order_index'}])
+
+        for (const childRecord of childrenResult) {
+            const resourceEntity = resourcesIndex.get(childRecord.parent_id as string)!
+            resourceEntity.hierarchy.children.push({
+                id: childRecord.id,
+                order_index: childRecord.order_index
+            })
+        }
 
         return ctx
     }

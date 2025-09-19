@@ -1,6 +1,6 @@
 import Plugin from '../core/Plugin.js'
 import type Core from '../core/Core.js'
-import { IDString, IMarkCriteria } from '../core/contracts.js'
+import { IDString, IMarkCriteria, IResourceDTE } from '../core/contracts.js'
 import { Context, PromisedContext } from '../core/Context.js'
 
 export default class Query extends Plugin {
@@ -57,7 +57,7 @@ export default class Query extends Plugin {
             uploading?: boolean
         }
         mark?: IMarkCriteria
-    }): PromisedContext<Object[]> {
+    }): PromisedContext<IResourceDTE[]> {
         return await this.api.findResources(criteria)
     }
 }
