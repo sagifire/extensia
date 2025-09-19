@@ -3,6 +3,7 @@
 import type { Knex } from 'knex'
 
 import type Core from './Core.js'
+import { PromisedContext } from './Context.js'
 
 export type IDString = string // 16 char id
 export type Timestamp = number
@@ -104,6 +105,12 @@ export interface IResourceComponentsIndex {
     kv: {[key:string]: true}
 }
 
+export interface IMarkParam {
+    name: string
+    type: string
+    value?: number | null
+}
+
 // ### DB CONTRACTS
 
 export const APPLY_PATCH_TABLE = 'applied_patches'
@@ -157,7 +164,7 @@ export interface IMarkKVRecord {
 export type DBSchemePatch = (db: Knex) => Promise<boolean>
 
 export interface IPlugin {
-    init(): Promise<void>
+    init(): PromisedContext
 }
 
 export type PluginConstructor = (new (api: Core) => IPlugin) & { name: string }
@@ -201,4 +208,8 @@ export interface IUploadingPartReport {
     resourceId: IDString | null
     isComplete: boolean
     data: Record<string, unknown> | null
+}
+
+export interface IInitiable {
+    init(): PromisedContext
 }

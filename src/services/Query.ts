@@ -1,14 +1,17 @@
 import Plugin from '../core/Plugin.js'
 import type Core from '../core/Core.js'
 import { IDString } from '../core/contracts.js'
+import { Context, PromisedContext } from '../core/Context.js'
 
 export default class Query extends Plugin {
     constructor(api: Core) {
         super(api)
     }
 
-    public async init(): Promise<void> {
+    public async init(): PromisedContext {
+        let ctx = new Context()
         // TODO IF NEED
+        return ctx
     }
 
     public resourceExists(id: string): Promise<boolean> {
@@ -27,7 +30,7 @@ export default class Query extends Plugin {
         return this.api.resourceKVExists(id, component, attribute)
     }
 
-    public async getMarkListByType(type: string): Promise<{ name: string, resources: number }[]> {
+    public async getMarkListByType(type: string): PromisedContext<{ name: string, resources: number }[]> {
         return await this.api.getMarkListByType(type)
     }
 }

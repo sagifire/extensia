@@ -26,17 +26,57 @@ declare class Config implements ExtensiaConfig {
     constructor(initConfig: ExtensiaConfig);
 }
 
-declare class DBSchemeManager {
+declare const Codes: {
+    THROWN_EXCEPTION: string;
+    THROWN_UNKNOWN: string;
+    INVALID_ERROR_CODE: string;
+    CONFLICT: string;
+    CANNOT_ROLLBACK: string;
+    CANNOT_APPLY: string;
+    BROKEN_INDEX: string;
+    PARENT_NOT_FOUND: string;
+    INVALID_DATA: string;
+    NOT_FOUND: string;
+};
+type ErrorCode = keyof typeof Codes;
+
+declare class Context<T = undefined> {
+    protected resultValue: T;
+    protected statusValue: boolean;
+    protected errorMessage: string | undefined;
+    protected errorCodeValue: ErrorCode | undefined;
+    protected errorInfoData: Record<string, unknown>;
+    scope: Record<string, unknown>;
+    constructor(...args: [T] extends [undefined] ? [] : [init: T]);
+    isSuccess(): boolean;
+    isFailed(): boolean;
+    set status(newStatus: boolean);
+    get status(): boolean;
+    get result(): T;
+    set result(newResult: T);
+    $cast<T>(): Context<T>;
+    setupResult<X>(result: X): Context<X>;
+    get error(): string | undefined;
+    get errorCode(): ErrorCode | undefined;
+    get errorInfo(): Record<string, unknown>;
+    setError(code: ErrorCode, placeholders?: Record<string, string | number>, info?: Record<string, unknown>): void;
+    apply<X>(ctx: Context<X>): this;
+    applyResult<X>(ctx: Context<X>): Context<X>;
+    applyException(err: Error | unknown): this;
+}
+type PromisedContext<T = void> = Promise<Context<T>>;
+
+declare class DBSchemeManager implements IInitiable {
     protected readonly db: Knex;
     protected readonly logger: ILogger;
     protected appliedPatches: string[];
     protected readonly genericPatches: Record<string, DBSchemePatch>;
     constructor(db: Knex, logger: ILogger);
-    init(applyGeneric?: boolean): Promise<void>;
-    applySchemePatch(id: string, patch: DBSchemePatch): Promise<boolean>;
-    rollbackSchemePatch(id: string, patch: DBSchemePatch): Promise<boolean>;
-    getOrInitAppliedPatches(): Promise<string[]>;
-    fullDrop(): Promise<void>;
+    init(applyGeneric?: boolean): PromisedContext;
+    applySchemePatch(id: string, patch: DBSchemePatch): PromisedContext;
+    rollbackSchemePatch(id: string, patch: DBSchemePatch): PromisedContext;
+    getOrInitAppliedPatchesList(): PromisedContext<string[]>;
+    fullDrop(): PromisedContext;
 }
 
 type Releaser = () => void;
@@ -82,7 +122,7 @@ type HierarchyNode = {
     children: Record<IDString, HierarchyNode>;
     representations: Record<IDString, boolean>;
 };
-declare class FsManager {
+declare class FsManager implements IInitiable {
     protected readonly config: Config['storage'];
     protected readonly logger: ILogger;
     protected absoluteRoot: string;
@@ -91,11 +131,11 @@ declare class FsManager {
     protected hierarchyIndexMap: Map<IDString, HierarchyNode>;
     protected representationResourceMap: Map<IDString, IDString>;
     constructor(config: Config['storage'], logger: ILogger);
-    init(): Promise<void>;
+    init(): PromisedContext;
     protected getHierarchyIndexFilePath(): string;
     protected indexHierarchyNodeRecursive(node: HierarchyNode): void;
-    protected initHierarchyIndex(): Promise<void>;
-    protected saveHierarchyIndex(lock?: boolean): Promise<void>;
+    protected initHierarchyIndex(): PromisedContext;
+    protected saveHierarchyIndex(lock?: boolean): PromisedContext;
     getPath(id: IDString): string[];
     getResourceIdByRepresentationId(representationId: IDString): IDString | null;
     resourceMetafileToDTE(resourceMetafile: IResourceMetafile): IResourceDTE;
@@ -105,32 +145,25 @@ declare class FsManager {
     protected deleteFromIndex(id: IDString): void;
     getResourceDirectory(id: IDString): string;
     getResourceFilePath(id: IDString): string;
-    createResourceMetafile(resourceMetafile: IResourceMetafile): Promise<boolean>;
-    protected updateResourceMetafile(resourceId: IDString, patch: IResourceMetafile | ((resourceMetafile: IResourceMetafile) => Promise<IResourceMetafile>), lock?: boolean): Promise<boolean>;
-    updateResource(resourceMetafile: IResourceMetafile): Promise<boolean>;
-    getResourceMetafile(resourceId: IDString): Promise<IResourceMetafile | null>;
-    appendChild(resourceID: IDString, childID: IDString): Promise<boolean>;
-    deleteResource(resourceId: IDString, recursive?: boolean): Promise<boolean>;
-    protected deleteResourceFiles(resourceId: IDString): Promise<void>;
+    createResourceMetafile(resourceMetafile: IResourceMetafile): PromisedContext;
+    protected updateResourceMetafile(resourceId: IDString, patch: IResourceMetafile | ((resourceMetafile: IResourceMetafile) => Promise<IResourceMetafile>), lock?: boolean): PromisedContext;
+    updateResource(resourceMetafile: IResourceMetafile): PromisedContext;
+    getResourceMetafile(resourceId: IDString): PromisedContext<IResourceMetafile | null>;
+    appendChild(resourceID: IDString, childID: IDString): PromisedContext;
+    deleteResource(resourceId: IDString, recursive?: boolean): PromisedContext;
+    protected deleteResourceFiles(resourceId: IDString): PromisedContext;
     resourceExists(resourceId: IDString): Promise<boolean>;
-    changeParent(resourceId: IDString, newParentId: IDString | null): Promise<boolean>;
-    changeOrderIndex(resourceId: IDString, newOrderIndex: number): Promise<boolean>;
-    createRepresentation(resourceId: IDString, representationEntity: IRepresentationDTE): Promise<boolean>;
-    uploadRepresentationPart(representationId: IDString, chunk: Buffer, offset?: number, length?: number | undefined): Promise<IUploadingPartReport>;
-    finishRepresentationUpload(representationId: IDString): Promise<boolean>;
-    makeRepresentationPrimary(resourceId: IDString, representationId: IDString): Promise<boolean>;
-    deleteRepresentation(representationId: IDString): Promise<boolean>;
-    deleteMarks(resourceId: IDString, marks: {
-        name: string;
-        type: string;
-    }[]): Promise<boolean>;
-    deleteResourceKV(resourceId: IDString, componentKeys: IResourceKV): Promise<boolean>;
-    setMarks(resourceId: IDString, marks: {
-        name: string;
-        type: string;
-        value: number | null;
-    }[]): Promise<boolean>;
-    setResourceKV(resourceId: IDString, componentKeys: IResourceKV): Promise<boolean>;
+    changeParent(resourceId: IDString, newParentId: IDString | null): PromisedContext;
+    changeOrderIndex(resourceId: IDString, newOrderIndex: number): PromisedContext;
+    createRepresentation(resourceId: IDString, representationEntity: IRepresentationDTE): PromisedContext;
+    uploadRepresentationPart(representationId: IDString, chunk: Buffer, offset?: number, length?: number | undefined): PromisedContext<IUploadingPartReport>;
+    finishRepresentationUpload(representationId: IDString): PromisedContext;
+    makeRepresentationPrimary(resourceId: IDString, representationId: IDString, lock?: boolean): PromisedContext;
+    deleteRepresentation(representationId: IDString): PromisedContext;
+    deleteMarks(resourceId: IDString, marks: IMarkParam[]): PromisedContext;
+    deleteResourceKV(resourceId: IDString, componentKeys: IResourceKV): PromisedContext;
+    setMarks(resourceId: IDString, marks: IMarkParam[]): PromisedContext;
+    setResourceKV(resourceId: IDString, componentKeys: IResourceKV): PromisedContext;
 }
 
 declare class DbManager {
@@ -140,33 +173,33 @@ declare class DbManager {
     protected readonly getPaths: (resourceId: IDString) => string[];
     constructor(db: Knex, config: Config['db'], // reserved
     logger: ILogger, getPaths: (resourceId: IDString) => string[]);
-    createResourceRecord(resourceEntity: IResourceDTE): Promise<boolean>;
+    createResourceRecord(resourceEntity: IResourceDTE): PromisedContext;
     resourceExists(resourceId: IDString): Promise<boolean>;
-    appendChild(resourceId: IDString, childID: IDString): Promise<boolean>;
-    changeParent(resourceId: IDString, newParentId: IDString | null): Promise<boolean>;
-    changeOrderIndex(resourceId: IDString, newOrderIndex: number): Promise<boolean>;
-    updateRepresentationInfo(representationId: IDString, info: IRepresentationInfoDTC): Promise<boolean>;
-    createRepresentation(resourceId: IDString, representationEntity: IRepresentationDTE): Promise<boolean>;
-    updateRepresentation(representationId: IDString, representationEntity: IRepresentationDTE): Promise<boolean>;
+    appendChild(resourceId: IDString, childID: IDString): PromisedContext;
+    changeParent(resourceId: IDString, newParentId: IDString | null): PromisedContext;
+    changeOrderIndex(resourceId: IDString, newOrderIndex: number): PromisedContext;
+    updateRepresentationInfo(representationId: IDString, info: IRepresentationInfoDTC): PromisedContext;
+    createRepresentation(resourceId: IDString, representationEntity: IRepresentationDTE): PromisedContext;
+    updateRepresentation(representationId: IDString, representationEntity: IRepresentationDTE): PromisedContext;
     representationExists(representationID: IDString): Promise<boolean>;
     markExists(resourceId: IDString, name: string, type: string): Promise<boolean>;
     resourceKVExists(resourceId: IDString, component: string, attribute: string): Promise<boolean>;
-    deleteResource(resourceId: IDString): Promise<boolean>;
-    deleteRepresentation(representationId: IDString): Promise<boolean>;
+    deleteResource(resourceId: IDString): PromisedContext;
+    deleteRepresentation(representationId: IDString): PromisedContext;
     deleteMarks(resourceId: IDString, marks: {
         name: string;
         type: string;
-    }[]): Promise<boolean>;
-    deleteResourceKV(resourceId: IDString, componentKeys: IResourceKV): Promise<boolean>;
+    }[]): PromisedContext;
+    deleteResourceKV(resourceId: IDString, componentKeys: IResourceKV): PromisedContext;
     setMarks(resourceId: IDString, marks: {
         name: string;
         type: string;
         value: number | null;
-    }[]): Promise<boolean>;
-    setResourceKV(resourceId: IDString, componentKeys: IResourceKV): Promise<boolean>;
-    makeRepresentationPrimary(resourceId: IDString, representationId: IDString): Promise<boolean>;
-    deleteAllRecords(): Promise<boolean>;
-    getMarkListByType(type: string): Promise<{
+    }[]): PromisedContext;
+    setResourceKV(resourceId: IDString, componentKeys: IResourceKV): PromisedContext;
+    makeRepresentationPrimary(resourceId: IDString, representationId: IDString): PromisedContext;
+    deleteAllRecords(): PromisedContext;
+    getMarkListByType(type: string): PromisedContext<{
         name: string;
         resources: number;
     }[]>;
@@ -187,11 +220,14 @@ declare class Core extends EventEmitter {
     readonly logger: ILogger;
     constructor(config: Config);
     init(): Promise<void>;
-    dbFullDrop(): Promise<void>;
-    applyDbSchemePatch(id: string, patch: DBSchemePatch): Promise<boolean>;
-    rollbackDbSchemePatch(id: string, patch: DBSchemePatch): Promise<boolean>;
+    dbFullDrop(): PromisedContext;
+    applyDbSchemePatch(id: string, patch: DBSchemePatch): PromisedContext;
+    rollbackDbSchemePatch(id: string, patch: DBSchemePatch): PromisedContext;
     createResource({ info, data, hierarchy, marks, kv }: {
-        info: IResourceInfoDTC;
+        info: {
+            title: string;
+            description?: string | null;
+        };
         data?: {
             locked?: boolean;
             hidden?: boolean;
@@ -200,9 +236,9 @@ declare class Core extends EventEmitter {
             parent_id?: IDString | null;
             order_index?: number;
         };
-        marks?: IMarkData[];
+        marks?: IMarkParam[];
         kv?: IResourceKV;
-    }): Promise<boolean>;
+    }): PromisedContext<IDString | null>;
     createRepresentation(resourceId: IDString, { data, infoData, source }: {
         data: {
             type: string;
@@ -215,35 +251,35 @@ declare class Core extends EventEmitter {
             derived_from?: IDString | null;
         };
         infoData?: Record<string, unknown> | null;
-    }): Promise<IRepresentationDTE | null>;
-    makeRepresentationPrimary(resourceId: IDString, representationId: IDString): Promise<boolean>;
-    deleteResource(id: IDString): Promise<boolean>;
-    deleteRepresentation(id: IDString): Promise<boolean>;
+    }): PromisedContext<IDString | null>;
+    makeRepresentationPrimary(resourceId: IDString, representationId: IDString): PromisedContext;
+    deleteResource(id: IDString): PromisedContext;
+    deleteRepresentation(id: IDString): PromisedContext;
     deleteMark(id: IDString, marks: {
         name: string;
         type: string;
-    }[]): Promise<boolean>;
-    deleteResourceKV(id: IDString, componentKeys: IResourceKV): Promise<boolean>;
+    }[]): PromisedContext;
+    deleteResourceKV(id: IDString, componentKeys: IResourceKV): PromisedContext;
     setMarks(resourceId: IDString, marks: {
         name: string;
         type: string;
         value: number | null;
-    }[]): Promise<boolean>;
-    setResourceKV(resourceId: IDString, componentKeys: IResourceKV): Promise<boolean>;
-    uploadRepresentationPart(representationId: IDString, chunk: Buffer, offset?: number, length?: number | undefined): Promise<IUploadingPartReport>;
-    finishRepresentationUpload(representationId: IDString): Promise<boolean>;
+    }[]): PromisedContext;
+    setResourceKV(resourceId: IDString, componentKeys: IResourceKV): PromisedContext;
+    uploadRepresentationPart(representationId: IDString, chunk: Buffer, offset?: number, length?: number | undefined): PromisedContext<IUploadingPartReport>;
+    finishRepresentationUpload(representationId: IDString): PromisedContext;
     resourceExists(id: IDString): Promise<boolean>;
     representationExists(id: IDString): Promise<boolean>;
     markExists(id: IDString, name: string, type: string): Promise<boolean>;
     resourceKVExists(id: IDString, component: string, attribute: string): Promise<boolean>;
-    getMarkListByType(type: string): Promise<{
+    getMarkListByType(type: string): PromisedContext<{
         name: string;
         resources: number;
     }[]>;
     fullRescan(reportCallback: (report: {
         resources: number;
         representations: number;
-    }) => Promise<void>): Promise<void>;
+    }) => Promise<void>): PromisedContext;
 }
 
 type IDString = string;
@@ -340,6 +376,11 @@ interface IResourceComponentsIndex {
         [key: string]: true;
     };
 }
+interface IMarkParam {
+    name: string;
+    type: string;
+    value?: number | null;
+}
 declare const APPLY_PATCH_TABLE = "applied_patches";
 declare const RESOURCE_DATA_TABLE = "resource_data";
 declare const RESOURCE_INFO_TABLE = "resource_info";
@@ -383,7 +424,7 @@ interface IMarkKVRecord {
 }
 type DBSchemePatch = (db: Knex) => Promise<boolean>;
 interface IPlugin {
-    init(): Promise<void>;
+    init(): PromisedContext;
 }
 type PluginConstructor = (new (api: Core) => IPlugin) & {
     name: string;
@@ -420,6 +461,9 @@ interface IUploadingPartReport {
     isComplete: boolean;
     data: Record<string, unknown> | null;
 }
+interface IInitiable {
+    init(): PromisedContext;
+}
 
 declare function makeIndexFromResourceEntity(resourceEntity: IResourceDTE): Readonly<IResourceComponentsIndex>;
 
@@ -427,23 +471,28 @@ declare abstract class Plugin implements IPlugin {
     protected readonly api: Core;
     static readonly name: never;
     protected constructor(api: Core);
-    abstract init(): Promise<void>;
+    abstract init(): PromisedContext;
 }
 
 declare class Storage extends Plugin {
     constructor(api: Core);
-    init(): Promise<void>;
+    init(): PromisedContext;
     createResource(factoryData: {
-        info: IResourceInfoDTC;
+        info: {
+            title: string;
+            description?: string | null;
+        };
         data?: {
-            set_ref_id?: string | null;
-            set_order_index?: number;
             locked?: boolean;
             hidden?: boolean;
         };
-        marks?: IMarkData[];
+        hierarchy?: {
+            parent_id?: IDString | null;
+            order_index?: number;
+        };
+        marks?: IMarkParam[];
         kv?: IResourceKV;
-    }): Promise<boolean>;
+    }): PromisedContext<IDString | null>;
     createRepresentation(resourceId: IDString, factoryData: {
         data: {
             type: string;
@@ -456,31 +505,33 @@ declare class Storage extends Plugin {
             derived_from?: IDString | null;
         };
         infoData?: Record<string, unknown> | null;
-    }): Promise<IRepresentationDTE | null>;
-    makeRepresentationPrimary(resourceId: IDString, id: IDString): Promise<boolean>;
-    deleteResource(id: IDString): Promise<boolean>;
-    deleteRepresentation(id: IDString): Promise<boolean>;
+    }): PromisedContext<IDString | null>;
+    makeRepresentationPrimary(resourceId: IDString, id: IDString): PromisedContext;
+    uploadRepresentationPart(representationId: IDString, chunk: Buffer, offset?: number, length?: number | undefined): PromisedContext<IUploadingPartReport>;
+    finishRepresentationUpload(representationId: IDString): PromisedContext;
+    deleteResource(id: IDString): PromisedContext;
+    deleteRepresentation(id: IDString): PromisedContext;
     deleteMarks(id: IDString, marks: {
         name: string;
         type: string;
-    }[]): Promise<boolean>;
-    deleteResourceKV(id: IDString, componentKeys: IResourceKV): Promise<boolean>;
+    }[]): PromisedContext;
+    deleteResourceKV(id: IDString, componentKeys: IResourceKV): PromisedContext;
     setMarks(resourceId: IDString, marks: {
         name: string;
         type: string;
         value: number | null;
-    }[]): Promise<boolean>;
-    setResourceKV(resourceId: IDString, componentKeys: IResourceKV): Promise<boolean>;
+    }[]): PromisedContext;
+    setResourceKV(resourceId: IDString, componentKeys: IResourceKV): PromisedContext;
 }
 
 declare class Query extends Plugin {
     constructor(api: Core);
-    init(): Promise<void>;
+    init(): PromisedContext;
     resourceExists(id: string): Promise<boolean>;
     representationExists(id: IDString): Promise<boolean>;
     markExists(id: IDString, name: string, type: string): Promise<boolean>;
     resourceKVExists(id: IDString, component: string, attribute: string): Promise<boolean>;
-    getMarkListByType(type: string): Promise<{
+    getMarkListByType(type: string): PromisedContext<{
         name: string;
         resources: number;
     }[]>;
@@ -498,4 +549,4 @@ declare class Extensia {
     storage(): Storage;
 }
 
-export { APPLY_PATCH_TABLE, type AppliedPatchRecord, Config, type DBSchemePatch, Extensia, type IDString, type ILogger, type IMarkData, type IMarkDataRecord, type IMarkKVRecord, type IPlugin, type IRepresentationDTE, type IRepresentationDataDTC, type IRepresentationDataRecord, type IRepresentationInfoDTC, type IRepresentationInfoRecord, type IRepresentationSourceDTC, type IRepresentationSourceRecord, type IResourceComponentsIndex, type IResourceDTE, type IResourceDataDTC, type IResourceDataRecord, type IResourceHierarchyDTC, type IResourceHierarchyMetaComponent, type IResourceHierarchyRecord, type IResourceInfoDTC, type IResourceInfoRecord, type IResourceKV, type IResourceMetafile, type IUploadingPartReport, MARK_DATA_TABLE, MARK_KV_TABLE, ON_CORE_INIT_EVENT, ON_DB_CLEAN_EVENT, ON_DB_FULL_DROP_EVENT, ON_FULL_RESCAN, ON_MARK_CREATED_EVENT, ON_MARK_DELETED_EVENT, ON_MARK_UPDATED_EVENT, ON_PLUGIN_INIT_EVENT, ON_REPRESENTATION_CREATED_EVENT, ON_REPRESENTATION_DELETED_EVENT, ON_REPRESENTATION_UPDATED_EVENT, ON_RESOURCE_CREATED_EVENT, ON_RESOURCE_DELETED_EVENT, ON_RESOURCE_KV_CREATED_EVENT, ON_RESOURCE_KV_DELETED_EVENT, ON_RESOURCE_KV_UPDATED_EVENT, ON_RESOURCE_UPDATED_EVENT, ON_STARTED_EVENT, Plugin, type PluginConstructor, REPRESENTATION_DATA_TABLE, REPRESENTATION_INFO_TABLE, REPRESENTATION_SOURCE_TABLE, RESOURCE_DATA_TABLE, RESOURCE_HIERARCHY_TABLE, RESOURCE_INFO_TABLE, type Timestamp, makeIndexFromResourceEntity };
+export { APPLY_PATCH_TABLE, type AppliedPatchRecord, Config, type DBSchemePatch, Extensia, type IDString, type IInitiable, type ILogger, type IMarkData, type IMarkDataRecord, type IMarkKVRecord, type IMarkParam, type IPlugin, type IRepresentationDTE, type IRepresentationDataDTC, type IRepresentationDataRecord, type IRepresentationInfoDTC, type IRepresentationInfoRecord, type IRepresentationSourceDTC, type IRepresentationSourceRecord, type IResourceComponentsIndex, type IResourceDTE, type IResourceDataDTC, type IResourceDataRecord, type IResourceHierarchyDTC, type IResourceHierarchyMetaComponent, type IResourceHierarchyRecord, type IResourceInfoDTC, type IResourceInfoRecord, type IResourceKV, type IResourceMetafile, type IUploadingPartReport, MARK_DATA_TABLE, MARK_KV_TABLE, ON_CORE_INIT_EVENT, ON_DB_CLEAN_EVENT, ON_DB_FULL_DROP_EVENT, ON_FULL_RESCAN, ON_MARK_CREATED_EVENT, ON_MARK_DELETED_EVENT, ON_MARK_UPDATED_EVENT, ON_PLUGIN_INIT_EVENT, ON_REPRESENTATION_CREATED_EVENT, ON_REPRESENTATION_DELETED_EVENT, ON_REPRESENTATION_UPDATED_EVENT, ON_RESOURCE_CREATED_EVENT, ON_RESOURCE_DELETED_EVENT, ON_RESOURCE_KV_CREATED_EVENT, ON_RESOURCE_KV_DELETED_EVENT, ON_RESOURCE_KV_UPDATED_EVENT, ON_RESOURCE_UPDATED_EVENT, ON_STARTED_EVENT, Plugin, type PluginConstructor, REPRESENTATION_DATA_TABLE, REPRESENTATION_INFO_TABLE, REPRESENTATION_SOURCE_TABLE, RESOURCE_DATA_TABLE, RESOURCE_HIERARCHY_TABLE, RESOURCE_INFO_TABLE, type Timestamp, makeIndexFromResourceEntity };

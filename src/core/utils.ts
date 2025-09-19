@@ -1,6 +1,6 @@
 import { IResourceComponentsIndex, IResourceDTE } from './contracts.js'
 
-export function nowInMS(): number {
+export function nowInS(): number {
     return Math.trunc(Date.now() / 1000)
 }
 

@@ -94,7 +94,7 @@ var ON_DB_CLEAN_EVENT = "on_db_clean";
 var ON_FULL_RESCAN = "on_full_rescan";
 
 // src/core/utils.ts
-function nowInMS() {
+function nowInS() {
   return Math.trunc(Date.now() / 1e3);
 }
 function makeIndexFromResourceEntity(resourceEntity) {
@@ -126,6 +126,123 @@ function makeIndexFromResourceEntity(resourceEntity) {
 var import_node_events = require("events");
 var import_knex = __toESM(require("knex"), 1);
 
+// src/core/ErrorCodes.ts
+var Codes = {
+  THROWN_EXCEPTION: "THROWN_EXCEPTION",
+  THROWN_UNKNOWN: "THROWN_UNKNOWN",
+  INVALID_ERROR_CODE: "INVALID_ERROR_CODE",
+  CONFLICT: "CONFLICT",
+  CANNOT_ROLLBACK: "CANNOT_ROLLBACK",
+  CANNOT_APPLY: "CANNOT_APPLY",
+  BROKEN_INDEX: "BROKEN_INDEX",
+  PARENT_NOT_FOUND: "PARENT_NOT_FOUND",
+  INVALID_DATA: "INVALID_DATA",
+  NOT_FOUND: "NOT_FOUND"
+};
+var ErrorCodes = Codes;
+var ErrorMessages = {
+  THROWN_EXCEPTION: "{message}",
+  THROWN_UNKNOWN: "Unknown is thrown as error",
+  INVALID_ERROR_CODE: "{code}",
+  CONFLICT: "{reason}",
+  CANNOT_ROLLBACK: "Cannot rollback {target}",
+  CANNOT_APPLY: "Cannot apply {target}",
+  BROKEN_INDEX: "{reason}, need store reindex!",
+  PARENT_NOT_FOUND: "Parent {entity} not found",
+  INVALID_DATA: "Invalid {entity}",
+  NOT_FOUND: "{entity} not found"
+};
+
+// src/core/Context.ts
+var Context = class {
+  resultValue;
+  statusValue = true;
+  errorMessage = void 0;
+  errorCodeValue = void 0;
+  errorInfoData = {};
+  scope = {};
+  constructor(...args) {
+    this.resultValue = args.length ? args[0] : void 0;
+  }
+  isSuccess() {
+    return this.status;
+  }
+  isFailed() {
+    return !this.status;
+  }
+  set status(newStatus) {
+    this.statusValue = newStatus;
+  }
+  get status() {
+    return this.statusValue;
+  }
+  get result() {
+    return this.resultValue;
+  }
+  set result(newResult) {
+    this.resultValue = newResult;
+  }
+  $cast() {
+    return this;
+  }
+  setupResult(result) {
+    const casted = this.$cast();
+    casted.result = result;
+    return casted;
+  }
+  get error() {
+    return this.errorMessage;
+  }
+  get errorCode() {
+    return this.errorCodeValue;
+  }
+  get errorInfo() {
+    return this.errorInfoData;
+  }
+  setError(code, placeholders = {}, info = {}) {
+    this.status = false;
+    if ("undefined" === typeof ErrorCodes[code]) {
+      this.errorCodeValue = ErrorCodes.INVALID_ERROR_CODE;
+      this.errorMessage = this.errorCodeValue + ": " + ErrorMessages[ErrorCodes.INVALID_ERROR_CODE].replace("{code}", code);
+      this.errorInfoData = {
+        invalidError: { code, placeholders, info }
+      };
+    } else {
+      this.errorCodeValue = code;
+      this.errorMessage = code + ": " + ErrorMessages[code];
+      this.errorInfoData = info;
+      for (const placeholderName in placeholders) {
+        this.errorMessage = this.errorMessage?.replace(
+          "{" + placeholderName + "}",
+          "" + placeholders[placeholderName]
+        );
+      }
+    }
+  }
+  apply(ctx) {
+    this.status = this.status && ctx.status;
+    this.errorMessage = ctx.error;
+    this.errorCodeValue = ctx.errorCode;
+    this.errorInfoData = ctx.errorInfo;
+    return this;
+  }
+  applyResult(ctx) {
+    return this.apply(ctx).setupResult(ctx.result);
+  }
+  applyException(err) {
+    if (err instanceof Error) {
+      this.setError(ErrorCodes.THROWN_EXCEPTION, {
+        message: err.message
+      }, {
+        stack: err.stack
+      });
+    } else {
+      this.setError(ErrorCodes.THROWN_UNKNOWN, {}, { unknown: err });
+    }
+    return this;
+  }
+};
+
 // src/core/DBSchemeManager.ts
 var DBSchemeManager = class {
   constructor(db, logger) {
@@ -136,19 +253,18 @@ var DBSchemeManager = class {
   genericPatches = {
     gen_resource_data: async (db) => {
       await db.schema.createTable(RESOURCE_DATA_TABLE, (table) => {
-        table.string("id", 16).primary();
+        table.string("id", 32).primary();
         table.timestamp("created_at").defaultTo(db.fn.now());
         table.timestamp("updated_at").defaultTo(db.fn.now());
         table.boolean("locked").defaultTo(false);
         table.boolean("hidden").defaultTo(false);
         table.boolean("is_deleted").defaultTo(false);
-        table.foreign("parent_id").references(RESOURCE_DATA_TABLE + ".id").onDelete("CASCADE");
       });
       return true;
     },
     gen_resource_info: async (db) => {
       await db.schema.createTable(RESOURCE_INFO_TABLE, (table) => {
-        table.string("id", 16).primary();
+        table.string("id", 32).primary();
         table.string("title");
         table.text("description").nullable();
         table.foreign("id").references(RESOURCE_DATA_TABLE + ".id").onDelete("CASCADE");
@@ -157,17 +273,18 @@ var DBSchemeManager = class {
     },
     gen_resource_hierarchy: async (db) => {
       await db.schema.createTable("resource_hierarchy", (table) => {
-        table.string("id", 16).primary();
-        table.string("parent_id", 16);
+        table.string("id", 32).primary();
+        table.string("parent_id", 32);
         table.integer("order_index").defaultTo(0);
         table.foreign("id").references(RESOURCE_DATA_TABLE + ".id").onDelete("CASCADE");
+        table.foreign("parent_id").references(RESOURCE_DATA_TABLE + ".id").onDelete("CASCADE");
       });
       return true;
     },
     gen_representation_data: async (db) => {
       await db.schema.createTable(REPRESENTATION_DATA_TABLE, (table) => {
-        table.string("id", 16).primary();
-        table.string("resource_id", 16);
+        table.string("id", 32).primary();
+        table.string("resource_id", 32);
         table.timestamp("created_at").defaultTo(db.fn.now());
         table.timestamp("updated_at").defaultTo(db.fn.now());
         table.string("type");
@@ -175,6 +292,8 @@ var DBSchemeManager = class {
         table.string("mime").nullable();
         table.string("extension").nullable();
         table.boolean("is_external").defaultTo(false);
+        table.boolean("is_primary").defaultTo(false);
+        table.boolean("uploading").defaultTo(false);
         table.foreign("resource_id").references(RESOURCE_DATA_TABLE + ".id").onDelete("CASCADE");
         table.index(["resource_id"]);
       });
@@ -182,9 +301,9 @@ var DBSchemeManager = class {
     },
     gen_representation_source: async (db) => {
       await db.schema.createTable(REPRESENTATION_SOURCE_TABLE, (table) => {
-        table.string("id", 16).primary();
+        table.string("id", 32).primary();
         table.string("url").nullable();
-        table.string("derived_from", 16).nullable();
+        table.string("derived_from", 32).nullable();
         table.foreign("id").references(REPRESENTATION_DATA_TABLE + ".id").onDelete("CASCADE");
         table.foreign("derived_from").references(REPRESENTATION_DATA_TABLE + ".id").onDelete("CASCADE");
       });
@@ -192,7 +311,7 @@ var DBSchemeManager = class {
     },
     gen_representation_info: async (db) => {
       await db.schema.createTable(REPRESENTATION_INFO_TABLE, (table) => {
-        table.string("id", 16).primary();
+        table.string("id", 32).primary();
         table.json("data").defaultTo("{}");
         table.foreign("id").references(REPRESENTATION_DATA_TABLE + ".id").onDelete("CASCADE");
       });
@@ -200,7 +319,7 @@ var DBSchemeManager = class {
     },
     gen_mark_data: async (db) => {
       await db.schema.createTable(MARK_DATA_TABLE, (table) => {
-        table.string("resource_id", 16);
+        table.string("resource_id", 32);
         table.string("name", 120);
         table.string("type", 120);
         table.integer("value").nullable();
@@ -214,7 +333,7 @@ var DBSchemeManager = class {
     },
     gen_mark_kv: async (db) => {
       await db.schema.createTable(MARK_KV_TABLE, (table) => {
-        table.string("resource_id", 16);
+        table.string("resource_id", 32);
         table.string("component", 120);
         table.string("attribute", 120);
         table.string("value").nullable();
@@ -226,76 +345,105 @@ var DBSchemeManager = class {
     }
   };
   async init(applyGeneric = true) {
-    this.appliedPatches = await this.getOrInitAppliedPatches();
-    if (applyGeneric) {
-      for (const genericPatchId in this.genericPatches) {
-        if (!this.appliedPatches.includes(genericPatchId)) {
-          const result = await this.applySchemePatch(genericPatchId, this.genericPatches[genericPatchId]);
-          if (!result) {
-            throw new Error("Cannot apply generic patch");
+    let ctx = new Context();
+    const patchListCtx = await this.getOrInitAppliedPatchesList();
+    ctx.apply(patchListCtx);
+    if (ctx.isSuccess()) {
+      this.appliedPatches = patchListCtx.result;
+      if (applyGeneric) {
+        for (const genericPatchId in this.genericPatches) {
+          if (!this.appliedPatches.includes(genericPatchId)) {
+            const result = await this.applySchemePatch(genericPatchId, this.genericPatches[genericPatchId]);
+            if (!result) {
+              ctx.setError(ErrorCodes.CANNOT_APPLY, { target: "generic patch" }, { id: genericPatchId });
+              break;
+            }
           }
         }
       }
     }
+    return ctx;
   }
   async applySchemePatch(id, patch) {
-    if (id in this.appliedPatches) {
-      throw new Error("Cannot apply already applied patch");
+    let ctx = new Context();
+    try {
+      if (id in this.appliedPatches) {
+        ctx.setError(ErrorCodes.CONFLICT, { reason: "Patch already applied" }, { id });
+      } else {
+        const result = await patch(this.db);
+        if (result) {
+          this.appliedPatches.push(id);
+          await this.db(APPLY_PATCH_TABLE).insert({ id });
+          this.logger.info(`Applied DB scheme patch ${id}`);
+        }
+      }
+    } catch (e) {
+      ctx.applyException(e);
     }
-    const result = await patch(this.db);
-    if (result) {
-      this.appliedPatches.push(id);
-      await this.db(APPLY_PATCH_TABLE).insert({ id });
-      this.logger.info(`Applied DB scheme patch ${id}`);
-    }
-    return result;
+    return ctx;
   }
   async rollbackSchemePatch(id, patch) {
-    let result = false;
-    if (id in this.genericPatches) {
-      throw new Error("Cannot rollback generic patch");
-    }
-    if (id in this.appliedPatches) {
-      result = await patch(this.db);
-      if (result) {
-        this.appliedPatches = this.appliedPatches.filter((patchId) => patchId !== id);
-        await this.db(APPLY_PATCH_TABLE).where("id", id).delete();
-        this.logger.info(`Rolled back DB scheme patch ${id}`);
+    let ctx = new Context();
+    try {
+      let result = false;
+      if (id in this.genericPatches) {
+        ctx.setError(ErrorCodes.CANNOT_ROLLBACK, { target: "generic patch" }, { id });
+      } else {
+        if (id in this.appliedPatches) {
+          result = await patch(this.db);
+          if (result) {
+            this.appliedPatches = this.appliedPatches.filter((patchId) => patchId !== id);
+            await this.db(APPLY_PATCH_TABLE).where("id", id).delete();
+            this.logger.info(`Rolled back DB scheme patch ${id}`);
+          }
+        } else {
+          ctx.setError(ErrorCodes.CANNOT_ROLLBACK, { target: "unknown patch" }, { id });
+        }
       }
-    } else {
-      throw new Error("Cannot rollback unknown patch");
+    } catch (e) {
+      ctx.applyException(e);
     }
-    return result;
+    return ctx;
   }
-  async getOrInitAppliedPatches() {
-    let result = [];
-    const hasTable = await this.db.schema.hasTable(APPLY_PATCH_TABLE);
-    if (hasTable) {
-      result = await this.db(APPLY_PATCH_TABLE).select("id").pluck("id");
-    } else {
-      await this.db.schema.createTable(APPLY_PATCH_TABLE, (table) => {
-        table.string("id").primary();
-        table.timestamp("on_create").defaultTo(this.db.fn.now());
-      });
+  async getOrInitAppliedPatchesList() {
+    let ctx = new Context([]);
+    try {
+      const hasTable = await this.db.schema.hasTable(APPLY_PATCH_TABLE);
+      if (hasTable) {
+        ctx.result = await this.db(APPLY_PATCH_TABLE).select("id").pluck("id");
+      } else {
+        await this.db.schema.createTable(APPLY_PATCH_TABLE, (table) => {
+          table.string("id").primary();
+          table.timestamp("on_create").defaultTo(this.db.fn.now());
+        });
+      }
+    } catch (e) {
+      ctx.applyException(e);
     }
-    return result;
+    return ctx;
   }
   async fullDrop() {
-    for (const patchId in this.appliedPatches.toReversed()) {
-      if (patchId in this.genericPatches) {
-        continue;
+    let ctx = new Context();
+    try {
+      for (const patchId in this.appliedPatches.toReversed()) {
+        if (patchId in this.genericPatches) {
+          continue;
+        }
+        await this.rollbackSchemePatch(patchId, this.genericPatches[patchId]);
       }
-      await this.rollbackSchemePatch(patchId, this.genericPatches[patchId]);
+      await this.db.schema.dropTableIfExists(MARK_DATA_TABLE);
+      await this.db.schema.dropTableIfExists(MARK_KV_TABLE);
+      await this.db.schema.dropTableIfExists(REPRESENTATION_SOURCE_TABLE);
+      await this.db.schema.dropTableIfExists(REPRESENTATION_INFO_TABLE);
+      await this.db.schema.dropTableIfExists(REPRESENTATION_DATA_TABLE);
+      await this.db.schema.dropTableIfExists(RESOURCE_INFO_TABLE);
+      await this.db.schema.dropTableIfExists(RESOURCE_DATA_TABLE);
+      await this.db(APPLY_PATCH_TABLE).delete();
+      this.logger.info("DB scheme dropped");
+    } catch (e) {
+      ctx.applyException(e);
     }
-    await this.db.schema.dropTableIfExists(MARK_DATA_TABLE);
-    await this.db.schema.dropTableIfExists(MARK_KV_TABLE);
-    await this.db.schema.dropTableIfExists(REPRESENTATION_SOURCE_TABLE);
-    await this.db.schema.dropTableIfExists(REPRESENTATION_INFO_TABLE);
-    await this.db.schema.dropTableIfExists(REPRESENTATION_DATA_TABLE);
-    await this.db.schema.dropTableIfExists(RESOURCE_INFO_TABLE);
-    await this.db.schema.dropTableIfExists(RESOURCE_DATA_TABLE);
-    await this.db(APPLY_PATCH_TABLE).delete();
-    this.logger.info("DB scheme dropped");
+    return ctx;
   }
 };
 
@@ -485,7 +633,10 @@ var FsManager = class {
   hierarchyIndexMap = /* @__PURE__ */ new Map();
   representationResourceMap = /* @__PURE__ */ new Map();
   async init() {
-    await this.initHierarchyIndex();
+    if (!await import_promises.default.access(this.absoluteRoot).then(() => true).catch(() => false)) {
+      await import_promises.default.mkdir(this.absoluteRoot, { recursive: true });
+    }
+    return await this.initHierarchyIndex();
   }
   getHierarchyIndexFilePath() {
     return import_node_path.default.join(this.absoluteRoot, "hierarchy.json");
@@ -501,17 +652,23 @@ var FsManager = class {
     }
   }
   async initHierarchyIndex() {
-    this.hierarchyIndexMap.clear();
-    this.representationResourceMap.clear();
+    let ctx = new Context();
     try {
-      this.hierarchyIndexTree = JSON.parse(await import_promises.default.readFile(this.getHierarchyIndexFilePath(), { encoding: "utf-8" }));
-      this.indexHierarchyNodeRecursive(this.hierarchyIndexTree);
+      this.hierarchyIndexMap.clear();
+      this.representationResourceMap.clear();
+      const hierarchyIndexFilePath = this.getHierarchyIndexFilePath();
+      if (await import_promises.default.access(hierarchyIndexFilePath).then(() => true).catch(() => false)) {
+        this.hierarchyIndexTree = JSON.parse(await import_promises.default.readFile(hierarchyIndexFilePath, { encoding: "utf-8" }));
+        this.indexHierarchyNodeRecursive(this.hierarchyIndexTree);
+      }
     } catch (e) {
-      this.logger.error(e);
       this.hierarchyIndexTree = { parent: null, children: {}, representations: {} };
+      ctx.applyException(e);
     }
+    return ctx;
   }
   async saveHierarchyIndex(lock = true) {
+    let ctx = new Context();
     const hiLock = lock ? await this.lockQueue.lock(HIERARCHY_LOCK_NAME) : void 0;
     try {
       await import_promises.default.writeFile(
@@ -523,12 +680,13 @@ var FsManager = class {
         }
       );
     } catch (e) {
-      this.logger.error(e);
+      ctx.applyException(e);
     } finally {
       if (hiLock) {
         hiLock.release();
       }
     }
+    return ctx;
   }
   getPath(id) {
     const ancestors = [];
@@ -625,17 +783,21 @@ var FsManager = class {
     return import_node_path.default.join(this.getResourceDirectory(id), id + ".json");
   }
   async createResourceMetafile(resourceMetafile) {
-    let result = true;
+    let ctx = new Context();
     const resourceFilePath = this.getResourceFilePath(resourceMetafile.data.id);
     const resourceDirectory = this.getResourceDirectory(resourceMetafile.data.id);
     if (resourceMetafile.hierarchy.parent_id) {
       if (!await this.resourceExists(resourceMetafile.hierarchy.parent_id)) {
-        this.logger.error("Parent resource not found, cannot create resource");
-        return false;
+        ctx.setError(ErrorCodes.PARENT_NOT_FOUND, { entity: "resource" }, { id: resourceMetafile.hierarchy.parent_id });
+        return ctx;
       }
       if (this.inChildren(resourceMetafile.data.id, resourceMetafile.hierarchy.parent_id)) {
-        this.logger.error("Cyclic hierarchy detected, cannot create resource");
-        return false;
+        ctx.setError(
+          ErrorCodes.CONFLICT,
+          { reason: "Cyclic hierarchy detected, cannot create resource" },
+          { id: resourceMetafile.data.id, conflict_id: resourceMetafile.hierarchy.parent_id }
+        );
+        return ctx;
       }
     }
     resourceMetafile.representations = [];
@@ -658,137 +820,204 @@ var FsManager = class {
         if (parentNode) {
           parentNode.children[resourceMetafile.data.id] = node;
         } else {
-          this.logger.error("Parent node not found, need full store reindex");
+          ctx.setError(ErrorCodes.BROKEN_INDEX, { reason: "Parent node not found" }, { id: resourceMetafile.hierarchy.parent_id });
         }
       } else {
         this.hierarchyIndexTree.children[resourceMetafile.data.id] = node;
       }
-      await this.saveHierarchyIndex(false);
+      ctx.apply(await this.saveHierarchyIndex(false));
     } catch (e) {
-      this.logger.error(e);
-      result = false;
+      ctx.applyException(e);
     } finally {
       resLock.releaseAll();
     }
-    return result;
+    return ctx;
   }
   async updateResourceMetafile(resourceId, patch, lock = true) {
-    let result = true;
+    let ctx = new Context();
     let resourceMetafile = null;
     const resLock = lock ? await this.lockQueue.lock(resourceId) : void 0;
     try {
       if ("function" === typeof patch) {
-        resourceMetafile = await this.getResourceMetafile(resourceId);
-        if (resourceMetafile) {
-          resourceMetafile = await patch(resourceMetafile);
+        let resourceMetafileCtx = await this.getResourceMetafile(resourceId);
+        if (resourceMetafileCtx.isSuccess() && resourceMetafileCtx.result) {
+          resourceMetafile = await patch(resourceMetafileCtx.result);
+        } else {
+          if (resourceMetafileCtx.isFailed()) {
+            ctx.apply(resourceMetafileCtx);
+          } else {
+            ctx.setError(ErrorCodes.INVALID_DATA, { entity: "resource metafile" }, { id: resourceId });
+          }
         }
       } else {
         resourceMetafile = patch;
       }
-      if (resourceMetafile) {
-        resourceMetafile.data.updated_at = nowInMS();
+      if (ctx.isSuccess() && resourceMetafile) {
+        resourceMetafile.data.updated_at = nowInS();
         const resourceFilePath = this.getResourceFilePath(resourceId);
         await import_promises.default.writeFile(resourceFilePath, JSON.stringify(resourceMetafile, null, 4) + "\n", {
           encoding: "utf-8",
           flag: "w"
         });
-      } else {
-        result = false;
       }
     } catch (e) {
-      this.logger.error(e);
-      result = false;
+      ctx.applyException(e);
     } finally {
       if (resLock) {
         resLock.release();
       }
     }
-    return result;
+    return ctx;
   }
   async updateResource(resourceMetafile) {
-    let result = false;
+    let ctx = new Context();
     if (await this.resourceExists(resourceMetafile.data.id)) {
-      const oldMetafile = await this.getResourceMetafile(resourceMetafile.data.id);
+      const oldMetafileCtx = await this.getResourceMetafile(resourceMetafile.data.id);
+      if (oldMetafileCtx.isFailed()) {
+        ctx.apply(oldMetafileCtx);
+        return ctx;
+      }
+      const oldMetafile = oldMetafileCtx.result;
       if (!oldMetafile) {
-        this.logger.error("Old metafile not found, cannot update resource");
-        return false;
+        ctx.setError(ErrorCodes.INVALID_DATA, { entity: "resource metafile" }, { id: resourceMetafile.data.id });
+        return ctx;
       }
       const resLock = await this.lockQueue.lock(resourceMetafile.data.id);
       try {
         resourceMetafile.representations = oldMetafile.representations;
         resourceMetafile.hierarchy.children = oldMetafile.hierarchy.children;
         resourceMetafile.hierarchy.parent_id = oldMetafile.hierarchy.parent_id;
-        resourceMetafile.data.updated_at = nowInMS();
+        resourceMetafile.data.updated_at = nowInS();
         resourceMetafile.data.is_deleted = false;
-        await this.updateResourceMetafile(resourceMetafile.data.id, resourceMetafile, false);
+        ctx.apply(
+          await this.updateResourceMetafile(resourceMetafile.data.id, resourceMetafile, false)
+        );
       } catch (e) {
-        this.logger.error(e);
-        result = false;
+        ctx.applyException(e);
       } finally {
         resLock.release();
       }
     }
-    return result;
+    return ctx;
   }
   async getResourceMetafile(resourceId) {
-    let result = null;
-    let resourceFilePath = this.getResourceFilePath(resourceId);
+    let ctx = new Context(null);
     try {
+      let resourceFilePath = this.getResourceFilePath(resourceId);
+      if (!await import_promises.default.access(resourceFilePath).then(() => true).catch(() => false)) {
+        ctx.setError(ErrorCodes.NOT_FOUND, { entity: "resource metafile" }, { id: resourceId });
+        return ctx;
+      }
       let content = await import_promises.default.readFile(resourceFilePath, { encoding: "utf-8" });
-      result = JSON.parse(content);
+      ctx.result = JSON.parse(content);
     } catch (e) {
-      this.logger.error(e);
+      ctx.applyException(e);
     }
-    return result;
+    return ctx;
   }
   async appendChild(resourceID, childID) {
-    if (this.inChildren(childID, resourceID)) {
-      this.logger.error("Cyclic hierarchy detected, cannot append child");
-      return false;
+    let ctx = new Context();
+    const childNode = this.hierarchyIndexMap.get(childID);
+    if (!childNode) {
+      ctx.setError(ErrorCodes.NOT_FOUND, { entity: "resource" }, { id: childID });
+      return ctx;
     }
-    let resourceNode = this.hierarchyIndexMap.get(resourceID);
-    if (resourceNode) {
-      if (resourceNode.children[childID]) {
-        if (this.logger.warn) {
-          this.logger.warn("Child already exists, cannot append child");
-        }
-        return true;
-      }
+    const oldParentId = childNode.parent;
+    let lockList = [resourceID, childID, HIERARCHY_LOCK_NAME];
+    if (oldParentId) {
+      lockList.push(oldParentId);
     }
-    let result = false;
-    const resLock = await this.lockQueue.lockMany([resourceID, childID, HIERARCHY_LOCK_NAME]);
+    const resLock = await this.lockQueue.lockMany(lockList);
     try {
-      const resourceEntity = await this.getResourceMetafile(resourceID);
-      const childEntity = await this.getResourceMetafile(childID);
-      if (resourceEntity && childEntity) {
-        childEntity.hierarchy.parent_id = resourceID;
-        resourceEntity.hierarchy.children = resourceEntity.hierarchy.children.concat({
-          id: childID,
-          order_index: childEntity.hierarchy.order_index
-        }).sort((a, b) => a.order_index - b.order_index);
-        result = await this.updateResourceMetafile(resourceID, resourceEntity, false) && await this.updateResourceMetafile(childID, childEntity, false);
-        let childNode = this.hierarchyIndexMap.get(childID);
-        if (resourceNode && childNode) {
-          resourceNode.children[childID] = childNode;
-          childNode.parent = resourceID;
-          await this.saveHierarchyIndex(false);
+      if (this.inChildren(childID, resourceID)) {
+        ctx.setError(ErrorCodes.CONFLICT, { reason: "Cyclic hierarchy detected, cannot append child" }, { id: childID, conflict_id: resourceID });
+        return ctx;
+      }
+      let resourceNode = this.hierarchyIndexMap.get(resourceID);
+      if (resourceNode) {
+        if (resourceNode.children[childID]) {
+          if (this.logger.warn) {
+            this.logger.warn("Child already exists, cannot append child");
+          }
+          return ctx;
+        }
+      }
+      const resourceEntityCtx = await this.getResourceMetafile(resourceID);
+      const childEntityCtx = await this.getResourceMetafile(childID);
+      const oldParentCtx = oldParentId ? await this.getResourceMetafile(oldParentId) : void 0;
+      if (!resourceEntityCtx.result) {
+        if (resourceEntityCtx.isFailed()) {
+          ctx.apply(resourceEntityCtx);
         } else {
-          this.logger.error("Resource or child node not found, need full store reindex");
+          ctx.setError(ErrorCodes.INVALID_DATA, { entity: "resource metafile" }, { id: resourceID });
+        }
+        return ctx;
+      }
+      if (!childEntityCtx.result) {
+        if (childEntityCtx.isFailed()) {
+          ctx.apply(childEntityCtx);
+        } else {
+          ctx.setError(ErrorCodes.INVALID_DATA, { entity: "resource metafile" }, { id: childID });
+        }
+        return ctx;
+      }
+      if (oldParentCtx && !oldParentCtx.result) {
+        if (oldParentCtx.isFailed()) {
+          ctx.apply(oldParentCtx);
+        } else {
+          ctx.setError(ErrorCodes.INVALID_DATA, { entity: "resource metafile" }, { id: oldParentId });
+        }
+      }
+      let resourceEntity = resourceEntityCtx.result;
+      let childEntity = childEntityCtx.result;
+      let oldParentEntity = oldParentCtx?.result || void 0;
+      childEntity.hierarchy.parent_id = resourceID;
+      resourceEntity.hierarchy.children = resourceEntity.hierarchy.children.concat({
+        id: childID,
+        order_index: childEntity.hierarchy.order_index
+      }).sort((a, b) => a.order_index - b.order_index);
+      ctx.apply(await this.updateResourceMetafile(resourceID, resourceEntity, false));
+      if (ctx.isSuccess()) {
+        ctx.apply(await this.updateResourceMetafile(childID, childEntity, false));
+        if (oldParentId && ctx.isSuccess()) {
+          ctx.apply(
+            await this.updateResourceMetafile(oldParentId, async (resourceMetafile) => {
+              resourceMetafile.hierarchy.children = resourceMetafile.hierarchy.children.filter((value) => value.id !== childID);
+              resourceMetafile.hierarchy.children.sort((a, b) => a.order_index - b.order_index);
+              return resourceMetafile;
+            }, false)
+          );
+          let oldParentNode = this.hierarchyIndexMap.get(oldParentId);
+          if (oldParentNode) {
+            delete oldParentNode.children[childID];
+          } else {
+            ctx.setError(ErrorCodes.BROKEN_INDEX, { reason: "Old parent node not found" }, { id: oldParentId });
+          }
+        }
+        if (ctx.isSuccess()) {
+          let childNode2 = this.hierarchyIndexMap.get(childID);
+          if (resourceNode && childNode2) {
+            resourceNode.children[childID] = childNode2;
+            childNode2.parent = resourceID;
+            ctx.apply(await this.saveHierarchyIndex(false));
+          } else {
+            ctx.setError(ErrorCodes.BROKEN_INDEX, { reason: "Resource or child node not found" }, { id: resourceID, child_id: childID });
+          }
         }
       }
     } catch (e) {
-      this.logger.error(e);
-      result = false;
+      ctx.applyException(e);
     } finally {
       resLock.releaseAll();
     }
-    return result;
+    return ctx;
   }
   async deleteResource(resourceId, recursive = false) {
+    let ctx = new Context();
     if (!await this.resourceExists(resourceId)) {
-      return false;
+      ctx.setError(ErrorCodes.NOT_FOUND, { entity: "resource" }, { id: resourceId });
+      return ctx;
     }
-    let result = false;
     let lockList = [resourceId, HIERARCHY_LOCK_NAME];
     let childIds;
     let parentId = this.hierarchyIndexMap.get(resourceId)?.parent || null;
@@ -803,45 +1032,56 @@ var FsManager = class {
     lockList = lockList.concat(childIds);
     const resLock = await this.lockQueue.lockMany(lockList);
     try {
-      await this.deleteResourceFiles(resourceId);
+      ctx.apply(await this.deleteResourceFiles(resourceId));
+      if (ctx.isFailed()) {
+        return ctx;
+      }
       if (recursive) {
         for (const childId of childIds) {
-          await this.deleteResourceFiles(childId);
+          ctx.apply(await this.deleteResourceFiles(childId));
           this.deleteFromIndex(childId);
         }
       } else {
         for (const childId of childIds) {
-          await this.updateResourceMetafile(childId, async (resourceMetafile) => {
-            resourceMetafile.hierarchy.parent_id = null;
-            return resourceMetafile;
-          }, false);
-          let childNode = this.hierarchyIndexMap.get(childId);
-          if (childNode) {
-            childNode.parent = null;
-            this.hierarchyIndexTree.children[childId] = childNode;
-          } else {
-            this.logger.error("Child node not found, need full store reindex");
+          ctx.apply(
+            await this.updateResourceMetafile(childId, async (resourceMetafile) => {
+              resourceMetafile.hierarchy.parent_id = null;
+              return resourceMetafile;
+            }, false)
+          );
+          if (ctx.isSuccess()) {
+            let childNode = this.hierarchyIndexMap.get(childId);
+            if (childNode) {
+              childNode.parent = null;
+              this.hierarchyIndexTree.children[childId] = childNode;
+            } else {
+              ctx.setError(ErrorCodes.BROKEN_INDEX, { reason: "Child node not found" }, { id: childId });
+            }
           }
         }
       }
-      if (parentId) {
-        await this.updateResourceMetafile(parentId, async (resourceMetafile) => {
-          resourceMetafile.hierarchy.children = resourceMetafile.hierarchy.children.filter((value) => value.id !== resourceId);
-          resourceMetafile.hierarchy.children.sort((a, b) => a.order_index - b.order_index);
-          return resourceMetafile;
-        }, false);
+      if (parentId && ctx.isSuccess()) {
+        ctx.apply(
+          await this.updateResourceMetafile(parentId, async (resourceMetafile) => {
+            resourceMetafile.hierarchy.children = resourceMetafile.hierarchy.children.filter((value) => value.id !== resourceId);
+            resourceMetafile.hierarchy.children.sort((a, b) => a.order_index - b.order_index);
+            return resourceMetafile;
+          }, false)
+        );
       }
       this.deleteFromIndex(resourceId);
-      await this.saveHierarchyIndex(false);
-      result = true;
+      if (ctx.isSuccess()) {
+        await this.saveHierarchyIndex(false);
+      }
     } catch (e) {
-      this.logger.error(e);
+      ctx.applyException(e);
     } finally {
       resLock.releaseAll();
     }
-    return result;
+    return ctx;
   }
   async deleteResourceFiles(resourceId) {
+    let ctx = new Context();
     const resourceDirectory = this.getResourceDirectory(resourceId);
     try {
       await import_promises.default.rm(resourceDirectory, { recursive: true, force: true });
@@ -874,29 +1114,33 @@ var FsManager = class {
           break;
         }
       }
-    } catch (_e) {
+    } catch (e) {
+      ctx.applyException(e);
     }
+    return ctx;
   }
   async resourceExists(resourceId) {
     const resourceFilePath = this.getResourceFilePath(resourceId);
-    let result = false;
-    result = await import_promises.default.access(resourceFilePath).then(() => true).catch(() => false);
-    return result;
+    return await import_promises.default.access(resourceFilePath).then(() => true).catch(() => false);
   }
   async changeParent(resourceId, newParentId) {
-    let result = false;
+    let ctx = new Context();
     let lockList = [resourceId, HIERARCHY_LOCK_NAME];
     const oldParentId = this.hierarchyIndexMap.get(resourceId)?.parent || null;
     if (oldParentId === newParentId) {
-      return true;
+      return ctx;
     }
     if (oldParentId) {
       lockList.push(oldParentId);
     }
     if (newParentId) {
+      if (newParentId && !await this.resourceExists(newParentId)) {
+        ctx.setError(ErrorCodes.NOT_FOUND, { entity: "resource" }, { id: newParentId });
+        return ctx;
+      }
       if (this.inChildren(resourceId, newParentId)) {
-        this.logger.error("Cyclic hierarchy detected, cannot change parent");
-        return false;
+        ctx.setError(ErrorCodes.CONFLICT, { reason: "Cyclic hierarchy detected, cannot change parent" }, { id: resourceId, conflict_id: newParentId });
+        return ctx;
       }
       lockList.push(newParentId);
     }
@@ -906,95 +1150,115 @@ var FsManager = class {
       if (node) {
         node.parent = newParentId;
       } else {
-        this.logger.error("Old parent node not found, need full store reindex");
+        ctx.setError(ErrorCodes.BROKEN_INDEX, { reason: "Resource node not found" }, { id: resourceId });
+        return ctx;
       }
       if (oldParentId) {
         const oldParentNode = this.hierarchyIndexMap.get(oldParentId);
         if (oldParentNode) {
           delete oldParentNode.children[resourceId];
         } else {
-          this.logger.error("Old parent node not found, need full store reindex");
+          ctx.setError(ErrorCodes.BROKEN_INDEX, { reason: "Old parent node not found" }, { id: resourceId });
+          return ctx;
         }
-        await this.updateResourceMetafile(oldParentId, async (resourceMetafile) => {
-          resourceMetafile.hierarchy.children = resourceMetafile.hierarchy.children.filter((value) => value.id !== resourceId);
-          resourceMetafile.hierarchy.children.sort((a, b) => a.order_index - b.order_index);
-          return resourceMetafile;
-        }, false);
+        ctx.apply(
+          await this.updateResourceMetafile(oldParentId, async (resourceMetafile) => {
+            resourceMetafile.hierarchy.children = resourceMetafile.hierarchy.children.filter((value) => value.id !== resourceId);
+            resourceMetafile.hierarchy.children.sort((a, b) => a.order_index - b.order_index);
+            return resourceMetafile;
+          }, false)
+        );
       }
-      if (newParentId) {
+      if (newParentId && ctx.isSuccess()) {
         let parentNode = this.hierarchyIndexMap.get(newParentId);
         if (parentNode) {
           if (node) {
             parentNode.children[resourceId] = node;
           }
         } else {
-          this.logger.error("New parent node not found, need full store reindex");
+          ctx.setError(ErrorCodes.BROKEN_INDEX, { reason: "New parent node not found" }, { id: newParentId });
+          return ctx;
         }
-        await this.updateResourceMetafile(newParentId, async (resourceMetafile) => {
-          resourceMetafile.hierarchy.children.push({
-            id: resourceId,
-            order_index: 0
-          });
-          resourceMetafile.hierarchy.children.sort((a, b) => a.order_index - b.order_index);
-          return resourceMetafile;
-        }, false);
+        ctx.apply(
+          await this.updateResourceMetafile(newParentId, async (resourceMetafile) => {
+            resourceMetafile.hierarchy.children.push({
+              id: resourceId,
+              order_index: 0
+            });
+            resourceMetafile.hierarchy.children.sort((a, b) => a.order_index - b.order_index);
+            return resourceMetafile;
+          }, false)
+        );
       }
-      await this.updateResourceMetafile(resourceId, async (resourceMetafile) => {
-        resourceMetafile.hierarchy.parent_id = newParentId;
-        resourceMetafile.hierarchy.order_index = 0;
-        return resourceMetafile;
-      }, false);
-      await this.saveHierarchyIndex(false);
-      result = true;
+      if (ctx.isSuccess()) {
+        ctx.apply(
+          await this.updateResourceMetafile(resourceId, async (resourceMetafile) => {
+            resourceMetafile.hierarchy.parent_id = newParentId;
+            resourceMetafile.hierarchy.order_index = 0;
+            return resourceMetafile;
+          }, false)
+        );
+      }
+      if (ctx.isSuccess()) {
+        ctx.apply(await this.saveHierarchyIndex(false));
+      }
     } catch (e) {
-      this.logger.error(e);
+      ctx.applyException(e);
     } finally {
       resLock.releaseAll();
     }
-    return result;
+    return ctx;
   }
   async changeOrderIndex(resourceId, newOrderIndex) {
+    let ctx = new Context();
     if (!await this.resourceExists(resourceId)) {
-      return false;
+      ctx.setError(ErrorCodes.NOT_FOUND, { entity: "resource" }, { id: resourceId });
+      return ctx;
     }
     let lockList = [resourceId];
     const parentId = this.hierarchyIndexMap.get(resourceId)?.parent || null;
     if (parentId) {
       lockList.push(parentId);
     }
-    let result = false;
     const lock = await this.lockQueue.lockMany(lockList);
     try {
-      result = await this.updateResourceMetafile(resourceId, async (resourceMetafile) => {
-        resourceMetafile.hierarchy.order_index = newOrderIndex;
-        return resourceMetafile;
-      }, false);
-      if (parentId) {
-        result = await this.updateResourceMetafile(parentId, async (resourceMetafile) => {
-          for (const child of resourceMetafile.hierarchy.children) {
-            if (child.id === resourceId) {
-              child.order_index = newOrderIndex;
-            }
-          }
-          resourceMetafile.hierarchy.children = resourceMetafile.hierarchy.children.sort((a, b) => a.order_index - b.order_index);
+      ctx.apply(
+        await this.updateResourceMetafile(resourceId, async (resourceMetafile) => {
+          resourceMetafile.hierarchy.order_index = newOrderIndex;
           return resourceMetafile;
-        }, false);
+        }, false)
+      );
+      if (parentId && ctx.isSuccess()) {
+        ctx.apply(
+          await this.updateResourceMetafile(parentId, async (resourceMetafile) => {
+            for (const child of resourceMetafile.hierarchy.children) {
+              if (child.id === resourceId) {
+                child.order_index = newOrderIndex;
+              }
+            }
+            resourceMetafile.hierarchy.children = resourceMetafile.hierarchy.children.sort((a, b) => a.order_index - b.order_index);
+            return resourceMetafile;
+          }, false)
+        );
       }
-      await this.saveHierarchyIndex(false);
+      if (ctx.isSuccess()) {
+        ctx.apply(await this.saveHierarchyIndex(false));
+      }
     } catch (e) {
-      this.logger.error(e);
+      ctx.applyException(e);
     } finally {
       lock.releaseAll();
     }
-    return result;
+    return ctx;
   }
   async createRepresentation(resourceId, representationEntity) {
-    const lock = await this.lockQueue.lock(resourceId);
+    let ctx = new Context();
+    const lock = await this.lockQueue.lockMany([resourceId, HIERARCHY_LOCK_NAME]);
     const isPrimary = representationEntity.data.is_primary;
     try {
-      const notTimeInMs = nowInMS();
-      representationEntity.data.created_at = notTimeInMs;
-      representationEntity.data.updated_at = notTimeInMs;
+      const nowTimeInS = nowInS();
+      representationEntity.data.created_at = nowTimeInS;
+      representationEntity.data.updated_at = nowTimeInS;
       representationEntity.data.is_primary = false;
       representationEntity.data.uploading = false;
       if (!representationEntity.data.is_external) {
@@ -1005,28 +1269,45 @@ var FsManager = class {
         };
         const filePath = import_node_path.default.join(
           this.getResourceDirectory(resourceId),
-          representationEntity.data.id + "." + representationEntity.data.extension
+          representationEntity.data.id + "." + (representationEntity.data.extension || "unknown")
         );
-        await import_promises.default.utimes(filePath, notTimeInMs, notTimeInMs);
+        let fh = await import_promises.default.open(filePath, "a");
+        await fh.close();
+        await import_promises.default.utimes(filePath, nowTimeInS, nowTimeInS);
       }
-      let resourceMetafile = await this.getResourceMetafile(resourceId);
-      if (resourceMetafile) {
-        resourceMetafile.representations.push(representationEntity);
-        if (isPrimary) {
-          for (const rep of resourceMetafile.representations) {
-            rep.data.is_primary = rep.data.id === representationEntity.data.id;
-          }
+      let resourceMetafileCtx = await this.getResourceMetafile(resourceId);
+      if (!resourceMetafileCtx.result) {
+        if (resourceMetafileCtx.isFailed()) {
+          ctx.apply(resourceMetafileCtx);
+        } else {
+          ctx.setError(ErrorCodes.NOT_FOUND, { entity: "resource metafile" }, { id: resourceId });
         }
-        await this.updateResourceMetafile(resourceId, resourceMetafile);
-      } else {
-        this.logger.error("Resource not found, cannot create representation");
+        return ctx;
+      }
+      const resourceMetafile = resourceMetafileCtx.result;
+      resourceMetafile.representations.push(representationEntity);
+      if (isPrimary) {
+        for (const rep of resourceMetafile.representations) {
+          rep.data.is_primary = rep.data.id === representationEntity.data.id;
+        }
+      }
+      ctx.apply(
+        await this.updateResourceMetafile(resourceId, resourceMetafile, false)
+      );
+      if (ctx.isSuccess()) {
+        this.representationResourceMap.set(representationEntity.data.id, resourceId);
+        const node = this.hierarchyIndexMap.get(resourceId);
+        if (node) {
+          node.representations[representationEntity.data.id] = isPrimary;
+        }
+        ctx.apply(await this.saveHierarchyIndex(false));
       }
     } catch (e) {
-      this.logger.error(e);
+      ctx.applyException(e);
     } finally {
-      lock.release();
+      lock.releaseAll();
     }
-    return false;
+    return ctx;
   }
   async uploadRepresentationPart(representationId, chunk, offset = 0, length = void 0) {
     let report = {
@@ -1035,99 +1316,71 @@ var FsManager = class {
       isComplete: false,
       data: null
     };
+    let ctx = new Context(report);
+    let fileHandler = void 0;
     const resourceId = this.representationResourceMap.get(representationId);
     if (resourceId) {
       report.resourceId = resourceId;
       const lock = await this.lockQueue.lock(resourceId);
       try {
-        let resourceMetafile = await this.getResourceMetafile(resourceId);
-        if (resourceMetafile) {
-          let representation = resourceMetafile.representations.find((value) => value.data.id === representationId) || null;
-          if (representation) {
-            report.isComplete = !representation.data.uploading;
-            report.data = representation.info.data;
-            if (!representation.data.is_external) {
-              const filePath = import_node_path.default.join(
-                this.getResourceDirectory(resourceId),
-                representation.data.id + "." + representation.data.extension
-              );
-              const fileHandler = await import_promises.default.open(filePath, "w");
-              await fileHandler.write(chunk, offset, length);
-              const lowerBound = offset;
-              const upperBound = offset + (length || chunk.length);
-              const newParts = [];
-              const oldParts = representation.info.data?.uploaded || [];
-              let mergePart = null;
-              for (const oldPart of oldParts) {
-                let isIntersected = Math.max(oldPart.lower, lowerBound) < Math.min(oldPart.upper, upperBound);
-                if (isIntersected) {
-                  if (mergePart) {
-                    mergePart.lower = Math.min(oldPart.lower, lowerBound);
-                    mergePart.upper = Math.max(oldPart.upper, upperBound);
-                  } else {
-                    mergePart = {
-                      lower: Math.max(oldPart.lower, lowerBound),
-                      upper: Math.min(oldPart.upper, upperBound)
-                    };
-                  }
-                } else {
-                  if (mergePart) {
-                    newParts.push(mergePart);
-                    mergePart = null;
-                  }
-                  newParts.push(oldPart);
-                }
-              }
-              if (mergePart) {
-                newParts.push(mergePart);
-              }
-              if (newParts[0].lower === 0 && newParts[0].upper === representation.info.data?.assumedSize) {
-                representation.data.uploading = false;
-                const filetype = await (0, import_file_type.fileTypeFromFile)(filePath);
-                representation.data.mime = filetype?.mime || null;
-                if (filetype?.ext && representation.data.extension !== filetype.ext) {
-                  representation.data.extension = filetype.ext || null;
-                  const newFilePath = import_node_path.default.join(
-                    this.getResourceDirectory(resourceId),
-                    representation.data.id + "." + representation.data.extension
-                  );
-                  await import_promises.default.rename(filePath, newFilePath);
-                }
-                report.isComplete = true;
-              } else {
-                representation.info.data = {
-                  uploaded: newParts,
-                  assumedSize: representation.info.data?.assumedSize || void 0
-                };
-              }
-              report.data = representation.info.data;
-              report.status = await this.updateResourceMetafile(resourceId, resourceMetafile);
-            }
+        let resourceMetafileCtx = await this.getResourceMetafile(resourceId);
+        if (!resourceMetafileCtx.result) {
+          if (resourceMetafileCtx.isFailed()) {
+            ctx.apply(resourceMetafileCtx);
+          } else {
+            ctx.setError(ErrorCodes.NOT_FOUND, { entity: "resource metafile" }, { id: resourceId });
           }
+          return ctx;
         }
-      } catch (e) {
-        this.logger.error(e);
-      } finally {
-        lock.release();
-      }
-    }
-    return report;
-  }
-  async finishRepresentationUpload(representationId) {
-    let result = false;
-    const resourceId = this.representationResourceMap.get(representationId);
-    if (resourceId) {
-      const lock = await this.lockQueue.lock(resourceId);
-      try {
-        let resourceMetafile = await this.getResourceMetafile(resourceId);
-        if (resourceMetafile) {
-          let representation = resourceMetafile.representations.find((value) => value.data.id === representationId) || null;
-          if (representation) {
-            if (!representation.data.is_external) {
-              const filePath = import_node_path.default.join(
-                this.getResourceDirectory(resourceId),
-                representation.data.id + "." + representation.data.extension
-              );
+        const resourceMetafile = resourceMetafileCtx.result;
+        let representation = resourceMetafile.representations.find((value) => value.data.id === representationId) || null;
+        if (representation) {
+          report.isComplete = !representation.data.uploading;
+          report.data = representation.info.data;
+          if (!representation.data.is_external) {
+            const filePath = import_node_path.default.join(
+              this.getResourceDirectory(resourceId),
+              representation.data.id + "." + (representation.data.extension || "unknown")
+            );
+            fileHandler = await import_promises.default.open(filePath, "a+");
+            await fileHandler.write(chunk, 0, length, offset);
+            await fileHandler.close();
+            fileHandler = void 0;
+            const lowerBound = offset;
+            const upperBound = offset + (length || chunk.length);
+            const newParts = [];
+            const oldParts = representation.info.data?.uploaded || [];
+            let mergePart = null;
+            for (const oldPart of oldParts) {
+              let isIntersected = Math.max(oldPart.lower, lowerBound) < Math.min(oldPart.upper, upperBound);
+              if (isIntersected) {
+                if (mergePart) {
+                  mergePart.lower = Math.min(oldPart.lower, lowerBound);
+                  mergePart.upper = Math.max(oldPart.upper, upperBound);
+                } else {
+                  mergePart = {
+                    lower: Math.max(oldPart.lower, lowerBound),
+                    upper: Math.min(oldPart.upper, upperBound)
+                  };
+                }
+              } else {
+                if (mergePart) {
+                  newParts.push(mergePart);
+                  mergePart = null;
+                }
+                newParts.push(oldPart);
+              }
+            }
+            if (mergePart) {
+              newParts.push(mergePart);
+            }
+            if (newParts.length === 0) {
+              newParts.push({
+                lower: lowerBound,
+                upper: upperBound
+              });
+            }
+            if (newParts[0].lower === 0 && newParts[0].upper === representation.info.data?.assumedSize) {
               representation.data.uploading = false;
               const filetype = await (0, import_file_type.fileTypeFromFile)(filePath);
               representation.data.mime = filetype?.mime || null;
@@ -1135,92 +1388,174 @@ var FsManager = class {
                 representation.data.extension = filetype.ext || null;
                 const newFilePath = import_node_path.default.join(
                   this.getResourceDirectory(resourceId),
-                  representation.data.id + "." + representation.data.extension
+                  representation.data.id + "." + (representation.data.extension || "unknown")
                 );
                 await import_promises.default.rename(filePath, newFilePath);
               }
-              representation.info.data = {};
-              await this.updateResourceMetafile(resourceId, resourceMetafile);
+              report.isComplete = true;
+            } else {
+              representation.info.data = {
+                uploaded: newParts,
+                assumedSize: representation.info.data?.assumedSize || void 0
+              };
             }
+            report.data = representation.info.data;
+            ctx.apply(
+              await this.updateResourceMetafile(resourceId, resourceMetafile, false)
+            );
+            report.status = ctx.status;
           }
         }
       } catch (e) {
-        this.logger.error(e);
+        ctx.applyException(e);
       } finally {
+        if (fileHandler) {
+          await fileHandler.close();
+        }
         lock.release();
       }
     }
-    return result;
+    return ctx;
   }
-  async makeRepresentationPrimary(resourceId, representationId) {
-    let node = this.hierarchyIndexMap.get(resourceId);
-    if (node && node.representations[representationId]) {
-      for (const repId in node.representations) {
-        node.representations[repId] = repId === representationId;
-      }
-      await this.saveHierarchyIndex(false);
-    } else {
-      return false;
-    }
-    return await this.updateResourceMetafile(resourceId, async (resourceMetafile) => {
-      for (const representation of resourceMetafile.representations) {
-        representation.data.is_primary = representation.data.id === representationId;
-      }
-      return resourceMetafile;
-    });
-  }
-  async deleteRepresentation(representationId) {
-    let result = false;
+  async finishRepresentationUpload(representationId) {
+    let ctx = new Context();
     const resourceId = this.representationResourceMap.get(representationId);
     if (resourceId) {
       const lock = await this.lockQueue.lock(resourceId);
       try {
-        let resourceMetafile = await this.getResourceMetafile(resourceId);
-        if (resourceMetafile) {
-          for (let i = 0; i < resourceMetafile.representations.length; i++) {
-            const representation = resourceMetafile.representations[i];
-            if (representation.data.id === representationId) {
-              resourceMetafile.representations.splice(i, 1);
-              if (!representation.data.is_external) {
-                const filePath = import_node_path.default.join(
-                  this.getResourceDirectory(resourceId),
-                  representation.data.id + "." + representation.data.extension
-                );
-                await import_promises.default.rm(filePath, { force: true });
-              }
-              break;
-            }
+        let resourceMetafileCtx = await this.getResourceMetafile(resourceId);
+        if (!resourceMetafileCtx.result) {
+          if (resourceMetafileCtx.isFailed()) {
+            ctx.apply(resourceMetafileCtx);
+          } else {
+            ctx.setError(ErrorCodes.NOT_FOUND, { entity: "resource metafile" }, { id: resourceId });
           }
-          result = true;
+          return ctx;
+        }
+        const resourceMetafile = resourceMetafileCtx.result;
+        let representation = resourceMetafile.representations.find((value) => value.data.id === representationId) || null;
+        if (representation) {
+          if (!representation.data.is_external) {
+            const filePath = import_node_path.default.join(
+              this.getResourceDirectory(resourceId),
+              representation.data.id + "." + (representation.data.extension || "unknown")
+            );
+            representation.data.uploading = false;
+            const filetype = await (0, import_file_type.fileTypeFromFile)(filePath);
+            representation.data.mime = filetype?.mime || null;
+            if (filetype?.ext && representation.data.extension !== filetype.ext) {
+              representation.data.extension = filetype.ext || null;
+              const newFilePath = import_node_path.default.join(
+                this.getResourceDirectory(resourceId),
+                representation.data.id + "." + (representation.data.extension || "unknown")
+              );
+              await import_promises.default.rename(filePath, newFilePath);
+            }
+            representation.info.data = {};
+            ctx.apply(
+              await this.updateResourceMetafile(resourceId, resourceMetafile, false)
+            );
+          }
         }
       } catch (e) {
-        this.logger.error(e);
+        ctx.applyException(e);
       } finally {
         lock.release();
       }
     }
-    return result;
+    return ctx;
+  }
+  async makeRepresentationPrimary(resourceId, representationId, lock = true) {
+    let ctx = new Context();
+    const resLock = lock ? await this.lockQueue.lockMany([resourceId, HIERARCHY_LOCK_NAME]) : null;
+    try {
+      let node = this.hierarchyIndexMap.get(resourceId);
+      if (node && "undefined" !== typeof node.representations[representationId]) {
+        for (const repId in node.representations) {
+          node.representations[repId] = repId === representationId;
+        }
+        ctx.apply(await this.saveHierarchyIndex(false));
+      } else {
+        ctx.setError(ErrorCodes.NOT_FOUND, { entity: "representation" }, { resourceId, representationId });
+        return ctx;
+      }
+      ctx.apply(
+        await this.updateResourceMetafile(resourceId, async (resourceMetafile) => {
+          for (const representation of resourceMetafile.representations) {
+            representation.data.is_primary = representation.data.id === representationId;
+          }
+          return resourceMetafile;
+        }, false)
+      );
+    } catch (e) {
+      ctx.applyException(e);
+    } finally {
+      if (resLock) {
+        resLock.releaseAll();
+      }
+    }
+    return ctx;
+  }
+  async deleteRepresentation(representationId) {
+    let ctx = new Context();
+    const resourceId = this.representationResourceMap.get(representationId);
+    if (resourceId) {
+      const lock = await this.lockQueue.lockMany([resourceId, HIERARCHY_LOCK_NAME]);
+      try {
+        let resourceMetafileCtx = await this.getResourceMetafile(resourceId);
+        if (!resourceMetafileCtx.result) {
+          if (resourceMetafileCtx.isFailed()) {
+            ctx.apply(resourceMetafileCtx);
+          } else {
+            ctx.setError(ErrorCodes.NOT_FOUND, { entity: "resource metafile" }, { id: resourceId });
+          }
+          return ctx;
+        }
+        const resourceMetafile = resourceMetafileCtx.result;
+        for (let i = 0; i < resourceMetafile.representations.length; i++) {
+          const representation = resourceMetafile.representations[i];
+          if (representation.data.id === representationId) {
+            resourceMetafile.representations.splice(i, 1);
+            ctx.apply(await this.updateResourceMetafile(resourceId, resourceMetafile, false));
+            if (ctx.isSuccess()) {
+              if (!representation.data.is_external) {
+                const filePath = import_node_path.default.join(
+                  this.getResourceDirectory(resourceId),
+                  representation.data.id + "." + (representation.data.extension || "unknown")
+                );
+                await import_promises.default.rm(filePath, { force: true });
+              }
+              this.representationResourceMap.delete(representationId);
+              const node = this.hierarchyIndexMap.get(resourceId);
+              if (node && "undefined" !== typeof node.representations[representationId]) {
+                delete node.representations[representationId];
+              }
+              ctx.apply(await this.saveHierarchyIndex(false));
+            }
+            break;
+          }
+        }
+      } catch (e) {
+        ctx.applyException(e);
+      } finally {
+        lock.releaseAll();
+      }
+    }
+    return ctx;
   }
   async deleteMarks(resourceId, marks) {
     return await this.updateResourceMetafile(resourceId, async (resourceMetafile) => {
-      for (let i = 0; i < resourceMetafile.marks.length; i++) {
-        const mark = resourceMetafile.marks[i];
-        if (-1 !== marks.findLastIndex((m) => m.name === mark.name && m.type === mark.type)) {
-          resourceMetafile.marks.splice(i, 1);
-        }
-      }
+      const toDelete = new Set(marks.map((m) => m.name + "|" + m.type));
+      resourceMetafile.marks = resourceMetafile.marks.filter((m) => !toDelete.has(m.name + "|" + m.type));
       return resourceMetafile;
     });
   }
   async deleteResourceKV(resourceId, componentKeys) {
     return await this.updateResourceMetafile(resourceId, async (resourceMetafile) => {
       for (const component in componentKeys) {
-        if (componentKeys.hasOwnProperty(component)) {
-          for (const key in componentKeys[component]) {
-            if (componentKeys[component].hasOwnProperty(key)) {
-              delete resourceMetafile.kv[component][key];
-            }
-          }
+        if (!resourceMetafile.kv[component]) continue;
+        for (const key in componentKeys[component]) {
+          delete resourceMetafile.kv[component][key];
         }
       }
       return resourceMetafile;
@@ -1228,13 +1563,16 @@ var FsManager = class {
   }
   async setMarks(resourceId, marks) {
     return await this.updateResourceMetafile(resourceId, async (resourceMetafile) => {
+      const marksData = marks.map((mark) => {
+        return { value: 0, ...mark };
+      });
       for (let i = 0; i < resourceMetafile.marks.length; i++) {
         const mark = resourceMetafile.marks[i];
         if (-1 !== marks.findLastIndex((m) => m.name === mark.name && m.type === mark.type)) {
           resourceMetafile.marks.splice(i, 1);
         }
       }
-      resourceMetafile.marks.push(...marks);
+      resourceMetafile.marks.push(...marksData);
       return resourceMetafile;
     });
   }
@@ -1264,21 +1602,22 @@ var DbManager = class {
     this.getPaths = getPaths;
   }
   async createResourceRecord(resourceEntity) {
-    let result = false;
-    await this.db.transaction(async (trx) => {
-      try {
+    let ctx = new Context();
+    try {
+      await this.db.transaction(async (trx) => {
         await trx.insert({
           ...resourceEntity.data,
-          created_at: nowInMS(),
-          updated_at: nowInMS()
+          created_at: nowInS(),
+          updated_at: nowInS()
         }).into(RESOURCE_DATA_TABLE);
         await trx.insert({
           ...resourceEntity.info,
           id: resourceEntity.data.id
         }).into(RESOURCE_INFO_TABLE);
         await trx.insert({
-          ...resourceEntity.hierarchy,
-          id: resourceEntity.data.id
+          id: resourceEntity.data.id,
+          parent_id: resourceEntity.hierarchy.parent_id,
+          order_index: resourceEntity.hierarchy.order_index
         }).into(RESOURCE_HIERARCHY_TABLE);
         for (const representation of resourceEntity.representations) {
           await trx.insert({
@@ -1310,103 +1649,88 @@ var DbManager = class {
             resource_id: resourceEntity.data.id
           }).into(MARK_DATA_TABLE);
         }
-        trx.commit();
-        result = true;
-      } catch (e) {
-        this.logger.error(e);
-        trx.rollback();
-      }
-    });
-    return result;
+      });
+    } catch (e) {
+      ctx.applyException(e);
+    }
+    return ctx;
   }
   async resourceExists(resourceId) {
     return !!await this.db(RESOURCE_DATA_TABLE).where("id", resourceId).first();
   }
   async appendChild(resourceId, childID) {
-    let result = false;
-    await this.db.transaction(async (trx) => {
-      try {
+    let ctx = new Context();
+    try {
+      await this.db.transaction(async (trx) => {
         await trx.update({
           parent_id: resourceId
         }).from(RESOURCE_HIERARCHY_TABLE).where({
           id: childID
         });
-        await trx.update({ updated_at: nowInMS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId });
-        trx.commit();
-        result = true;
-      } catch (e) {
-        this.logger.error(e);
-        trx.rollback();
-      }
-    });
-    return result;
+        await trx.update({ updated_at: nowInS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId });
+      });
+    } catch (e) {
+      ctx.applyException(e);
+    }
+    return ctx;
   }
   async changeParent(resourceId, newParentId) {
-    let result = false;
-    await this.db.transaction(async (trx) => {
-      try {
+    let ctx = new Context();
+    try {
+      await this.db.transaction(async (trx) => {
         await trx.update({
           parent_id: newParentId
         }).from(RESOURCE_HIERARCHY_TABLE).where({
           id: resourceId
         });
-        await trx.update({ updated_at: nowInMS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId });
-        trx.commit();
-        result = true;
-      } catch (e) {
-        this.logger.error(e);
-        trx.rollback();
-      }
-    });
-    return result;
+        await trx.update({ updated_at: nowInS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId });
+      });
+    } catch (e) {
+      ctx.applyException(e);
+    }
+    return ctx;
   }
   async changeOrderIndex(resourceId, newOrderIndex) {
-    let result = false;
-    await this.db.transaction(async (trx) => {
-      try {
+    let ctx = new Context();
+    try {
+      await this.db.transaction(async (trx) => {
         await trx.update({
           order_index: newOrderIndex
         }).from(RESOURCE_HIERARCHY_TABLE).where({
           id: resourceId
         });
-        await trx.update({ updated_at: nowInMS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId });
-        trx.commit();
-        result = true;
-      } catch (e) {
-        trx.rollback();
-        this.logger.error(e);
-      }
-    });
-    return result;
+        await trx.update({ updated_at: nowInS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId });
+      });
+    } catch (e) {
+      ctx.applyException(e);
+    }
+    return ctx;
   }
   async updateRepresentationInfo(representationId, info) {
-    let result = false;
-    await this.db.transaction(async (trx) => {
-      try {
+    let ctx = new Context();
+    try {
+      await this.db.transaction(async (trx) => {
         const representationRecord = await trx.select().from(REPRESENTATION_DATA_TABLE).where({
           id: representationId
-        });
+        }).first();
         if (representationRecord) {
           await trx.update({
-            data: info.data
+            data: JSON.stringify(info.data)
           }).from(REPRESENTATION_INFO_TABLE).where({
             id: representationId
           });
-          await trx.update({ updated_at: nowInMS() }).from(RESOURCE_DATA_TABLE).where({ id: representationRecord.resource_id });
+          await trx.update({ updated_at: nowInS() }).from(RESOURCE_DATA_TABLE).where({ id: representationRecord.resource_id });
         }
-        trx.commit();
-        result = true;
-      } catch (e) {
-        trx.rollback();
-        this.logger.error(e);
-      }
-    });
-    return result;
+      });
+    } catch (e) {
+      ctx.applyException(e);
+    }
+    return ctx;
   }
   async createRepresentation(resourceId, representationEntity) {
-    let result = false;
-    await this.db.transaction(async (trx) => {
-      try {
+    let ctx = new Context();
+    try {
+      await this.db.transaction(async (trx) => {
         await trx.insert({
           ...representationEntity.data,
           resource_id: resourceId
@@ -1419,23 +1743,20 @@ var DbManager = class {
           data: representationEntity.info.data,
           id: representationEntity.data.id
         }).into(REPRESENTATION_INFO_TABLE);
-        await trx.update({ updated_at: nowInMS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId });
-        trx.commit();
-        result = true;
-      } catch (e) {
-        this.logger.error(e);
-        trx.rollback();
-      }
-    });
-    return result;
+        await trx.update({ updated_at: nowInS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId });
+      });
+    } catch (e) {
+      ctx.applyException(e);
+    }
+    return ctx;
   }
   async updateRepresentation(representationId, representationEntity) {
-    let result = false;
-    await this.db.transaction(async (trx) => {
-      try {
+    let ctx = new Context();
+    try {
+      await this.db.transaction(async (trx) => {
         const representationRecord = await trx.select().from(REPRESENTATION_DATA_TABLE).where({
           id: representationId
-        });
+        }).first();
         if (representationRecord) {
           let dataUpdate = {
             ...representationEntity.data,
@@ -1453,20 +1774,17 @@ var DbManager = class {
             id: representationEntity.data.id
           });
           await trx.update({
-            data: representationEntity.info.data
+            data: JSON.stringify(representationEntity.info.data)
           }).from(REPRESENTATION_INFO_TABLE).where({
             id: representationId
           });
-          await trx.update({ updated_at: nowInMS() }).from(RESOURCE_DATA_TABLE).where({ id: representationRecord.resource_id });
+          await trx.update({ updated_at: nowInS() }).from(RESOURCE_DATA_TABLE).where({ id: representationRecord.resource_id });
         }
-        trx.commit();
-        result = true;
-      } catch (e) {
-        this.logger.error(e);
-        trx.rollback();
-      }
-    });
-    return result;
+      });
+    } catch (e) {
+      ctx.applyException(e);
+    }
+    return ctx;
   }
   async representationExists(representationID) {
     return !!await this.db(REPRESENTATION_DATA_TABLE).where("id", representationID).first();
@@ -1486,33 +1804,35 @@ var DbManager = class {
     }).first();
   }
   async deleteResource(resourceId) {
-    await this.db(RESOURCE_DATA_TABLE).where("id", resourceId).delete();
-    return true;
+    let ctx = new Context();
+    try {
+      await this.db(RESOURCE_DATA_TABLE).where("id", resourceId).delete();
+    } catch (e) {
+      ctx.applyException(e);
+    }
+    return ctx;
   }
   async deleteRepresentation(representationId) {
-    let result = false;
-    await this.db.transaction(async (trx) => {
-      try {
+    let ctx = new Context();
+    try {
+      await this.db.transaction(async (trx) => {
         const representationRecord = await trx.select().from(REPRESENTATION_DATA_TABLE).where({
           id: representationId
-        });
+        }).first();
         if (representationRecord) {
           await trx.delete().from(REPRESENTATION_DATA_TABLE).where({ id: representationId });
-          await trx.update({ updated_at: nowInMS() }).from(RESOURCE_DATA_TABLE).where({ id: representationRecord.resource_id });
+          await trx.update({ updated_at: nowInS() }).from(RESOURCE_DATA_TABLE).where({ id: representationRecord.resource_id });
         }
-        trx.commit();
-        result = true;
-      } catch (e) {
-        this.logger.error(e);
-        trx.rollback();
-      }
-    });
-    return result;
+      });
+    } catch (e) {
+      ctx.applyException(e);
+    }
+    return ctx;
   }
   async deleteMarks(resourceId, marks) {
-    let result = false;
-    await this.db.transaction(async (trx) => {
-      try {
+    let ctx = new Context();
+    try {
+      await this.db.transaction(async (trx) => {
         for (const mark of marks) {
           await trx.delete().from(MARK_DATA_TABLE).where({
             resource_id: resourceId,
@@ -1520,20 +1840,17 @@ var DbManager = class {
             type: mark.type
           });
         }
-        await trx.update({ updated_at: nowInMS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId });
-        trx.commit();
-        result = true;
-      } catch (e) {
-        this.logger.error(e);
-        trx.rollback();
-      }
-    });
-    return result;
+        await trx.update({ updated_at: nowInS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId });
+      });
+    } catch (e) {
+      ctx.applyException(e);
+    }
+    return ctx;
   }
   async deleteResourceKV(resourceId, componentKeys) {
-    let result = false;
-    await this.db.transaction(async (trx) => {
-      try {
+    let ctx = new Context();
+    try {
+      await this.db.transaction(async (trx) => {
         for (const component in componentKeys) {
           for (const attribute in componentKeys[component]) {
             await trx.delete().from(MARK_KV_TABLE).where({
@@ -1543,20 +1860,17 @@ var DbManager = class {
             });
           }
         }
-        await trx.update({ updated_at: nowInMS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId });
-        trx.commit();
-        result = true;
-      } catch (e) {
-        this.logger.error(e);
-        trx.rollback();
-      }
-    });
-    return result;
+        await trx.update({ updated_at: nowInS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId });
+      });
+    } catch (e) {
+      ctx.applyException(e);
+    }
+    return ctx;
   }
   async setMarks(resourceId, marks) {
-    let result = false;
-    await this.db.transaction(async (trx) => {
-      try {
+    let ctx = new Context();
+    try {
+      await this.db.transaction(async (trx) => {
         for (const mark of marks) {
           await trx.upsert({
             ...mark,
@@ -1567,20 +1881,17 @@ var DbManager = class {
             type: mark.type
           });
         }
-        await trx.update({ updated_at: nowInMS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId });
-        trx.commit();
-        result = true;
-      } catch (e) {
-        this.logger.error(e);
-        trx.rollback();
-      }
-    });
-    return result;
+        await trx.update({ updated_at: nowInS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId });
+      });
+    } catch (e) {
+      ctx.applyException(e);
+    }
+    return ctx;
   }
   async setResourceKV(resourceId, componentKeys) {
-    let result = false;
-    await this.db.transaction(async (trx) => {
-      try {
+    let ctx = new Context();
+    try {
+      await this.db.transaction(async (trx) => {
         for (const component in componentKeys) {
           for (const attribute in componentKeys[component]) {
             await trx.upsert({
@@ -1595,20 +1906,17 @@ var DbManager = class {
             });
           }
         }
-        await trx.update({ updated_at: nowInMS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId });
-        trx.commit();
-        result = true;
-      } catch (e) {
-        this.logger.error(e);
-        trx.rollback();
-      }
-    });
-    return result;
+        await trx.update({ updated_at: nowInS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId });
+      });
+    } catch (e) {
+      ctx.applyException(e);
+    }
+    return ctx;
   }
   async makeRepresentationPrimary(resourceId, representationId) {
-    let result = false;
-    await this.db.transaction(async (trx) => {
-      try {
+    let ctx = new Context();
+    try {
+      await this.db.transaction(async (trx) => {
         await trx.update({
           is_primary: false
         }).from(REPRESENTATION_DATA_TABLE).where({
@@ -1620,32 +1928,42 @@ var DbManager = class {
         }).from(REPRESENTATION_DATA_TABLE).where({
           id: representationId
         });
-        await trx.update({ updated_at: nowInMS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId });
-        trx.commit();
-        result = true;
-      } catch (e) {
-        this.logger.error(e);
-        trx.rollback();
-      }
-    });
-    return result;
+        await trx.update({ updated_at: nowInS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId });
+      });
+    } catch (e) {
+      ctx.applyException(e);
+    }
+    return ctx;
   }
   async deleteAllRecords() {
-    await this.db(RESOURCE_DATA_TABLE).delete();
-    return true;
+    let ctx = new Context();
+    try {
+      await this.db(RESOURCE_DATA_TABLE).delete();
+    } catch (e) {
+      ctx.applyException(e);
+    }
+    return ctx;
   }
-  getMarkListByType(type) {
-    return this.db(MARK_DATA_TABLE).where({ type }).groupBy("name").select("name", this.db.raw("count(resource_id) as resources"));
+  async getMarkListByType(type) {
+    let ctx = new Context([]);
+    try {
+      ctx.result = await this.db(MARK_DATA_TABLE).where({ type }).groupBy("name").select("name", this.db.raw("count(resource_id) as resources"));
+    } catch (e) {
+      ctx.applyException(e);
+    }
+    return ctx;
   }
 };
 
 // src/core/Namer.ts
+var import_uuidv7 = require("uuidv7");
+var import_uuid25 = require("uuid25");
 var Namer = class {
   generateResourceId() {
-    return "";
+    return import_uuid25.Uuid25.fromBytes((0, import_uuidv7.uuidv7obj)().bytes).toHex();
   }
   generateRepresentationId() {
-    return "";
+    return import_uuid25.Uuid25.fromBytes((0, import_uuidv7.uuidv7obj)().bytes).toHex();
   }
 };
 
@@ -1656,9 +1974,9 @@ var Core = class extends import_node_events.EventEmitter {
     this.config = config;
     this.namer = new Namer();
     this.logger = config.logger;
+    this.fsManager = new FsManager(config.storage, config.logger);
     this.db = (0, import_knex.default)(config.db.connection);
     this.migrationManager = new DBSchemeManager(this.db, config.logger);
-    this.fsManager = new FsManager(config.storage, config.logger);
     this.dbManager = new DbManager(this.db, config.db, config.logger, (resourceId) => this.fsManager.getPath(resourceId));
   }
   db;
@@ -1668,22 +1986,38 @@ var Core = class extends import_node_events.EventEmitter {
   namer;
   logger;
   async init() {
-    await this.migrationManager.init(this.config.db.initMigration);
-    await this.fsManager.init();
+    const initiableList = [
+      this.migrationManager,
+      this.fsManager
+    ];
+    for (const initiable of initiableList) {
+      const initCtx = await initiable.init();
+      if (initCtx.error) {
+        this.logger.error(initCtx.error, initCtx.errorInfo);
+      }
+    }
   }
   async dbFullDrop() {
-    await this.migrationManager.fullDrop();
-    this.emit(ON_DB_FULL_DROP_EVENT, this);
+    let ctx = new Context();
+    ctx.apply(await this.migrationManager.fullDrop());
+    if (ctx.isSuccess()) {
+      this.emit(ON_DB_FULL_DROP_EVENT, this);
+    }
+    return ctx;
   }
-  async applyDbSchemePatch(id, patch) {
-    return await this.migrationManager.applySchemePatch(id, patch);
+  applyDbSchemePatch(id, patch) {
+    return this.migrationManager.applySchemePatch(id, patch);
   }
-  async rollbackDbSchemePatch(id, patch) {
-    return await this.migrationManager.rollbackSchemePatch(id, patch);
+  rollbackDbSchemePatch(id, patch) {
+    return this.migrationManager.rollbackSchemePatch(id, patch);
   }
   async createResource({ info, data = {}, hierarchy = {}, marks = [], kv = {} }) {
-    let result = false;
-    if (!hierarchy?.parent_id || await this.dbManager.resourceExists(hierarchy.parent_id)) {
+    let ctx = new Context(null);
+    try {
+      if (hierarchy.parent_id && await this.dbManager.resourceExists(hierarchy.parent_id)) {
+        ctx.setError(ErrorCodes.PARENT_NOT_FOUND, { entity: "resource" }, { parent_id: hierarchy.parent_id });
+        return ctx;
+      }
       const resourceId = this.namer.generateResourceId();
       const resourceEntity = {
         data: {
@@ -1691,8 +2025,8 @@ var Core = class extends import_node_events.EventEmitter {
           hidden: data?.hidden || false,
           locked: data?.locked || false,
           is_deleted: false,
-          created_at: nowInMS(),
-          updated_at: nowInMS()
+          created_at: nowInS(),
+          updated_at: nowInS()
         },
         hierarchy: {
           path: [],
@@ -1705,37 +2039,54 @@ var Core = class extends import_node_events.EventEmitter {
           description: info.description || null
         },
         representations: [],
-        marks,
+        marks: marks.map((mark) => {
+          return { value: 0, ...mark };
+        }),
         kv
       };
-      let resultMetafile = await this.fsManager.createResourceMetafile(
-        this.fsManager.resourceDTEToMetafile(resourceEntity)
+      ctx.apply(
+        await this.fsManager.createResourceMetafile(
+          this.fsManager.resourceDTEToMetafile(resourceEntity)
+        )
       );
-      if (resultMetafile) {
+      if (ctx.isSuccess()) {
         resourceEntity.hierarchy.path = this.fsManager.getPath(resourceEntity.data.id);
-        await this.dbManager.createResourceRecord(resourceEntity);
-        if (hierarchy?.parent_id) {
-          await this.fsManager.appendChild(hierarchy.parent_id, resourceId);
-          await this.dbManager.appendChild(hierarchy.parent_id, resourceId);
+        ctx.apply(
+          await this.dbManager.createResourceRecord(resourceEntity)
+        );
+        if (hierarchy?.parent_id && ctx.isSuccess()) {
+          ctx.apply(
+            await this.fsManager.appendChild(hierarchy.parent_id, resourceId)
+          );
+          if (ctx.isSuccess()) {
+            ctx.apply(
+              await this.dbManager.appendChild(hierarchy.parent_id, resourceId)
+            );
+          }
         }
-        this.emit(ON_RESOURCE_CREATED_EVENT, this, resourceEntity);
-        for (const representation of resourceEntity.representations) {
-          this.emit(ON_REPRESENTATION_CREATED_EVENT, this, representation);
-        }
-        for (const mark of resourceEntity.marks) {
-          this.emit(ON_MARK_CREATED_EVENT, this, mark);
-        }
-        for (const kvComponent in resourceEntity.kv) {
-          for (const kvAttribute in resourceEntity.kv[kvComponent]) {
-            this.emit(ON_RESOURCE_KV_CREATED_EVENT, this, kvComponent, kvAttribute, resourceEntity.kv[kvComponent][kvAttribute]);
+        if (ctx.isSuccess()) {
+          ctx.result = resourceId;
+          this.emit(ON_RESOURCE_CREATED_EVENT, this, resourceEntity);
+          for (const representation of resourceEntity.representations) {
+            this.emit(ON_REPRESENTATION_CREATED_EVENT, this, representation);
+          }
+          for (const mark of resourceEntity.marks) {
+            this.emit(ON_MARK_CREATED_EVENT, this, mark);
+          }
+          for (const kvComponent in resourceEntity.kv) {
+            for (const kvAttribute in resourceEntity.kv[kvComponent]) {
+              this.emit(ON_RESOURCE_KV_CREATED_EVENT, this, kvComponent, kvAttribute, resourceEntity.kv[kvComponent][kvAttribute]);
+            }
           }
         }
       }
+    } catch (e) {
+      ctx.applyException(e);
     }
-    return result;
+    return ctx;
   }
   async createRepresentation(resourceId, { data, infoData = null, source = {} }) {
-    let result = null;
+    let ctx = new Context(null);
     if (await this.resourceExists(resourceId)) {
       const representationId = this.namer.generateRepresentationId();
       const representationEntity = {
@@ -1748,8 +2099,8 @@ var Core = class extends import_node_events.EventEmitter {
           extension: null,
           is_external: data.is_external,
           is_primary: false,
-          created_at: nowInMS(),
-          updated_at: nowInMS(),
+          created_at: nowInS(),
+          updated_at: nowInS(),
           uploading: !data.is_external
         },
         source: {
@@ -1760,96 +2111,147 @@ var Core = class extends import_node_events.EventEmitter {
           data: infoData || {}
         }
       };
-      if (await this.fsManager.createRepresentation(resourceId, representationEntity)) {
-        await this.dbManager.createRepresentation(resourceId, representationEntity);
+      while (true) {
+        ctx.apply(await this.fsManager.createRepresentation(resourceId, representationEntity));
+        if (ctx.isFailed()) break;
+        ctx.apply(await this.dbManager.createRepresentation(resourceId, representationEntity));
+        if (ctx.isFailed()) break;
         if (data.is_primary) {
-          await this.makeRepresentationPrimary(resourceId, representationId);
+          ctx.apply(await this.makeRepresentationPrimary(resourceId, representationId));
+          if (ctx.isFailed()) break;
         }
-        result = representationEntity;
+        ctx.result = representationId;
         this.emit(ON_REPRESENTATION_CREATED_EVENT, this, representationEntity);
+        break;
       }
+    } else {
+      ctx.setError(ErrorCodes.NOT_FOUND, { entity: "resource" }, { resource_id: resourceId });
     }
-    return result;
+    return ctx;
   }
   async makeRepresentationPrimary(resourceId, representationId) {
-    let result = await this.fsManager.makeRepresentationPrimary(resourceId, representationId);
-    if (result) {
-      await this.dbManager.makeRepresentationPrimary(resourceId, representationId);
+    let ctx = new Context();
+    try {
+      ctx.apply(await this.fsManager.makeRepresentationPrimary(resourceId, representationId));
+      if (ctx.isSuccess()) {
+        ctx.apply(await this.dbManager.makeRepresentationPrimary(resourceId, representationId));
+      }
+    } catch (e) {
+      ctx.applyException(e);
     }
-    return false;
+    return ctx;
   }
   async deleteResource(id) {
-    let result = await this.fsManager.deleteResource(id);
-    if (result) {
-      await this.dbManager.deleteResource(id);
+    let ctx = new Context();
+    try {
+      ctx.apply(await this.fsManager.deleteResource(id));
+      if (ctx.isSuccess()) {
+        ctx.apply(await this.dbManager.deleteResource(id));
+      }
+    } catch (e) {
+      ctx.applyException(e);
     }
-    return result;
+    return ctx;
   }
   async deleteRepresentation(id) {
-    let result = await this.fsManager.deleteRepresentation(id);
-    if (result) {
-      await this.dbManager.deleteRepresentation(id);
+    let ctx = new Context();
+    try {
+      ctx.apply(await this.fsManager.deleteRepresentation(id));
+      if (ctx.isSuccess()) {
+        ctx.apply(await this.dbManager.deleteRepresentation(id));
+      }
+    } catch (e) {
+      ctx.applyException(e);
     }
-    return result;
+    return ctx;
   }
   async deleteMark(id, marks) {
-    let result = await this.fsManager.deleteMarks(id, marks);
-    if (result) {
-      await this.dbManager.deleteMarks(id, marks);
+    let ctx = new Context();
+    try {
+      ctx.apply(await this.fsManager.deleteMarks(id, marks));
+      if (ctx.isSuccess()) {
+        ctx.apply(await this.dbManager.deleteMarks(id, marks));
+      }
+    } catch (e) {
+      ctx.applyException(e);
     }
-    return result;
+    return ctx;
   }
   async deleteResourceKV(id, componentKeys) {
-    let result = await this.fsManager.deleteResourceKV(id, componentKeys);
-    if (result) {
-      await this.dbManager.deleteResourceKV(id, componentKeys);
+    let ctx = new Context();
+    try {
+      ctx.apply(await this.fsManager.deleteResourceKV(id, componentKeys));
+      if (ctx.isSuccess()) {
+        ctx.apply(await this.dbManager.deleteResourceKV(id, componentKeys));
+      }
+    } catch (e) {
+      ctx.applyException(e);
     }
-    return result;
+    return ctx;
   }
   // update methods
   async setMarks(resourceId, marks) {
-    let result = await this.fsManager.setMarks(resourceId, marks);
-    if (result) {
-      await this.dbManager.setMarks(resourceId, marks);
+    let ctx = new Context();
+    try {
+      ctx.apply(await this.fsManager.setMarks(resourceId, marks));
+      if (ctx.isSuccess()) {
+        ctx.apply(await this.dbManager.setMarks(resourceId, marks));
+      }
+    } catch (e) {
+      ctx.applyException(e);
     }
-    return result;
+    return ctx;
   }
   async setResourceKV(resourceId, componentKeys) {
-    let result = await this.fsManager.setResourceKV(resourceId, componentKeys);
-    if (result) {
-      await this.dbManager.setResourceKV(resourceId, componentKeys);
+    let ctx = new Context();
+    try {
+      ctx.apply(await this.fsManager.setResourceKV(resourceId, componentKeys));
+      if (ctx.isSuccess()) {
+        ctx.apply(await this.dbManager.setResourceKV(resourceId, componentKeys));
+      }
+    } catch (e) {
+      ctx.applyException(e);
     }
-    return result;
+    return ctx;
   }
   // TODO upload methods
   async uploadRepresentationPart(representationId, chunk, offset = 0, length = void 0) {
-    let report = await this.fsManager.uploadRepresentationPart(representationId, chunk, offset, length);
-    if (report.status) {
-      await this.dbManager.updateRepresentationInfo(representationId, { data: report.data });
+    let ctx = await this.fsManager.uploadRepresentationPart(representationId, chunk, offset, length);
+    if (ctx.isSuccess()) {
+      ctx.apply(await this.dbManager.updateRepresentationInfo(representationId, { data: ctx.result.data }));
     }
-    return report;
+    return ctx;
   }
   async finishRepresentationUpload(representationId) {
-    let result = await this.fsManager.finishRepresentationUpload(representationId);
-    if (result) {
+    let ctx = await this.fsManager.finishRepresentationUpload(representationId);
+    if (ctx.isSuccess()) {
       const resourceId = this.fsManager.getResourceIdByRepresentationId(representationId);
       if (resourceId) {
-        const resourceMetafile = await this.fsManager.getResourceMetafile(resourceId);
-        if (resourceMetafile) {
-          let representation = null;
-          for (const repItem of resourceMetafile.representations) {
-            if (repItem.data.id === representationId) {
-              representation = repItem;
-              break;
-            }
+        const resourceMetafileCtx = await this.fsManager.getResourceMetafile(resourceId);
+        if (!resourceMetafileCtx.result) {
+          if (resourceMetafileCtx.isFailed()) {
+            ctx.apply(resourceMetafileCtx);
+          } else {
+            ctx.setError(ErrorCodes.NOT_FOUND, { entity: "resource" }, { resource_id: resourceId });
           }
-          if (representation) {
-            await this.dbManager.updateRepresentation(representationId, representation);
+          return ctx;
+        }
+        let resourceMetafile = resourceMetafileCtx.result;
+        let representation = null;
+        for (const repItem of resourceMetafile.representations) {
+          if (repItem.data.id === representationId) {
+            representation = repItem;
+            break;
           }
+        }
+        if (representation) {
+          ctx.apply(await this.dbManager.updateRepresentation(representationId, representation));
+        } else {
+          ctx.setError(ErrorCodes.NOT_FOUND, { entity: "representation" }, { representation_id: representationId });
         }
       }
     }
-    return result;
+    return ctx;
   }
   // TODO query methods
   resourceExists(id) {
@@ -1867,8 +2269,9 @@ var Core = class extends import_node_events.EventEmitter {
   async getMarkListByType(type) {
     return await this.dbManager.getMarkListByType(type);
   }
-  // TODO full rescan
   async fullRescan(reportCallback) {
+    let ctx = new Context();
+    return ctx;
   }
 };
 
@@ -1887,6 +2290,8 @@ var Storage = class extends Plugin {
     super(api);
   }
   async init() {
+    let ctx = new Context();
+    return ctx;
   }
   createResource(factoryData) {
     return this.api.createResource(factoryData);
@@ -1896,6 +2301,12 @@ var Storage = class extends Plugin {
   }
   makeRepresentationPrimary(resourceId, id) {
     return this.api.makeRepresentationPrimary(resourceId, id);
+  }
+  uploadRepresentationPart(representationId, chunk, offset = 0, length = void 0) {
+    return this.api.uploadRepresentationPart(representationId, chunk, offset, length);
+  }
+  finishRepresentationUpload(representationId) {
+    return this.api.finishRepresentationUpload(representationId);
   }
   deleteResource(id) {
     return this.api.deleteResource(id);
@@ -1923,6 +2334,8 @@ var Query = class extends Plugin {
     super(api);
   }
   async init() {
+    let ctx = new Context();
+    return ctx;
   }
   resourceExists(id) {
     return this.api.resourceExists(id);

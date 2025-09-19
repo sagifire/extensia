@@ -32,6 +32,8 @@ import {
     IMarkDataRecord,
     IMarkKVRecord,
 
+    IMarkParam,
+
     IPlugin,
     PluginConstructor,
 
@@ -66,7 +68,8 @@ import {
     DBSchemePatch,
 
     ILogger,
-    IUploadingPartReport
+    IUploadingPartReport,
+    IInitiable
 
 } from './core/contracts.js'
 
@@ -96,6 +99,8 @@ export {
     IMarkData,
     IResourceKV,
     IResourceComponentsIndex,
+
+    IMarkParam,
 
     APPLY_PATCH_TABLE,
     RESOURCE_DATA_TABLE,
@@ -152,6 +157,7 @@ export {
 
     ILogger,
     IUploadingPartReport,
+    IInitiable,
 
     makeIndexFromResourceEntity,
 }

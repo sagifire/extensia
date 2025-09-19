@@ -4,12 +4,14 @@ import type Config from './Config.js'
 import { AsyncLockQueue } from './AsyncLockQueue.js'
 import { fileTypeFromFile } from 'file-type'
 import {
-    IDString,
-    ILogger,
+    IDString, IInitiable,
+    ILogger, IMarkData, IMarkParam,
     IRepresentationDTE, IResourceDTE, IResourceKV,
     IResourceMetafile, IUploadingPartReport
 } from './contracts.js'
-import { nowInMS } from './utils.js'
+import { nowInS } from './utils.js'
+import { Context, PromisedContext } from './Context.js'
+import { ErrorCodes } from './ErrorCodes.js'
 
 export type HierarchyNode = {
     parent: IDString | null,
@@ -19,7 +21,7 @@ export type HierarchyNode = {
 
 const HIERARCHY_LOCK_NAME = 'hierarchy'
 
-export default class FsManager {
+export default class FsManager implements IInitiable {
 
     protected absoluteRoot: string
     protected lockQueue: AsyncLockQueue<IDString>
@@ -35,15 +37,18 @@ export default class FsManager {
         this.lockQueue = new AsyncLockQueue<IDString>()
     }
 
-    async init(): Promise<void> {
-        await this.initHierarchyIndex()
+    async init(): PromisedContext {
+        if (!await fs.access(this.absoluteRoot).then(() => true).catch(() => false)) {
+            await fs.mkdir(this.absoluteRoot, { recursive: true })
+        }
+        return await this.initHierarchyIndex()
     }
 
     protected getHierarchyIndexFilePath() {
         return path.join(this.absoluteRoot, 'hierarchy.json')
     }
 
-    protected indexHierarchyNodeRecursive(node: HierarchyNode): void {
+    protected indexHierarchyNodeRecursive(node: HierarchyNode) {
         for (const childId of Object.keys(node.children)) {
             const childNode = node.children[childId]
             this.hierarchyIndexMap.set(childId, childNode)
@@ -54,19 +59,25 @@ export default class FsManager {
         }
     }
 
-    protected async initHierarchyIndex(): Promise<void> {
-        this.hierarchyIndexMap.clear()
-        this.representationResourceMap.clear()
+    protected async initHierarchyIndex(): PromisedContext {
+        let ctx = new Context()
         try {
-            this.hierarchyIndexTree = JSON.parse(await fs.readFile(this.getHierarchyIndexFilePath(), { encoding: 'utf-8' }))
-            this.indexHierarchyNodeRecursive(this.hierarchyIndexTree)
+            this.hierarchyIndexMap.clear()
+            this.representationResourceMap.clear()
+            const hierarchyIndexFilePath = this.getHierarchyIndexFilePath()
+            if (await fs.access(hierarchyIndexFilePath).then(() => true).catch(() => false)) {
+                this.hierarchyIndexTree = JSON.parse(await fs.readFile(hierarchyIndexFilePath, { encoding: 'utf-8' }))
+                this.indexHierarchyNodeRecursive(this.hierarchyIndexTree)
+            }
         } catch (e) {
-            this.logger.error(e)
             this.hierarchyIndexTree = { parent: null, children: {}, representations: {} }
+            ctx.applyException(e)
         }
+        return ctx
     }
 
-    protected async saveHierarchyIndex(lock: boolean = true): Promise<void> {
+    protected async saveHierarchyIndex(lock: boolean = true): PromisedContext {
+        let ctx = new Context()
         const hiLock = lock ? await this.lockQueue.lock(HIERARCHY_LOCK_NAME) : undefined
         try {
             await fs.writeFile(
@@ -78,12 +89,13 @@ export default class FsManager {
                 }
             )
         } catch (e) {
-            this.logger.error(e)
+            ctx.applyException(e)
         } finally {
             if (hiLock) {
                 hiLock.release()
             }
         }
+        return ctx
     }
 
     public getPath(id: IDString): string[] {
@@ -189,19 +201,24 @@ export default class FsManager {
         return path.join(this.getResourceDirectory(id), id + '.json')
     }
 
-    public async createResourceMetafile(resourceMetafile: IResourceMetafile): Promise<boolean> {
-        let result = true
+    public async createResourceMetafile(resourceMetafile: IResourceMetafile): PromisedContext {
+        let ctx = new Context()
+
         const resourceFilePath = this.getResourceFilePath(resourceMetafile.data.id)
         const resourceDirectory = this.getResourceDirectory(resourceMetafile.data.id)
 
         if (resourceMetafile.hierarchy.parent_id) {
             if (!await this.resourceExists(resourceMetafile.hierarchy.parent_id)) {
-                this.logger.error('Parent resource not found, cannot create resource')
-                return false
+                ctx.setError(ErrorCodes.PARENT_NOT_FOUND, { entity: 'resource'}, { id: resourceMetafile.hierarchy.parent_id })
+                return ctx
             }
             if (this.inChildren(resourceMetafile.data.id, resourceMetafile.hierarchy.parent_id)) {
-                this.logger.error('Cyclic hierarchy detected, cannot create resource')
-                return false
+                ctx.setError(
+                    ErrorCodes.CONFLICT,
+                    { reason: 'Cyclic hierarchy detected, cannot create resource' },
+                    { id: resourceMetafile.data.id, conflict_id: resourceMetafile.hierarchy.parent_id }
+                )
+                return ctx
             }
         }
         resourceMetafile.representations = []
@@ -225,69 +242,75 @@ export default class FsManager {
                 if (parentNode) {
                     parentNode.children[resourceMetafile.data.id] = node
                 } else {
-                    this.logger.error('Parent node not found, need full store reindex')
+                    ctx.setError(ErrorCodes.BROKEN_INDEX, { reason: 'Parent node not found' }, { id: resourceMetafile.hierarchy.parent_id })
                 }
             } else {
                 this.hierarchyIndexTree.children[resourceMetafile.data.id] = node
             }
-            await this.saveHierarchyIndex(false)
-
+            ctx.apply(await this.saveHierarchyIndex(false))
         } catch (e) {
-            this.logger.error(e)
-            result = false
+            ctx.applyException(e)
         } finally {
             resLock.releaseAll()
         }
-        return result
+        return ctx
     }
 
     protected async updateResourceMetafile(
         resourceId: IDString,
         patch: IResourceMetafile | ((resourceMetafile: IResourceMetafile) => Promise<IResourceMetafile>),
         lock: boolean = true
-    ): Promise<boolean> {
-        let result = true
+    ): PromisedContext {
+        let ctx = new Context()
         let resourceMetafile: IResourceMetafile | null = null
         const resLock = lock ? await this.lockQueue.lock(resourceId) : undefined
         try {
             if ('function' === typeof patch) {
-                resourceMetafile = await this.getResourceMetafile(resourceId)
-                if (resourceMetafile) {
-                    resourceMetafile = await patch(resourceMetafile)
+                let resourceMetafileCtx = await this.getResourceMetafile(resourceId)
+                if (resourceMetafileCtx.isSuccess() && resourceMetafileCtx.result) {
+                    resourceMetafile = await patch(resourceMetafileCtx.result)
+                } else {
+                    if (resourceMetafileCtx.isFailed()) {
+                        ctx.apply(resourceMetafileCtx)
+                    } else {
+                        ctx.setError(ErrorCodes.INVALID_DATA, { entity: 'resource metafile' }, { id: resourceId })
+                    }
                 }
             } else {
                 resourceMetafile = patch
             }
-            if (resourceMetafile) {
-                resourceMetafile.data.updated_at = nowInMS()
+            if (ctx.isSuccess() && resourceMetafile) {
+                resourceMetafile.data.updated_at = nowInS()
                 const resourceFilePath = this.getResourceFilePath(resourceId)
                     await fs.writeFile(resourceFilePath, JSON.stringify(resourceMetafile, null, 4) + '\n', {
                         encoding: 'utf-8',
                         flag: 'w'
                     })
-
-            } else {
-                result = false
             }
         } catch (e) {
-            this.logger.error(e)
-            result = false
+            ctx.applyException(e)
         } finally {
             if (resLock) {
                 resLock.release()
             }
         }
-        return result
+        return ctx
     }
 
-    public async updateResource(resourceMetafile: IResourceMetafile): Promise<boolean> {
-        let result = false
+    public async updateResource(resourceMetafile: IResourceMetafile): PromisedContext {
+        let ctx = new Context()
 
         if (await this.resourceExists(resourceMetafile.data.id)) {
-            const oldMetafile = await this.getResourceMetafile(resourceMetafile.data.id)
+            const oldMetafileCtx = await this.getResourceMetafile(resourceMetafile.data.id)
+            if (oldMetafileCtx.isFailed()) {
+                ctx.apply(oldMetafileCtx)
+                return ctx
+            }
+
+            const oldMetafile = oldMetafileCtx.result
             if (!oldMetafile) {
-                this.logger.error('Old metafile not found, cannot update resource')
-                return false
+                ctx.setError(ErrorCodes.INVALID_DATA, { entity: 'resource metafile' }, { id: resourceMetafile.data.id })
+                return ctx
             }
 
             const resLock = await this.lockQueue.lock(resourceMetafile.data.id)
@@ -295,89 +318,158 @@ export default class FsManager {
                 resourceMetafile.representations = oldMetafile.representations
                 resourceMetafile.hierarchy.children = oldMetafile.hierarchy.children
                 resourceMetafile.hierarchy.parent_id = oldMetafile.hierarchy.parent_id
-                resourceMetafile.data.updated_at = nowInMS()
+                resourceMetafile.data.updated_at = nowInS()
                 resourceMetafile.data.is_deleted = false
 
-                await this.updateResourceMetafile(resourceMetafile.data.id, resourceMetafile, false)
+                ctx.apply(
+                    await this.updateResourceMetafile(resourceMetafile.data.id, resourceMetafile, false)
+                )
             } catch (e) {
-                this.logger.error(e)
-                result = false
+                ctx.applyException(e)
             } finally {
                 resLock.release()
             }
         }
-
-        return result
+        return ctx
     }
 
-    public async getResourceMetafile(resourceId: IDString): Promise<IResourceMetafile | null> {
-        let result = null
-        let resourceFilePath = this.getResourceFilePath(resourceId)
+    public async getResourceMetafile(resourceId: IDString): PromisedContext<IResourceMetafile|null> {
+        let ctx = new Context<IResourceMetafile|null>(null)
         try {
-            let content = await fs.readFile(resourceFilePath, { encoding: 'utf-8' })
-            result = JSON.parse(content) as IResourceMetafile
-        } catch (e) {
-            this.logger.error(e)
-        }
-        return result
-    }
-
-    public async appendChild(resourceID: IDString, childID: IDString): Promise<boolean> {
-        if (this.inChildren(childID, resourceID)) {
-            this.logger.error('Cyclic hierarchy detected, cannot append child')
-            return false
-        }
-        let resourceNode = this.hierarchyIndexMap.get(resourceID)
-        if (resourceNode) {
-            if (resourceNode.children[childID]) {
-                if (this.logger.warn) {
-                    this.logger.warn('Child already exists, cannot append child')
-                }
-                return true
+            let resourceFilePath = this.getResourceFilePath(resourceId)
+            if (!await fs.access(resourceFilePath).then(() => true).catch(() => false)) {
+                ctx.setError(ErrorCodes.NOT_FOUND, { entity: 'resource metafile' }, { id: resourceId })
+                return ctx
             }
+            let content = await fs.readFile(resourceFilePath, { encoding: 'utf-8' })
+            ctx.result = JSON.parse(content) as IResourceMetafile
+        } catch (e) {
+            ctx.applyException(e)
+        }
+        return ctx
+    }
+
+    public async appendChild(resourceID: IDString, childID: IDString): PromisedContext {
+        let ctx = new Context()
+
+        const childNode = this.hierarchyIndexMap.get(childID)
+        if (!childNode) {
+            ctx.setError(ErrorCodes.NOT_FOUND, { entity: 'resource' }, { id: childID })
+            return ctx
         }
 
-        let result = false
-        const resLock = await this.lockQueue.lockMany([resourceID, childID, HIERARCHY_LOCK_NAME])
+        const oldParentId: IDString | null = childNode.parent
+        let lockList: IDString[] = [resourceID, childID, HIERARCHY_LOCK_NAME]
+        if (oldParentId) {
+            lockList.push(oldParentId)
+        }
+        const resLock = await this.lockQueue.lockMany(lockList)
         try {
-            const resourceEntity = await this.getResourceMetafile(resourceID)
-            const childEntity = await this.getResourceMetafile(childID)
+            if (this.inChildren(childID, resourceID)) {
+                ctx.setError(ErrorCodes.CONFLICT, { reason: 'Cyclic hierarchy detected, cannot append child' }, { id: childID, conflict_id: resourceID })
+                return ctx
+            }
+            let resourceNode = this.hierarchyIndexMap.get(resourceID)
+            if (resourceNode) {
+                if (resourceNode.children[childID]) {
+                    if (this.logger.warn) {
+                        this.logger.warn('Child already exists, cannot append child')
+                    }
+                    return ctx
+                }
+            }
 
-            if (resourceEntity && childEntity) {
-                childEntity.hierarchy.parent_id = resourceID
+            const resourceEntityCtx = await this.getResourceMetafile(resourceID)
+            const childEntityCtx = await this.getResourceMetafile(childID)
+            const oldParentCtx = oldParentId ? await this.getResourceMetafile(oldParentId) : undefined
 
-                resourceEntity.hierarchy.children = resourceEntity.hierarchy.children.concat({
-                    id: childID,
-                    order_index: childEntity.hierarchy.order_index
-                }).sort((a, b) => a.order_index - b.order_index)
-
-                result = await this.updateResourceMetafile(resourceID, resourceEntity, false)
-                    && await this.updateResourceMetafile(childID, childEntity, false)
-
-                let childNode = this.hierarchyIndexMap.get(childID)
-                if (resourceNode && childNode) {
-                    resourceNode.children[childID] = childNode
-                    childNode.parent = resourceID
-                    await this.saveHierarchyIndex(false)
+            if (!resourceEntityCtx.result) {
+                if (resourceEntityCtx.isFailed()) {
+                    ctx.apply(resourceEntityCtx)
                 } else {
-                    this.logger.error('Resource or child node not found, need full store reindex')
+                    ctx.setError(ErrorCodes.INVALID_DATA, { entity: 'resource metafile' }, { id: resourceID })
+                }
+                return ctx
+            }
+
+            if (!childEntityCtx.result) {
+                if (childEntityCtx.isFailed()) {
+                    ctx.apply(childEntityCtx)
+                } else {
+                    ctx.setError(ErrorCodes.INVALID_DATA, { entity: 'resource metafile' }, { id: childID })
+                }
+                return ctx
+            }
+
+            if (oldParentCtx && !oldParentCtx.result) {
+                if (oldParentCtx.isFailed()) {
+                    ctx.apply(oldParentCtx)
+                } else {
+                    ctx.setError(ErrorCodes.INVALID_DATA, { entity: 'resource metafile' }, { id: oldParentId })
+                }
+            }
+
+            let resourceEntity = resourceEntityCtx.result
+            let childEntity = childEntityCtx.result
+            let oldParentEntity = oldParentCtx?.result || undefined
+
+            childEntity.hierarchy.parent_id = resourceID
+
+            resourceEntity.hierarchy.children = resourceEntity.hierarchy.children.concat({
+                id: childID,
+                order_index: childEntity.hierarchy.order_index
+            }).sort((a, b) => a.order_index - b.order_index)
+
+            ctx.apply(await this.updateResourceMetafile(resourceID, resourceEntity, false))
+
+            if (ctx.isSuccess()) {
+                ctx.apply(await this.updateResourceMetafile(childID, childEntity, false))
+
+                if (oldParentId && ctx.isSuccess()) {
+                    ctx.apply(
+                        await this.updateResourceMetafile(oldParentId, async (resourceMetafile): Promise<IResourceMetafile> => {
+                            resourceMetafile.hierarchy.children = resourceMetafile.hierarchy.children.filter(value => value.id !== childID)
+                            resourceMetafile.hierarchy.children.sort((a, b) => a.order_index - b.order_index)
+                            return resourceMetafile
+                        }, false)
+                    )
+
+                    let oldParentNode = this.hierarchyIndexMap.get(oldParentId)
+                    if (oldParentNode) {
+                        delete oldParentNode.children[childID]
+                    } else {
+                        ctx.setError(ErrorCodes.BROKEN_INDEX, { reason: 'Old parent node not found' }, { id: oldParentId })
+                    }
+                }
+
+                if (ctx.isSuccess()) {
+                    let childNode = this.hierarchyIndexMap.get(childID)
+                    if (resourceNode && childNode) {
+                        resourceNode.children[childID] = childNode
+                        childNode.parent = resourceID
+                        ctx.apply(await this.saveHierarchyIndex(false))
+                    } else {
+                        ctx.setError(ErrorCodes.BROKEN_INDEX, { reason: 'Resource or child node not found' }, { id: resourceID, child_id: childID })
+                    }
                 }
             }
         } catch(e) {
-            this.logger.error(e)
-            result = false
+            ctx.applyException(e)
         } finally {
             resLock.releaseAll()
         }
-        return result
+        return ctx
     }
 
-    public async deleteResource(resourceId: IDString, recursive: boolean = false): Promise<boolean> {
+    public async deleteResource(resourceId: IDString, recursive: boolean = false): PromisedContext {
+        let ctx = new Context()
+
         if (!await this.resourceExists(resourceId)) {
-            return false
+            ctx.setError(ErrorCodes.NOT_FOUND, { entity: 'resource' }, { id: resourceId })
+            return ctx
         }
 
-        let result = false
+        //let result = false
         let lockList: IDString[] = [resourceId, HIERARCHY_LOCK_NAME]
         let childIds: IDString[]
 
@@ -395,47 +487,58 @@ export default class FsManager {
 
         const resLock = await this.lockQueue.lockMany(lockList)
         try {
-            await this.deleteResourceFiles(resourceId)
+            ctx.apply(await this.deleteResourceFiles(resourceId))
+            if (ctx.isFailed()) {
+                return ctx
+            }
             if (recursive) {
                 for (const childId of childIds) {
-                    await this.deleteResourceFiles(childId)
+                    ctx.apply(await this.deleteResourceFiles(childId))
                     this.deleteFromIndex(childId)
                 }
             } else {
                 for (const childId of childIds) {
-                    await this.updateResourceMetafile(childId, async (resourceMetafile): Promise<IResourceMetafile> => {
-                        resourceMetafile.hierarchy.parent_id = null
-                        return resourceMetafile
-                    }, false)
-                    let childNode = this.hierarchyIndexMap.get(childId)
-                    if (childNode) {
-                        childNode.parent = null
-                        this.hierarchyIndexTree.children[childId] = childNode
-                    } else {
-                        this.logger.error('Child node not found, need full store reindex')
+                    ctx.apply(
+                        await this.updateResourceMetafile(childId, async (resourceMetafile): Promise<IResourceMetafile> => {
+                            resourceMetafile.hierarchy.parent_id = null
+                            return resourceMetafile
+                        }, false)
+                    )
+                    if (ctx.isSuccess()) {
+                        let childNode = this.hierarchyIndexMap.get(childId)
+                        if (childNode) {
+                            childNode.parent = null
+                            this.hierarchyIndexTree.children[childId] = childNode
+                        } else {
+                            ctx.setError(ErrorCodes.BROKEN_INDEX, { reason: 'Child node not found' }, { id: childId })
+                        }
                     }
                 }
             }
-            if (parentId) {
-                await this.updateResourceMetafile(parentId, async (resourceMetafile): Promise<IResourceMetafile> => {
-                    resourceMetafile.hierarchy.children = resourceMetafile.hierarchy.children.filter(value => value.id !== resourceId)
-                    resourceMetafile.hierarchy.children.sort((a, b) => a.order_index - b.order_index)
-                    return resourceMetafile
-                }, false)
+            if (parentId && ctx.isSuccess()) {
+                ctx.apply(
+                    await this.updateResourceMetafile(parentId, async (resourceMetafile): Promise<IResourceMetafile> => {
+                        resourceMetafile.hierarchy.children = resourceMetafile.hierarchy.children.filter(value => value.id !== resourceId)
+                        resourceMetafile.hierarchy.children.sort((a, b) => a.order_index - b.order_index)
+                        return resourceMetafile
+                    }, false)
+                )
             }
 
             this.deleteFromIndex(resourceId)
-            await this.saveHierarchyIndex(false)
-            result = true
+            if (ctx.isSuccess()) {
+                await this.saveHierarchyIndex(false)
+            }
         } catch (e) {
-            this.logger.error(e)
+            ctx.applyException(e)
         } finally {
             resLock.releaseAll()
         }
-        return result
+        return ctx
     }
 
-    protected async deleteResourceFiles(resourceId: IDString): Promise<void> {
+    protected async deleteResourceFiles(resourceId: IDString): PromisedContext {
+        let ctx = new Context()
         const resourceDirectory = this.getResourceDirectory(resourceId)
         try {
             await fs.rm(resourceDirectory, { recursive: true, force: true })
@@ -468,30 +571,35 @@ export default class FsManager {
                     break
                 }
             }
-        } catch (_e) {}
+        } catch (e) {
+            ctx.applyException(e)
+        }
+        return ctx
     }
 
     public async resourceExists(resourceId: IDString): Promise<boolean> {
         const resourceFilePath = this.getResourceFilePath(resourceId)
-        let result = false
-        result = await fs.access(resourceFilePath).then(() => true).catch(() => false)
-        return result
+        return await fs.access(resourceFilePath).then(() => true).catch(() => false)
     }
 
-    public async changeParent(resourceId: IDString, newParentId: IDString | null): Promise<boolean> {
-        let result = false
+    public async changeParent(resourceId: IDString, newParentId: IDString | null): PromisedContext {
+        let ctx = new Context()
         let lockList: IDString[] = [resourceId, HIERARCHY_LOCK_NAME]
         const oldParentId: IDString | null = this.hierarchyIndexMap.get(resourceId)?.parent || null
         if (oldParentId === newParentId) {
-            return true
+            return ctx
         }
         if (oldParentId) {
             lockList.push(oldParentId)
         }
         if (newParentId) {
+            if (newParentId && !await this.resourceExists(newParentId)) {
+                ctx.setError(ErrorCodes.NOT_FOUND, { entity: 'resource' }, { id: newParentId })
+                return ctx
+            }
             if (this.inChildren(resourceId, newParentId)) {
-                this.logger.error('Cyclic hierarchy detected, cannot change parent')
-                return false
+                ctx.setError(ErrorCodes.CONFLICT, { reason: 'Cyclic hierarchy detected, cannot change parent' }, { id: resourceId, conflict_id: newParentId })
+                return ctx
             }
             lockList.push(newParentId)
         }
@@ -501,98 +609,119 @@ export default class FsManager {
             if (node) {
                 node.parent = newParentId
             } else {
-                this.logger.error('Old parent node not found, need full store reindex')
+                ctx.setError(ErrorCodes.BROKEN_INDEX, { reason: 'Resource node not found' }, { id: resourceId })
+                return ctx
             }
             if (oldParentId) {
                 const oldParentNode = this.hierarchyIndexMap.get(oldParentId)
                 if (oldParentNode) {
                     delete oldParentNode.children[resourceId]
                 } else {
-                    this.logger.error('Old parent node not found, need full store reindex')
+                    ctx.setError(ErrorCodes.BROKEN_INDEX, { reason: 'Old parent node not found' }, { id: resourceId })
+                    return ctx
                 }
-                await this.updateResourceMetafile(oldParentId, async (resourceMetafile): Promise<IResourceMetafile> => {
-                    resourceMetafile.hierarchy.children = resourceMetafile.hierarchy.children.filter(value => value.id !== resourceId)
-                    resourceMetafile.hierarchy.children.sort((a, b) => a.order_index - b.order_index)
-                    return resourceMetafile
-                }, false)
+                ctx.apply(
+                    await this.updateResourceMetafile(oldParentId, async (resourceMetafile): Promise<IResourceMetafile> => {
+                        resourceMetafile.hierarchy.children = resourceMetafile.hierarchy.children.filter(value => value.id !== resourceId)
+                        resourceMetafile.hierarchy.children.sort((a, b) => a.order_index - b.order_index)
+                        return resourceMetafile
+                    }, false)
+                )
             }
-            if (newParentId) {
+            if (newParentId && ctx.isSuccess()) {
                 let parentNode = this.hierarchyIndexMap.get(newParentId)
                 if (parentNode ) {
                     if (node) {
                         parentNode.children[resourceId] = node
                     }
                 } else {
-                    this.logger.error('New parent node not found, need full store reindex')
+                    ctx.setError(ErrorCodes.BROKEN_INDEX, { reason: 'New parent node not found' }, { id: newParentId })
+                    return ctx
                 }
-                await this.updateResourceMetafile(newParentId, async (resourceMetafile): Promise<IResourceMetafile> => {
-                    resourceMetafile.hierarchy.children.push({
-                        id: resourceId,
-                        order_index: 0
-                    })
-                    resourceMetafile.hierarchy.children.sort((a, b) => a.order_index - b.order_index)
-                    return resourceMetafile
-                }, false)
+                ctx.apply(
+                    await this.updateResourceMetafile(newParentId, async (resourceMetafile): Promise<IResourceMetafile> => {
+                        resourceMetafile.hierarchy.children.push({
+                            id: resourceId,
+                            order_index: 0
+                        })
+                        resourceMetafile.hierarchy.children.sort((a, b) => a.order_index - b.order_index)
+                        return resourceMetafile
+                    }, false)
+                )
             }
-            await this.updateResourceMetafile(resourceId, async (resourceMetafile): Promise<IResourceMetafile> => {
-                resourceMetafile.hierarchy.parent_id = newParentId
-                resourceMetafile.hierarchy.order_index = 0
-                return resourceMetafile
-            }, false)
 
-            await this.saveHierarchyIndex(false)
-            result = true
+            if (ctx.isSuccess()) {
+                ctx.apply(
+                    await this.updateResourceMetafile(resourceId, async (resourceMetafile): Promise<IResourceMetafile> => {
+                        resourceMetafile.hierarchy.parent_id = newParentId
+                        resourceMetafile.hierarchy.order_index = 0
+                        return resourceMetafile
+                    }, false)
+                )
+            }
+
+            if (ctx.isSuccess()) {
+                ctx.apply(await this.saveHierarchyIndex(false))
+            }
         } catch (e) {
-            this.logger.error(e)
+            ctx.applyException(e)
         } finally {
             resLock.releaseAll()
         }
-        return result
+        return ctx
     }
 
-    public async changeOrderIndex(resourceId: IDString, newOrderIndex: number): Promise<boolean> {
+    public async changeOrderIndex(resourceId: IDString, newOrderIndex: number): PromisedContext {
+        let ctx = new Context()
         if (!await this.resourceExists(resourceId)) {
-            return false
+            ctx.setError(ErrorCodes.NOT_FOUND, { entity: 'resource' }, { id: resourceId })
+            return ctx
         }
         let lockList: IDString[] = [resourceId]
         const parentId = this.hierarchyIndexMap.get(resourceId)?.parent || null
         if (parentId) {
             lockList.push(parentId)
         }
-        let result = false
         const lock = await this.lockQueue.lockMany(lockList)
         try {
-            result = await this.updateResourceMetafile(resourceId, async (resourceMetafile): Promise<IResourceMetafile> => {
-                resourceMetafile.hierarchy.order_index = newOrderIndex
-                return resourceMetafile
-            }, false)
-            if (parentId) {
-                result = await this.updateResourceMetafile(parentId, async (resourceMetafile): Promise<IResourceMetafile> => {
-                    for (const child of resourceMetafile.hierarchy.children) {
-                        if (child.id === resourceId) {
-                            child.order_index = newOrderIndex
-                        }
-                    }
-                    resourceMetafile.hierarchy.children = resourceMetafile.hierarchy.children.sort((a, b) => a.order_index - b.order_index)
+            ctx.apply(
+                await this.updateResourceMetafile(resourceId, async (resourceMetafile): Promise<IResourceMetafile> => {
+                    resourceMetafile.hierarchy.order_index = newOrderIndex
                     return resourceMetafile
                 }, false)
+            )
+            if (parentId && ctx.isSuccess()) {
+                ctx.apply(
+                    await this.updateResourceMetafile(parentId, async (resourceMetafile): Promise<IResourceMetafile> => {
+                        for (const child of resourceMetafile.hierarchy.children) {
+                            if (child.id === resourceId) {
+                                child.order_index = newOrderIndex
+                            }
+                        }
+                        resourceMetafile.hierarchy.children = resourceMetafile.hierarchy.children.sort((a, b) => a.order_index - b.order_index)
+                        return resourceMetafile
+                    }, false)
+                )
             }
-            await this.saveHierarchyIndex(false)
+            if (ctx.isSuccess()) {
+                ctx.apply(await this.saveHierarchyIndex(false))
+            }
         } catch (e) {
-            this.logger.error(e)
+            ctx.applyException(e)
         } finally {
             lock.releaseAll()
         }
-        return result
+        return ctx
     }
 
-    public async createRepresentation(resourceId: IDString, representationEntity: IRepresentationDTE): Promise<boolean> {
-        const lock = await this.lockQueue.lock(resourceId)
+    public async createRepresentation(resourceId: IDString, representationEntity: IRepresentationDTE): PromisedContext {
+        let ctx = new Context()
+        const lock = await this.lockQueue.lockMany([resourceId, HIERARCHY_LOCK_NAME])
         const isPrimary = representationEntity.data.is_primary
         try {
-            const notTimeInMs = nowInMS()
-            representationEntity.data.created_at = notTimeInMs
-            representationEntity.data.updated_at = notTimeInMs
+            const nowTimeInS = nowInS()
+            representationEntity.data.created_at = nowTimeInS
+            representationEntity.data.updated_at = nowTimeInS
             representationEntity.data.is_primary = false
             representationEntity.data.uploading = false
 
@@ -605,147 +734,138 @@ export default class FsManager {
 
                 const filePath = path.join(
                     this.getResourceDirectory(resourceId),
-                    representationEntity.data.id + '.' + representationEntity.data.extension
+                    representationEntity.data.id + '.' + (representationEntity.data.extension || 'unknown')
                 )
-                await fs.utimes(filePath, notTimeInMs, notTimeInMs)
+                let fh = await fs.open(filePath, 'a')
+                await fh.close()
+                await fs.utimes(filePath, nowTimeInS, nowTimeInS)
             }
 
-            let resourceMetafile = await this.getResourceMetafile(resourceId)
-            if (resourceMetafile) {
-                resourceMetafile.representations.push(representationEntity)
-                if (isPrimary) {
-                    for (const rep of resourceMetafile.representations) {
-                        rep.data.is_primary = rep.data.id === representationEntity.data.id
-                    }
+            let resourceMetafileCtx = await this.getResourceMetafile(resourceId)
+            if (!resourceMetafileCtx.result) {
+                if (resourceMetafileCtx.isFailed()) {
+                    ctx.apply(resourceMetafileCtx)
+                } else {
+                    ctx.setError(ErrorCodes.NOT_FOUND, { entity: 'resource metafile' }, { id: resourceId })
                 }
-                await this.updateResourceMetafile(resourceId, resourceMetafile)
-            } else {
-                this.logger.error('Resource not found, cannot create representation')
+                return ctx
+            }
+            const resourceMetafile = resourceMetafileCtx.result
+
+            resourceMetafile.representations.push(representationEntity)
+            if (isPrimary) {
+                for (const rep of resourceMetafile.representations) {
+                    rep.data.is_primary = rep.data.id === representationEntity.data.id
+                }
+            }
+            ctx.apply(
+                await this.updateResourceMetafile(resourceId, resourceMetafile, false)
+            )
+            if (ctx.isSuccess()) {
+                this.representationResourceMap.set(representationEntity.data.id, resourceId)
+                const node = this.hierarchyIndexMap.get(resourceId)
+                if (node) {
+                    node.representations[representationEntity.data.id] = isPrimary
+                }
+                ctx.apply(await this.saveHierarchyIndex(false))
             }
         } catch (e) {
-            this.logger.error(e)
+            ctx.applyException(e)
         } finally {
-            lock.release()
+            lock.releaseAll()
         }
-        return false
+        return ctx
     }
 
-    public async uploadRepresentationPart(representationId: IDString, chunk: Buffer, offset: number = 0, length: number | undefined = undefined): Promise<IUploadingPartReport> {
+    public async uploadRepresentationPart(representationId: IDString, chunk: Buffer, offset: number = 0, length: number | undefined = undefined): PromisedContext<IUploadingPartReport> {
         let report: IUploadingPartReport = {
             status: false,
             resourceId: null,
             isComplete: false,
             data: null
         }
+        let ctx = new Context<IUploadingPartReport>(report)
+
+        let fileHandler: fs.FileHandle | undefined = undefined
         const resourceId = this.representationResourceMap.get(representationId)
         if (resourceId) {
             report.resourceId = resourceId
             const lock = await this.lockQueue.lock(resourceId)
             try {
-                let resourceMetafile = await this.getResourceMetafile(resourceId)
-                if (resourceMetafile) {
-                    let representation = resourceMetafile.representations.find(value => value.data.id === representationId) || null
-                    if (representation) {
-                        report.isComplete = !representation.data.uploading
-                        report.data = representation.info.data
-
-                        if (!representation.data.is_external) {
-                            const filePath = path.join(
-                                this.getResourceDirectory(resourceId),
-                                representation.data.id + '.' + representation.data.extension
-                            )
-                            const fileHandler = await fs.open(filePath, 'w')
-                            await fileHandler.write(chunk, offset, length)
-
-                            const lowerBound = offset
-                            const upperBound = offset + (length || chunk.length)
-                            const newParts: {
-                                lower: number,
-                                upper: number,
-                            }[] = []
-                            const oldParts: {
-                                lower: number,
-                                upper: number,
-                            }[] = representation.info.data?.uploaded as {
-                                lower: number,
-                                upper: number,
-                            }[] || []
-                            let mergePart: {
-                                lower: number,
-                                upper: number,
-                            } | null = null
-
-                            for (const oldPart of oldParts) {
-                                let isIntersected = Math.max(oldPart.lower, lowerBound) < Math.min(oldPart.upper, upperBound)
-                                if (isIntersected) {
-                                    if (mergePart) {
-                                        mergePart.lower = Math.min(oldPart.lower, lowerBound)
-                                        mergePart.upper = Math.max(oldPart.upper, upperBound)
-                                    } else {
-                                        mergePart = {
-                                            lower: Math.max(oldPart.lower, lowerBound),
-                                            upper: Math.min(oldPart.upper, upperBound)
-                                        }
-                                    }
-                                } else {
-                                    if (mergePart) {
-                                        newParts.push(mergePart)
-                                        mergePart = null
-                                    }
-                                    newParts.push(oldPart)
-                                }
-                            }
-                            if (mergePart) {
-                                newParts.push(mergePart)
-                            }
-                            if (newParts[0].lower === 0 && newParts[0].upper === representation.info.data?.assumedSize) {
-                                representation.data.uploading = false
-                                const filetype = await fileTypeFromFile(filePath)
-                                representation.data.mime = filetype?.mime || null
-                                if (filetype?.ext && representation.data.extension !== filetype.ext) {
-                                    representation.data.extension = filetype.ext || null
-                                    const newFilePath = path.join(
-                                        this.getResourceDirectory(resourceId),
-                                        representation.data.id + '.' + representation.data.extension
-                                    )
-                                    await fs.rename(filePath, newFilePath)
-                                }
-                                report.isComplete = true
-                            } else {
-                                representation.info.data = {
-                                    uploaded: newParts,
-                                    assumedSize: representation.info.data?.assumedSize || undefined
-                                }
-                            }
-                            report.data = representation.info.data
-                            report.status = await this.updateResourceMetafile(resourceId, resourceMetafile)
-                        }
+                let resourceMetafileCtx = await this.getResourceMetafile(resourceId)
+                if (!resourceMetafileCtx.result) {
+                    if (resourceMetafileCtx.isFailed()) {
+                        ctx.apply(resourceMetafileCtx)
+                    } else {
+                        ctx.setError(ErrorCodes.NOT_FOUND, { entity: 'resource metafile' }, { id: resourceId })
                     }
+                    return ctx
                 }
-            } catch (e) {
-                this.logger.error(e)
-            } finally {
-                lock.release()
-            }
-        }
-        return report
-    }
+                const resourceMetafile = resourceMetafileCtx.result
 
-    public async finishRepresentationUpload(representationId: IDString): Promise<boolean> {
-        let result = false
-        const resourceId = this.representationResourceMap.get(representationId)
-        if (resourceId) {
-            const lock = await this.lockQueue.lock(resourceId)
-            try {
-                let resourceMetafile = await this.getResourceMetafile(resourceId)
-                if (resourceMetafile) {
-                    let representation = resourceMetafile.representations.find(value => value.data.id === representationId) || null
-                    if (representation) {
-                        if (!representation.data.is_external) {
-                            const filePath = path.join(
-                                this.getResourceDirectory(resourceId),
-                                representation.data.id + '.' + representation.data.extension
-                            )
+                let representation = resourceMetafile.representations.find(value => value.data.id === representationId) || null
+                if (representation) {
+                    report.isComplete = !representation.data.uploading
+                    report.data = representation.info.data
+
+                    if (!representation.data.is_external) {
+                        const filePath = path.join(
+                            this.getResourceDirectory(resourceId),
+                            representation.data.id + '.' + (representation.data.extension || 'unknown')
+                        )
+                        fileHandler = await fs.open(filePath, 'a+')
+                        await fileHandler.write(chunk, 0, length, offset)
+                        await fileHandler.close()
+                        fileHandler = undefined
+
+                        const lowerBound = offset
+                        const upperBound = offset + (length || chunk.length)
+                        const newParts: {
+                            lower: number,
+                            upper: number,
+                        }[] = []
+                        const oldParts: {
+                            lower: number,
+                            upper: number,
+                        }[] = representation.info.data?.uploaded as {
+                            lower: number,
+                            upper: number,
+                        }[] || []
+                        let mergePart: {
+                            lower: number,
+                            upper: number,
+                        } | null = null
+
+                        for (const oldPart of oldParts) {
+                            let isIntersected = Math.max(oldPart.lower, lowerBound) < Math.min(oldPart.upper, upperBound)
+                            if (isIntersected) {
+                                if (mergePart) {
+                                    mergePart.lower = Math.min(oldPart.lower, lowerBound)
+                                    mergePart.upper = Math.max(oldPart.upper, upperBound)
+                                } else {
+                                    mergePart = {
+                                        lower: Math.max(oldPart.lower, lowerBound),
+                                        upper: Math.min(oldPart.upper, upperBound)
+                                    }
+                                }
+                            } else {
+                                if (mergePart) {
+                                    newParts.push(mergePart)
+                                    mergePart = null
+                                }
+                                newParts.push(oldPart)
+                            }
+                        }
+                        if (mergePart) {
+                            newParts.push(mergePart)
+                        }
+                        if (newParts.length === 0) {
+                            newParts.push({
+                                lower: lowerBound,
+                                upper: upperBound
+                            })
+                        }
+                        if (newParts[0].lower === 0 && newParts[0].upper === representation.info.data?.assumedSize) {
                             representation.data.uploading = false
                             const filetype = await fileTypeFromFile(filePath)
                             representation.data.mime = filetype?.mime || null
@@ -753,117 +873,206 @@ export default class FsManager {
                                 representation.data.extension = filetype.ext || null
                                 const newFilePath = path.join(
                                     this.getResourceDirectory(resourceId),
-                                    representation.data.id + '.' + representation.data.extension
+                                    representation.data.id + '.' + (representation.data.extension || 'unknown')
                                 )
                                 await fs.rename(filePath, newFilePath)
                             }
-                            representation.info.data = {}
-                            await this.updateResourceMetafile(resourceId, resourceMetafile)
+                            report.isComplete = true
+                        } else {
+                            representation.info.data = {
+                                uploaded: newParts,
+                                assumedSize: representation.info.data?.assumedSize || undefined
+                            }
                         }
+                        report.data = representation.info.data
+                        ctx.apply(
+                            await this.updateResourceMetafile(resourceId, resourceMetafile, false)
+                        )
+                        report.status = ctx.status
                     }
                 }
             } catch (e) {
-                this.logger.error(e)
+                ctx.applyException(e)
             } finally {
+                if (fileHandler) {
+                    await fileHandler.close()
+                }
                 lock.release()
             }
         }
-        return result
+        return ctx
     }
 
-    public async makeRepresentationPrimary(resourceId: IDString, representationId: IDString): Promise<boolean> {
-        let node = this.hierarchyIndexMap.get(resourceId)
-        if (node && node.representations[representationId]) {
-            for (const repId in node.representations) {
-                node.representations[repId] = repId === representationId
-            }
-            await this.saveHierarchyIndex(false)
-        } else {
-            return false
-        }
-
-        return await this.updateResourceMetafile(resourceId, async (resourceMetafile): Promise<IResourceMetafile> => {
-            for (const representation of resourceMetafile.representations) {
-                representation.data.is_primary = representation.data.id === representationId
-            }
-            return resourceMetafile
-        })
-    }
-
-    public async deleteRepresentation(representationId: IDString): Promise<boolean> {
-        let result = false
+    public async finishRepresentationUpload(representationId: IDString): PromisedContext {
+        let ctx = new Context()
         const resourceId = this.representationResourceMap.get(representationId)
         if (resourceId) {
             const lock = await this.lockQueue.lock(resourceId)
             try {
-                let resourceMetafile = await this.getResourceMetafile(resourceId)
-                if (resourceMetafile) {
-                    for (let i = 0; i < resourceMetafile.representations.length; i++) {
-                        const representation = resourceMetafile.representations[i]
-                        if (representation.data.id === representationId) {
-                            resourceMetafile.representations.splice(i, 1)
-                            if (!representation.data.is_external) {
-                                const filePath = path.join(
-                                    this.getResourceDirectory(resourceId),
-                                    representation.data.id + '.' + representation.data.extension
-                                )
-                                await fs.rm(filePath, { force: true })
-                            }
-                            break
-                        }
+                let resourceMetafileCtx = await this.getResourceMetafile(resourceId)
+                if (!resourceMetafileCtx.result) {
+                    if (resourceMetafileCtx.isFailed()) {
+                        ctx.apply(resourceMetafileCtx)
+                    } else {
+                        ctx.setError(ErrorCodes.NOT_FOUND, { entity: 'resource metafile' }, { id: resourceId })
                     }
-                    result = true
+                    return ctx
+                }
+                const resourceMetafile = resourceMetafileCtx.result
+
+                let representation = resourceMetafile.representations.find(value => value.data.id === representationId) || null
+                if (representation) {
+                    if (!representation.data.is_external) {
+                        const filePath = path.join(
+                            this.getResourceDirectory(resourceId),
+                            representation.data.id + '.' + (representation.data.extension || 'unknown')
+                        )
+                        representation.data.uploading = false
+                        const filetype = await fileTypeFromFile(filePath)
+                        representation.data.mime = filetype?.mime || null
+                        if (filetype?.ext && representation.data.extension !== filetype.ext) {
+                            representation.data.extension = filetype.ext || null
+                            const newFilePath = path.join(
+                                this.getResourceDirectory(resourceId),
+                                representation.data.id + '.' + (representation.data.extension || 'unknown')
+                            )
+                            await fs.rename(filePath, newFilePath)
+                        }
+                        representation.info.data = {}
+                        ctx.apply(
+                            await this.updateResourceMetafile(resourceId, resourceMetafile, false)
+                        )
+                    }
                 }
             } catch (e) {
-                this.logger.error(e)
+                ctx.applyException(e)
             } finally {
                 lock.release()
             }
         }
-        return result
+        return ctx
     }
 
-    public async deleteMarks(resourceId: IDString, marks: { name: string, type: string }[]): Promise<boolean> {
-        return await this.updateResourceMetafile(resourceId, async (resourceMetafile): Promise<IResourceMetafile> => {
-            for (let i = 0; i < resourceMetafile.marks.length; i++) {
-                const mark = resourceMetafile.marks[i]
-                if (-1 !== marks.findLastIndex((m) => m.name === mark.name && m.type === mark.type)) {
-                    resourceMetafile.marks.splice(i, 1)
+    public async makeRepresentationPrimary(resourceId: IDString, representationId: IDString, lock: boolean = true): PromisedContext {
+        let ctx = new Context()
+        const resLock = lock ? await this.lockQueue.lockMany([resourceId, HIERARCHY_LOCK_NAME]) : null
+        try {
+            let node = this.hierarchyIndexMap.get(resourceId)
+            if (node && 'undefined' !== typeof node.representations[representationId]) {
+                for (const repId in node.representations) {
+                    node.representations[repId] = repId === representationId
                 }
+                ctx.apply(await this.saveHierarchyIndex(false))
+            } else {
+                ctx.setError(ErrorCodes.NOT_FOUND, { entity: 'representation' }, { resourceId, representationId })
+                return ctx
             }
-            return resourceMetafile
-        })
+
+            ctx.apply(
+                await this.updateResourceMetafile(resourceId, async (resourceMetafile): Promise<IResourceMetafile> => {
+                    for (const representation of resourceMetafile.representations) {
+                        representation.data.is_primary = representation.data.id === representationId
+                    }
+                    return resourceMetafile
+                }, false)
+            )
+        } catch (e) {
+            ctx.applyException(e)
+        } finally {
+            if (resLock) {
+                resLock.releaseAll()
+            }
+        }
+        return ctx
     }
 
-    public async deleteResourceKV(resourceId: IDString, componentKeys: IResourceKV): Promise<boolean> {
-        return await this.updateResourceMetafile(resourceId, async (resourceMetafile): Promise<IResourceMetafile> => {
-            for (const component in componentKeys) {
-                if (componentKeys.hasOwnProperty(component)) {
-                    for (const key in componentKeys[component]) {
-                        if (componentKeys[component].hasOwnProperty(key)) {
-                            delete resourceMetafile.kv[component][key]
+    public async deleteRepresentation(representationId: IDString): PromisedContext {
+        let ctx = new Context()
+        const resourceId = this.representationResourceMap.get(representationId)
+        if (resourceId) {
+            const lock = await this.lockQueue.lockMany([resourceId, HIERARCHY_LOCK_NAME])
+            try {
+                let resourceMetafileCtx = await this.getResourceMetafile(resourceId)
+                if (!resourceMetafileCtx.result) {
+                    if (resourceMetafileCtx.isFailed()) {
+                        ctx.apply(resourceMetafileCtx)
+                    } else {
+                        ctx.setError(ErrorCodes.NOT_FOUND, { entity: 'resource metafile' }, { id: resourceId })
+                    }
+                    return ctx
+                }
+                const resourceMetafile = resourceMetafileCtx.result
+                for (let i = 0; i < resourceMetafile.representations.length; i++) {
+                    const representation = resourceMetafile.representations[i]
+                    if (representation.data.id === representationId) {
+                        resourceMetafile.representations.splice(i, 1)
+
+                        ctx.apply(await this.updateResourceMetafile(resourceId, resourceMetafile, false))
+
+                        if (ctx.isSuccess()) {
+                            if (!representation.data.is_external) {
+                                const filePath = path.join(
+                                    this.getResourceDirectory(resourceId),
+                                    representation.data.id + '.' + (representation.data.extension || 'unknown')
+                                )
+                                await fs.rm(filePath, { force: true })
+                            }
+
+                            this.representationResourceMap.delete(representationId)
+                            const node = this.hierarchyIndexMap.get(resourceId)
+                            if (node && 'undefined' !== typeof node.representations[representationId]) {
+                                delete node.representations[representationId]
+                            }
+
+                            ctx.apply(await this.saveHierarchyIndex(false))
                         }
+                        break
                     }
                 }
+            } catch (e) {
+                ctx.applyException(e)
+            } finally {
+                lock.releaseAll()
+            }
+        }
+        return ctx
+    }
+
+    public async deleteMarks(resourceId: IDString, marks: IMarkParam[]): PromisedContext {
+        return await this.updateResourceMetafile(resourceId, async (resourceMetafile): Promise<IResourceMetafile> => {
+            const toDelete = new Set(marks.map(m => m.name + '|' + m.type))
+            resourceMetafile.marks = resourceMetafile.marks.filter(m => !toDelete.has(m.name + '|' + m.type))
+            return resourceMetafile
+        })
+    }
+
+    public async deleteResourceKV(resourceId: IDString, componentKeys: IResourceKV): PromisedContext {
+        return await this.updateResourceMetafile(resourceId, async (resourceMetafile): Promise<IResourceMetafile> => {
+            for (const component in componentKeys) {
+                if (!resourceMetafile.kv[component]) continue
+                for (const key in componentKeys[component]) {
+                    delete resourceMetafile.kv[component][key]
+                }
             }
             return resourceMetafile
         })
     }
 
-    public async setMarks(resourceId: IDString, marks: { name: string, type: string, value: number | null }[]): Promise<boolean> {
+    public async setMarks(resourceId: IDString, marks: IMarkParam[]): PromisedContext {
         return await this.updateResourceMetafile(resourceId, async (resourceMetafile): Promise<IResourceMetafile> => {
+            const marksData: IMarkData[] = marks.map(mark => { return { value: 0, ...mark } })
             for (let i = 0; i < resourceMetafile.marks.length; i++) {
                 const mark = resourceMetafile.marks[i]
                 if (-1 !== marks.findLastIndex((m) => m.name === mark.name && m.type === mark.type)) {
                     resourceMetafile.marks.splice(i, 1)
                 }
             }
-            resourceMetafile.marks.push(...marks)
+            resourceMetafile.marks.push(...marksData)
             return resourceMetafile
         })
     }
 
-    public async setResourceKV(resourceId: IDString, componentKeys: IResourceKV): Promise<boolean> {
+    public async setResourceKV(resourceId: IDString, componentKeys: IResourceKV): PromisedContext {
         return await this.updateResourceMetafile(resourceId, async (resourceMetafile): Promise<IResourceMetafile> => {
             for (const component in componentKeys) {
                 if ('undefined' === typeof resourceMetafile.kv[component]) {

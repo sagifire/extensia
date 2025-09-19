@@ -18,7 +18,8 @@ import {
     RESOURCE_HIERARCHY_TABLE,
     RESOURCE_INFO_TABLE
 } from './contracts.js'
-import { nowInMS } from './utils.js'
+import { nowInS } from './utils.js'
+import { Context, PromisedContext } from './Context.js'
 
 
 export default class DbManager {
@@ -29,22 +30,24 @@ export default class DbManager {
         protected readonly getPaths: (resourceId: IDString) => string[]
     ) {}
 
-    public async createResourceRecord(resourceEntity: IResourceDTE): Promise<boolean> {
-        let result = false
-        await this.db.transaction(async (trx) => {
-            try {
+    public async createResourceRecord(resourceEntity: IResourceDTE): PromisedContext {
+        let ctx = new Context()
+        try {
+            await this.db.transaction(async (trx) => {
+
                 await trx.insert({
                     ...resourceEntity.data,
-                    created_at: nowInMS(),
-                    updated_at: nowInMS()
+                    created_at: nowInS(),
+                    updated_at: nowInS()
                 } satisfies IResourceDataRecord).into(RESOURCE_DATA_TABLE)
                 await trx.insert({
                     ...resourceEntity.info,
                     id: resourceEntity.data.id
                 } satisfies IResourceInfoRecord).into(RESOURCE_INFO_TABLE)
                 await trx.insert({
-                    ...resourceEntity.hierarchy,
                     id: resourceEntity.data.id,
+                    parent_id: resourceEntity.hierarchy.parent_id,
+                    order_index: resourceEntity.hierarchy.order_index
                 } satisfies IResourceHierarchyRecord).into(RESOURCE_HIERARCHY_TABLE)
 
                 for (const representation of resourceEntity.representations!) {
@@ -79,113 +82,97 @@ export default class DbManager {
                         resource_id: resourceEntity.data.id,
                     } satisfies IMarkDataRecord).into(MARK_DATA_TABLE)
                 }
-                trx.commit()
-                result = true
-            } catch (e) {
-                this.logger.error(e)
-                trx.rollback()
-            }
-        })
-        return result
+            })
+        } catch (e) {
+            ctx.applyException(e)
+        }
+        return ctx
     }
 
     public async resourceExists(resourceId: IDString): Promise<boolean> {
         return !! (await this.db<IResourceDataRecord>(RESOURCE_DATA_TABLE).where('id', resourceId).first())
     }
 
-    public async appendChild(resourceId: IDString, childID: IDString): Promise<boolean> {
-        let result = false
-        await this.db.transaction(async (trx) => {
-            try {
+    public async appendChild(resourceId: IDString, childID: IDString): PromisedContext {
+        let ctx = new Context()
+
+        try {
+            await this.db.transaction(async (trx) => {
+
                 await trx.update({
                     parent_id: resourceId,
                 } satisfies Partial<IResourceHierarchyRecord>).from(RESOURCE_HIERARCHY_TABLE).where({
                     id: childID
                 })
-                await trx.update({ updated_at: nowInMS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId })
-                trx.commit()
-                result = true
-            } catch (e) {
-                this.logger.error(e)
-                trx.rollback()
-            }
-        })
-        return result
+                await trx.update({ updated_at: nowInS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId })
+            })
+        } catch (e) {
+            ctx.applyException(e)
+        }
+        return ctx
     }
 
-    public async changeParent(resourceId: IDString, newParentId: IDString | null): Promise<boolean> {
-        let result = false
-        await this.db.transaction(async (trx) => {
-            try {
+    public async changeParent(resourceId: IDString, newParentId: IDString | null): PromisedContext {
+        let ctx = new Context()
+        try {
+            await this.db.transaction(async (trx) => {
                 await trx.update({
                     parent_id: newParentId
                 } satisfies Partial<IResourceHierarchyRecord>).from(RESOURCE_HIERARCHY_TABLE).where({
                     id: resourceId
                 })
-                await trx.update({ updated_at: nowInMS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId })
-                trx.commit()
-                result = true
-            } catch (e) {
-                this.logger.error(e)
-                trx.rollback()
-            }
-        })
-        return result
+                await trx.update({ updated_at: nowInS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId })
+            })
+        } catch (e) {
+            ctx.applyException(e)
+        }
+        return ctx
     }
 
-    public async changeOrderIndex(resourceId: IDString, newOrderIndex: number): Promise<boolean> {
-        let result = false
-        await this.db.transaction(async (trx) => {
-            try {
+    public async changeOrderIndex(resourceId: IDString, newOrderIndex: number): PromisedContext {
+        let ctx = new Context()
+        try {
+            await this.db.transaction(async (trx) => {
                 await trx.update({
                     order_index: newOrderIndex
                 } satisfies Partial<IResourceHierarchyRecord>).from(RESOURCE_HIERARCHY_TABLE).where({
                     id: resourceId
                 })
-                await trx.update({ updated_at: nowInMS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId })
-                trx.commit()
-                result = true
-            } catch (e) {
-                trx.rollback()
-                this.logger.error(e)
-            }
-        })
-
-        return result
+                await trx.update({ updated_at: nowInS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId })
+            })
+        } catch (e) {
+            ctx.applyException(e)
+        }
+        return ctx
     }
 
-    public async updateRepresentationInfo(representationId: IDString, info: IRepresentationInfoDTC): Promise<boolean> {
-        let result = false
-        await this.db.transaction(async (trx) => {
-            try {
+    public async updateRepresentationInfo(representationId: IDString, info: IRepresentationInfoDTC): PromisedContext {
+        let ctx = new Context()
+        try {
+            await this.db.transaction(async (trx) => {
                 const representationRecord = await trx.select<IRepresentationDataRecord>().from(REPRESENTATION_DATA_TABLE).where({
                     id: representationId
-                })
+                }).first()
 
                 if (representationRecord) {
                     await trx.update({
-                        data: info.data
+                        data: JSON.stringify(info.data) as unknown as Record<string, unknown>
                     } satisfies Partial<IRepresentationInfoRecord>).from(REPRESENTATION_INFO_TABLE).where({
                         id: representationId
                     })
-                    await trx.update({ updated_at: nowInMS() }).from(RESOURCE_DATA_TABLE).where({ id: representationRecord.resource_id })
+                    await trx.update({ updated_at: nowInS() }).from(RESOURCE_DATA_TABLE).where({ id: representationRecord.resource_id })
                 }
-
-                trx.commit()
-                result = true
-            } catch (e) {
-                trx.rollback()
-                this.logger.error(e)
-            }
-        })
-
-        return result
+            })
+        } catch (e) {
+            ctx.applyException(e)
+        }
+        return ctx
     }
 
-    public async createRepresentation(resourceId: IDString, representationEntity: IRepresentationDTE): Promise<boolean> {
-        let result = false
-        await this.db.transaction(async (trx) => {
-            try {
+    public async createRepresentation(resourceId: IDString, representationEntity: IRepresentationDTE): PromisedContext {
+        let ctx = new Context()
+        try {
+            await this.db.transaction(async (trx) => {
                 await trx.insert({
                     ...representationEntity.data,
                     resource_id: resourceId,
@@ -199,25 +186,22 @@ export default class DbManager {
                     id: representationEntity.data.id
                 } satisfies IRepresentationInfoRecord).into(REPRESENTATION_INFO_TABLE)
 
-                await trx.update({ updated_at: nowInMS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId })
-
-                trx.commit()
-                result = true
-            } catch (e) {
-                this.logger.error(e)
-                trx.rollback()
-            }
-        })
-        return result
+                await trx.update({ updated_at: nowInS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId })
+            })
+        } catch (e) {
+            ctx.applyException(e)
+        }
+        return ctx
     }
 
-    public async updateRepresentation(representationId: IDString, representationEntity: IRepresentationDTE): Promise<boolean> {
-        let result = false
-        await this.db.transaction(async (trx) => {
-            try {
+    public async updateRepresentation(representationId: IDString, representationEntity: IRepresentationDTE): PromisedContext {
+        let ctx = new Context()
+        try {
+            await this.db.transaction(async (trx) => {
+
                 const representationRecord = await trx.select<IRepresentationDataRecord>().from(REPRESENTATION_DATA_TABLE).where({
                     id: representationId
-                })
+                }).first()
 
                 if (representationRecord) {
                     let dataUpdate: Partial<IRepresentationDataRecord> = {
@@ -236,21 +220,17 @@ export default class DbManager {
                         id: representationEntity.data.id,
                     })
                     await trx.update({
-                        data: representationEntity.info.data
+                        data: JSON.stringify(representationEntity.info.data) as unknown as Record<string, unknown>
                     } satisfies Partial<IRepresentationInfoRecord>).from(REPRESENTATION_INFO_TABLE).where({
                         id: representationId
                     })
-                    await trx.update({ updated_at: nowInMS() }).from(RESOURCE_DATA_TABLE).where({ id: representationRecord.resource_id })
+                    await trx.update({ updated_at: nowInS() }).from(RESOURCE_DATA_TABLE).where({ id: representationRecord.resource_id })
                 }
-
-                trx.commit()
-                result = true
-            } catch (e) {
-                this.logger.error(e)
-                trx.rollback()
-            }
-        })
-        return result
+            })
+        } catch (e) {
+            ctx.applyException(e)
+        }
+        return ctx
     }
 
     public async representationExists(representationID: IDString): Promise<boolean> {
@@ -277,36 +257,40 @@ export default class DbManager {
         }).first())
     }
 
-    public async deleteResource(resourceId: IDString): Promise<boolean> {
-        await this.db<IResourceDataRecord>(RESOURCE_DATA_TABLE).where('id', resourceId).delete()
-        return true
+    public async deleteResource(resourceId: IDString): PromisedContext {
+        let ctx = new Context()
+        try {
+            await this.db<IResourceDataRecord>(RESOURCE_DATA_TABLE).where('id', resourceId).delete()
+        } catch (e) {
+            ctx.applyException(e)
+        }
+        return ctx
     }
 
-    public async deleteRepresentation(representationId: IDString): Promise<boolean> {
-        let result = false
-        await this.db.transaction(async (trx) => {
-            try {
+    public async deleteRepresentation(representationId: IDString): PromisedContext {
+        let ctx = new Context()
+        try {
+            await this.db.transaction(async (trx) => {
+
                 const representationRecord = await trx.select<IRepresentationDataRecord>().from(REPRESENTATION_DATA_TABLE).where({
                     id: representationId
-                })
+                }).first()
                 if (representationRecord) {
                     await trx.delete().from(REPRESENTATION_DATA_TABLE).where({ id: representationId })
-                    await trx.update({ updated_at: nowInMS() }).from(RESOURCE_DATA_TABLE).where({ id: representationRecord.resource_id })
+                    await trx.update({ updated_at: nowInS() }).from(RESOURCE_DATA_TABLE).where({ id: representationRecord.resource_id })
                 }
-                trx.commit()
-                result = true
-            } catch (e) {
-                this.logger.error(e)
-                trx.rollback()
-            }
-        })
-        return result
+            })
+        } catch (e) {
+            ctx.applyException(e)
+        }
+        return ctx
     }
 
-    public async deleteMarks(resourceId: IDString, marks: { name: string, type: string }[]): Promise<boolean> {
-        let result = false
-        await this.db.transaction(async (trx) => {
-            try {
+    public async deleteMarks(resourceId: IDString, marks: { name: string, type: string }[]): PromisedContext {
+        let ctx = new Context()
+        try {
+            await this.db.transaction(async (trx) => {
+
                 for (const mark of marks) {
                     await trx.delete().from(MARK_DATA_TABLE).where({
                         resource_id: resourceId,
@@ -314,21 +298,18 @@ export default class DbManager {
                         type: mark.type
                     })
                 }
-                await trx.update({ updated_at: nowInMS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId })
-                trx.commit()
-                result = true
-            } catch (e) {
-                this.logger.error(e)
-                trx.rollback()
-            }
-        })
-        return result
+                await trx.update({ updated_at: nowInS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId })
+            })
+        } catch (e) {
+            ctx.applyException(e)
+        }
+        return ctx
     }
 
-    public async deleteResourceKV(resourceId: IDString, componentKeys: IResourceKV): Promise<boolean> {
-        let result = false
-        await this.db.transaction(async (trx) => {
-            try {
+    public async deleteResourceKV(resourceId: IDString, componentKeys: IResourceKV): PromisedContext {
+        let ctx = new Context()
+        try {
+            await this.db.transaction(async (trx) => {
                 for (const component in componentKeys) {
                     for (const attribute in componentKeys[component]) {
                         await trx.delete().from(MARK_KV_TABLE).where({
@@ -338,21 +319,18 @@ export default class DbManager {
                         })
                     }
                 }
-                await trx.update({ updated_at: nowInMS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId })
-                trx.commit()
-                result = true
-            } catch (e) {
-                this.logger.error(e)
-                trx.rollback()
-            }
-        })
-        return result
+                await trx.update({ updated_at: nowInS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId })
+            })
+        } catch (e) {
+            ctx.applyException(e)
+        }
+        return ctx
     }
 
-    public async setMarks(resourceId: IDString, marks: { name: string, type: string, value: number | null }[]): Promise<boolean> {
-        let result = false
-        await this.db.transaction(async (trx) => {
-            try {
+    public async setMarks(resourceId: IDString, marks: { name: string, type: string, value: number | null }[]): PromisedContext {
+        let ctx = new Context()
+        try {
+            await this.db.transaction(async (trx) => {
                 for (const mark of marks) {
                     await trx.upsert({
                         ...mark,
@@ -363,21 +341,18 @@ export default class DbManager {
                         type: mark.type,
                     })
                 }
-                await trx.update({ updated_at: nowInMS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId })
-                trx.commit()
-                result = true
-            } catch (e) {
-                this.logger.error(e)
-                trx.rollback()
-            }
-        })
-        return result
+                await trx.update({ updated_at: nowInS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId })
+            })
+        } catch (e) {
+            ctx.applyException(e)
+        }
+        return ctx
     }
 
-    public async setResourceKV(resourceId: IDString, componentKeys: IResourceKV): Promise<boolean> {
-        let result = false
-        await this.db.transaction(async (trx) => {
-            try {
+    public async setResourceKV(resourceId: IDString, componentKeys: IResourceKV): PromisedContext {
+        let ctx = new Context()
+        try {
+            await this.db.transaction(async (trx) => {
                 for (const component in componentKeys) {
                     for (const attribute in componentKeys[component]) {
                         await trx.upsert({
@@ -392,21 +367,18 @@ export default class DbManager {
                         })
                     }
                 }
-                await trx.update({ updated_at: nowInMS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId })
-                trx.commit()
-                result = true
-            } catch (e) {
-                this.logger.error(e)
-                trx.rollback()
-            }
-        })
-        return result
+                await trx.update({ updated_at: nowInS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId })
+            })
+        } catch (e) {
+            ctx.applyException(e)
+        }
+        return ctx
     }
 
-    public async makeRepresentationPrimary(resourceId: IDString, representationId: IDString): Promise<boolean> {
-        let result = false
-        await this.db.transaction(async (trx) => {
-            try {
+    public async makeRepresentationPrimary(resourceId: IDString, representationId: IDString): PromisedContext {
+        let ctx = new Context()
+        try {
+            await this.db.transaction(async (trx) => {
                 await trx.update({
                     is_primary: false
                 } satisfies Partial<IRepresentationDataRecord>).from(REPRESENTATION_DATA_TABLE).where({
@@ -418,26 +390,34 @@ export default class DbManager {
                 } satisfies Partial<IRepresentationDataRecord>).from(REPRESENTATION_DATA_TABLE).where({
                     id: representationId
                 })
-                await trx.update({ updated_at: nowInMS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId })
-                trx.commit()
-                result = true
-            } catch (e) {
-                this.logger.error(e)
-                trx.rollback()
-            }
-        })
-        return result
+                await trx.update({ updated_at: nowInS() }).from(RESOURCE_DATA_TABLE).where({ id: resourceId })
+            })
+        } catch (e) {
+            ctx.applyException(e)
+        }
+        return ctx
     }
 
-    public async deleteAllRecords(): Promise<boolean> {
-        await this.db<IResourceDataRecord>(RESOURCE_DATA_TABLE).delete()
-        return true
+    public async deleteAllRecords(): PromisedContext {
+        let ctx = new Context()
+        try {
+            await this.db<IResourceDataRecord>(RESOURCE_DATA_TABLE).delete()
+        } catch (e) {
+            ctx.applyException(e)
+        }
+        return ctx
     }
 
-    public getMarkListByType(type: string): Promise<{ name: string, resources: number }[]> {
-        return this.db<IMarkDataRecord>(MARK_DATA_TABLE)
-            .where({ type: type })
-            .groupBy('name')
-            .select('name', this.db.raw('count(resource_id) as resources'))
+    public async getMarkListByType(type: string): PromisedContext<{ name: string, resources: number }[]> {
+        let ctx = new Context<{ name: string, resources: number }[]>([])
+        try {
+            ctx.result = await this.db<IMarkDataRecord>(MARK_DATA_TABLE)
+                .where({ type: type })
+                .groupBy('name')
+                .select('name', this.db.raw('count(resource_id) as resources'))
+        } catch (e) {
+            ctx.applyException(e)
+        }
+        return ctx
     }
 }

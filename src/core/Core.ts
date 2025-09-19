@@ -5,17 +5,15 @@ import {
     type DBSchemePatch,
     ILogger,
     IDString,
-    IMarkData,
     IRepresentationDTE,
     IResourceDTE,
-    IResourceInfoDTC,
     IResourceKV,
 
     ON_DB_FULL_DROP_EVENT,
     ON_MARK_CREATED_EVENT,
     ON_REPRESENTATION_CREATED_EVENT,
     ON_RESOURCE_CREATED_EVENT,
-    ON_RESOURCE_KV_CREATED_EVENT, IUploadingPartReport
+    ON_RESOURCE_KV_CREATED_EVENT, IUploadingPartReport, IInitiable, IMarkParam
 } from './contracts.js'
 
 import type Config from './Config.js'
@@ -23,7 +21,9 @@ import DBSchemeManager from './DBSchemeManager.js'
 import FsManager from './FsManager.js'
 import DbManager from './DbManager.js'
 import Namer from './Namer.js'
-import { nowInMS } from './utils.js'
+import { nowInS } from './utils.js'
+import { PromisedContext, Context } from './Context.js'
+import { ErrorCodes } from './ErrorCodes.js'
 
 export default class Core extends EventEmitter {
 
@@ -43,32 +43,50 @@ export default class Core extends EventEmitter {
 
         this.namer = new Namer()
         this.logger = config.logger
+
+        this.fsManager = new FsManager(config.storage, config.logger)
+
         this.db = knex(config.db.connection)
         this.migrationManager = new DBSchemeManager(this.db, config.logger)
-        this.fsManager = new FsManager(config.storage, config.logger)
         this.dbManager = new DbManager(this.db, config.db, config.logger, (resourceId) => this.fsManager.getPath(resourceId))
     }
 
     public async init() {
-        await this.migrationManager.init(this.config.db.initMigration)
-        await this.fsManager.init()
+        const initiableList: IInitiable[] = [
+            this.migrationManager,
+            this.fsManager,
+        ]
+
+        for (const initiable of initiableList) {
+            const initCtx = await initiable.init()
+            if (initCtx.error) {
+                this.logger.error(initCtx.error, initCtx.errorInfo)
+            }
+        }
     }
 
-    public async dbFullDrop() {
-        await this.migrationManager.fullDrop()
-        this.emit(ON_DB_FULL_DROP_EVENT, this)
+    public async dbFullDrop(): PromisedContext {
+        let ctx = new Context()
+        ctx.apply(await this.migrationManager.fullDrop())
+        if (ctx.isSuccess()) {
+            this.emit(ON_DB_FULL_DROP_EVENT, this)
+        }
+        return ctx
     }
 
-    public async applyDbSchemePatch(id: string, patch: DBSchemePatch): Promise<boolean> {
-        return await this.migrationManager.applySchemePatch(id, patch)
+    public applyDbSchemePatch(id: string, patch: DBSchemePatch): PromisedContext {
+        return this.migrationManager.applySchemePatch(id, patch)
     }
 
-    public async rollbackDbSchemePatch(id: string, patch: DBSchemePatch): Promise<boolean> {
-        return await this.migrationManager.rollbackSchemePatch(id, patch)
+    public rollbackDbSchemePatch(id: string, patch: DBSchemePatch): PromisedContext {
+        return this.migrationManager.rollbackSchemePatch(id, patch)
     }
 
     public async createResource({info, data = {}, hierarchy = {}, marks = [], kv = {}}:{
-        info: IResourceInfoDTC
+        info: {
+            title: string
+            description?: string | null
+        }
         data?: {
             locked?: boolean
             hidden?: boolean
@@ -77,12 +95,17 @@ export default class Core extends EventEmitter {
             parent_id?: IDString | null
             order_index?: number
         }
-        marks?: IMarkData[]
+        marks?: IMarkParam[]
         kv?: IResourceKV
-    }): Promise<boolean> {
-        let result = false
+    }): PromisedContext<IDString|null> {
+        let ctx = new Context<IDString|null>(null)
 
-        if (!hierarchy?.parent_id || await this.dbManager.resourceExists(hierarchy.parent_id)) {
+        try {
+            if (hierarchy.parent_id && await this.dbManager.resourceExists(hierarchy.parent_id)) {
+                ctx.setError(ErrorCodes.PARENT_NOT_FOUND, { entity: 'resource' }, { parent_id: hierarchy.parent_id })
+                return ctx
+            }
+
             const resourceId = this.namer.generateResourceId()
             const resourceEntity: IResourceDTE = {
                 data: {
@@ -90,8 +113,8 @@ export default class Core extends EventEmitter {
                     hidden: data?.hidden || false,
                     locked: data?.locked || false,
                     is_deleted: false,
-                    created_at: nowInMS(),
-                    updated_at: nowInMS()
+                    created_at: nowInS(),
+                    updated_at: nowInS()
                 },
                 hierarchy: {
                     path: [],
@@ -105,36 +128,56 @@ export default class Core extends EventEmitter {
 
                 },
                 representations: [],
-                marks,
+                marks: marks.map(mark => { return { value: 0, ...mark}}),
                 kv,
             }
 
-            let resultMetafile = await this.fsManager.createResourceMetafile(
-                this.fsManager.resourceDTEToMetafile(resourceEntity)
+            ctx.apply(
+                await this.fsManager.createResourceMetafile(
+                    this.fsManager.resourceDTEToMetafile(resourceEntity)
+                )
             )
-            if (resultMetafile) {
+
+            if (ctx.isSuccess()) {
                 resourceEntity.hierarchy.path = this.fsManager.getPath(resourceEntity.data.id)
-                await this.dbManager.createResourceRecord(resourceEntity)
-                if (hierarchy?.parent_id) {
-                    await this.fsManager.appendChild(hierarchy.parent_id, resourceId)
-                    await this.dbManager.appendChild(hierarchy.parent_id, resourceId)
+
+                ctx.apply(
+                    await this.dbManager.createResourceRecord(resourceEntity)
+                )
+
+                if (hierarchy?.parent_id && ctx.isSuccess()) {
+                    ctx.apply(
+                        await this.fsManager.appendChild(hierarchy.parent_id, resourceId)
+                    )
+                    if (ctx.isSuccess()) {
+                        ctx.apply(
+                            await this.dbManager.appendChild(hierarchy.parent_id, resourceId)
+                        )
+                    }
                 }
                 // emit events
-                this.emit(ON_RESOURCE_CREATED_EVENT, this, resourceEntity)
-                for (const representation of resourceEntity.representations!) {
-                    this.emit(ON_REPRESENTATION_CREATED_EVENT, this, representation)
-                }
-                for (const mark of resourceEntity.marks!) {
-                    this.emit(ON_MARK_CREATED_EVENT, this, mark)
-                }
-                for (const kvComponent in resourceEntity.kv!) {
-                    for (const kvAttribute in resourceEntity.kv[kvComponent]) {
-                        this.emit(ON_RESOURCE_KV_CREATED_EVENT, this, kvComponent, kvAttribute, resourceEntity.kv[kvComponent][kvAttribute])
+                if (ctx.isSuccess()) {
+
+                    ctx.result = resourceId
+
+                    this.emit(ON_RESOURCE_CREATED_EVENT, this, resourceEntity)
+                    for (const representation of resourceEntity.representations!) {
+                        this.emit(ON_REPRESENTATION_CREATED_EVENT, this, representation)
+                    }
+                    for (const mark of resourceEntity.marks!) {
+                        this.emit(ON_MARK_CREATED_EVENT, this, mark)
+                    }
+                    for (const kvComponent in resourceEntity.kv!) {
+                        for (const kvAttribute in resourceEntity.kv[kvComponent]) {
+                            this.emit(ON_RESOURCE_KV_CREATED_EVENT, this, kvComponent, kvAttribute, resourceEntity.kv[kvComponent][kvAttribute])
+                        }
                     }
                 }
             }
+        } catch (e) {
+            ctx.applyException(e)
         }
-        return result
+        return ctx
     }
 
     public async createRepresentation(resourceId: IDString, {data, infoData = null, source = {}}: {
@@ -149,8 +192,8 @@ export default class Core extends EventEmitter {
             derived_from?: IDString | null
         }
         infoData?: Record<string, unknown> | null
-    }): Promise<IRepresentationDTE | null> {
-        let result = null;
+    }): PromisedContext<IDString | null> {
+        let ctx = new Context<IDString | null>(null)
 
         if (await this.resourceExists(resourceId)) {
             const representationId = this.namer.generateRepresentationId()
@@ -165,8 +208,8 @@ export default class Core extends EventEmitter {
                     extension: null,
                     is_external: data.is_external,
                     is_primary: false,
-                    created_at: nowInMS(),
-                    updated_at: nowInMS(),
+                    created_at: nowInS(),
+                    updated_at: nowInS(),
                     uploading: !data.is_external
                 },
                 source: {
@@ -178,109 +221,163 @@ export default class Core extends EventEmitter {
                 }
             }
 
-            if (await this.fsManager.createRepresentation(resourceId, representationEntity)) {
-                await this.dbManager.createRepresentation(resourceId, representationEntity)
+            while(true) {
+                ctx.apply(await this.fsManager.createRepresentation(resourceId, representationEntity))
+                if (ctx.isFailed()) break
+
+                ctx.apply(await this.dbManager.createRepresentation(resourceId, representationEntity))
+                if (ctx.isFailed()) break
 
                 if (data.is_primary) {
-                    await this.makeRepresentationPrimary(resourceId, representationId)
+                    ctx.apply(await this.makeRepresentationPrimary(resourceId, representationId))
+                    if (ctx.isFailed()) break
                 }
-                result = representationEntity
+                ctx.result = representationId
                 this.emit(ON_REPRESENTATION_CREATED_EVENT, this, representationEntity)
+
+                break
             }
+        } else {
+            ctx.setError(ErrorCodes.NOT_FOUND, { entity: 'resource' }, { resource_id: resourceId })
         }
 
-        return result;
+        return ctx
     }
 
-    public async makeRepresentationPrimary(resourceId: IDString, representationId: IDString): Promise<boolean> {
-        let result = await this.fsManager.makeRepresentationPrimary(resourceId, representationId)
-        if (result) {
-            await this.dbManager.makeRepresentationPrimary(resourceId, representationId)
+    public async makeRepresentationPrimary(resourceId: IDString, representationId: IDString): PromisedContext {
+        let ctx = new Context()
+        try {
+            ctx.apply(await this.fsManager.makeRepresentationPrimary(resourceId, representationId))
+            if (ctx.isSuccess()) {
+                ctx.apply(await this.dbManager.makeRepresentationPrimary(resourceId, representationId))
+            }
+        } catch (e) {
+            ctx.applyException(e)
         }
-        return false
+        return ctx
     }
 
-    public async deleteResource(id: IDString): Promise<boolean> {
-        let result = await this.fsManager.deleteResource(id)
-        if (result) {
-            await this.dbManager.deleteResource(id)
+    public async deleteResource(id: IDString): PromisedContext {
+        let ctx = new Context()
+        try {
+            ctx.apply(await this.fsManager.deleteResource(id))
+            if (ctx.isSuccess()) {
+                ctx.apply(await this.dbManager.deleteResource(id))
+            }
+        } catch (e) {
+            ctx.applyException(e)
         }
-        return result
+        return ctx
     }
 
-    public async deleteRepresentation(id: IDString): Promise<boolean> {
-        let result = await this.fsManager.deleteRepresentation(id)
-        if (result) {
-            await this.dbManager.deleteRepresentation(id)
+    public async deleteRepresentation(id: IDString): PromisedContext {
+        let ctx = new Context()
+        try {
+            ctx.apply(await this.fsManager.deleteRepresentation(id))
+            if (ctx.isSuccess()) {
+                ctx.apply(await this.dbManager.deleteRepresentation(id))
+            }
+        } catch (e) {
+            ctx.applyException(e)
         }
-        return result
+        return ctx
     }
 
-    public async deleteMark(id: IDString, marks: { name: string, type: string }[]): Promise<boolean> {
-        let result = await this.fsManager.deleteMarks(id, marks)
-        if (result) {
-            await this.dbManager.deleteMarks(id, marks)
+    public async deleteMark(id: IDString, marks: { name: string, type: string }[]): PromisedContext {
+        let ctx = new Context()
+        try {
+            ctx.apply(await this.fsManager.deleteMarks(id, marks))
+            if (ctx.isSuccess()) {
+                ctx.apply(await this.dbManager.deleteMarks(id, marks))
+            }
+        } catch (e) {
+            ctx.applyException(e)
         }
-        return result
+        return ctx
     }
 
-    public async deleteResourceKV(id: IDString, componentKeys: IResourceKV): Promise<boolean> {
-        let result = await this.fsManager.deleteResourceKV(id, componentKeys)
-        if (result) {
-            await this.dbManager.deleteResourceKV(id, componentKeys)
+    public async deleteResourceKV(id: IDString, componentKeys: IResourceKV): PromisedContext {
+        let ctx = new Context()
+        try {
+            ctx.apply(await this.fsManager.deleteResourceKV(id, componentKeys))
+            if (ctx.isSuccess()) {
+                ctx.apply(await this.dbManager.deleteResourceKV(id, componentKeys))
+            }
+        } catch (e) {
+            ctx.applyException(e)
         }
-        return result
+        return ctx
     }
 
     // update methods
 
-    public async setMarks(resourceId: IDString, marks: { name: string, type: string, value: number | null }[]): Promise<boolean> {
-        let result = await this.fsManager.setMarks(resourceId, marks)
-        if (result) {
-            await this.dbManager.setMarks(resourceId, marks)
+    public async setMarks(resourceId: IDString, marks: { name: string, type: string, value: number | null }[]): PromisedContext {
+        let ctx = new Context()
+        try {
+            ctx.apply(await this.fsManager.setMarks(resourceId, marks))
+            if (ctx.isSuccess()) {
+                ctx.apply(await this.dbManager.setMarks(resourceId, marks))
+            }
+        } catch (e) {
+            ctx.applyException(e)
         }
-        return result
+        return ctx
     }
 
-    public async setResourceKV(resourceId: IDString, componentKeys: IResourceKV): Promise<boolean> {
-        let result = await this.fsManager.setResourceKV(resourceId, componentKeys)
-        if (result) {
-            await this.dbManager.setResourceKV(resourceId, componentKeys)
+    public async setResourceKV(resourceId: IDString, componentKeys: IResourceKV): PromisedContext {
+        let ctx = new Context()
+        try {
+            ctx.apply(await this.fsManager.setResourceKV(resourceId, componentKeys))
+            if (ctx.isSuccess()) {
+                ctx.apply(await this.dbManager.setResourceKV(resourceId, componentKeys))
+            }
+        } catch (e) {
+            ctx.applyException(e)
         }
-        return result
+        return ctx
     }
 
     // TODO upload methods
 
-    public async uploadRepresentationPart(representationId: IDString, chunk: Buffer, offset: number = 0, length: number | undefined = undefined): Promise<IUploadingPartReport> {
-        let report = await this.fsManager.uploadRepresentationPart(representationId, chunk, offset, length)
-        if (report.status) {
-            await this.dbManager.updateRepresentationInfo(representationId, { data: report.data })
+    public async uploadRepresentationPart(representationId: IDString, chunk: Buffer, offset: number = 0, length: number | undefined = undefined): PromisedContext<IUploadingPartReport> {
+        let ctx = await this.fsManager.uploadRepresentationPart(representationId, chunk, offset, length)
+        if (ctx.isSuccess()) {
+            ctx.apply(await this.dbManager.updateRepresentationInfo(representationId, { data: ctx.result.data }))
         }
-        return report
+        return ctx
     }
 
-    public async finishRepresentationUpload(representationId: IDString): Promise<boolean> {
-        let result = await this.fsManager.finishRepresentationUpload(representationId)
-        if (result) {
+    public async finishRepresentationUpload(representationId: IDString): PromisedContext
+    {
+        let ctx = await this.fsManager.finishRepresentationUpload(representationId)
+        if (ctx.isSuccess()) {
             const resourceId = this.fsManager.getResourceIdByRepresentationId(representationId)
             if (resourceId) {
-                const resourceMetafile = await this.fsManager.getResourceMetafile(resourceId)
-                if (resourceMetafile) {
-                    let representation: IRepresentationDTE | null = null
-                    for (const repItem of resourceMetafile.representations) {
-                        if (repItem.data.id === representationId) {
-                            representation = repItem
-                            break
-                        }
+                const resourceMetafileCtx = await this.fsManager.getResourceMetafile(resourceId)
+                if (!resourceMetafileCtx.result) {
+                    if (resourceMetafileCtx.isFailed()) {
+                        ctx.apply(resourceMetafileCtx)
+                    } else {
+                        ctx.setError(ErrorCodes.NOT_FOUND, { entity: 'resource' }, { resource_id: resourceId })
                     }
-                    if (representation) {
-                        await this.dbManager.updateRepresentation(representationId, representation)
+                    return ctx
+                }
+                let resourceMetafile = resourceMetafileCtx.result
+                let representation: IRepresentationDTE | null = null
+                for (const repItem of resourceMetafile.representations) {
+                    if (repItem.data.id === representationId) {
+                        representation = repItem
+                        break
                     }
+                }
+                if (representation) {
+                    ctx.apply(await this.dbManager.updateRepresentation(representationId, representation))
+                } else {
+                    ctx.setError(ErrorCodes.NOT_FOUND, { entity: 'representation' }, { representation_id: representationId })
                 }
             }
         }
-        return result
+        return ctx
     }
 
     // TODO query methods
@@ -301,13 +398,13 @@ export default class Core extends EventEmitter {
         return this.dbManager.resourceKVExists(id, component, attribute)
     }
 
-    public async getMarkListByType(type: string): Promise<{ name: string, resources: number }[]> {
+    public async getMarkListByType(type: string): PromisedContext<{ name: string, resources: number }[]> {
         return await this.dbManager.getMarkListByType(type)
     }
 
-    // TODO full rescan
-
-    public async fullRescan(reportCallback: (report: { resources: number, representations: number }) => Promise<void>): Promise<void> {
-
+    public async fullRescan(reportCallback: (report: { resources: number, representations: number }) => Promise<void>): PromisedContext {
+        let ctx = new Context()
+        // TODO
+        return ctx
     }
 }
