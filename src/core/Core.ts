@@ -438,6 +438,8 @@ export default class Core extends EventEmitter {
             uploading?: boolean
         }
         mark?: IMarkCriteria
+        limit?: number
+        offset?: number
     }): PromisedContext<IResourceDTE[]> {
         return await this.dbManager.findResources(criteria)
     }

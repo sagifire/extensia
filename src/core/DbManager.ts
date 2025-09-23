@@ -466,6 +466,8 @@ export default class DbManager {
             uploading?: boolean
         }
         mark?: IMarkCriteria
+        limit?: number
+        offset?: number
     }): PromisedContext<IResourceDTE[]> {
         let ctx = new Context<IResourceDTE[]>([])
 
@@ -510,20 +512,132 @@ export default class DbManager {
             kv_value: MARK_KV_TABLE + '.value',
         }
 
-        let query = this.db<typeof columnsConfig>(RESOURCE_DATA_TABLE)
+        let filterQuery = this.db
+            .select()
+            .column({
+                f_id: RESOURCE_DATA_TABLE + '.id'
+            })
+            .from(RESOURCE_DATA_TABLE)
+            .as('f_t')
+
+        if (criteria.hierarchy && criteria.hierarchy.parent_id) {
+            filterQuery = filterQuery.
+                innerJoin(RESOURCE_HIERARCHY_TABLE, function(){
+                    this.on(RESOURCE_HIERARCHY_TABLE + '.id', '=', 'f_id')
+                        .andOn(RESOURCE_HIERARCHY_TABLE + '.parent_id', '=', db.raw('?', [criteria.hierarchy!.parent_id]))
+            })
+        }
+
+        // CONDITION JOINS
+
+        if (criteria.representation && Object.keys(criteria.representation).length > 0) {
+            filterQuery = filterQuery
+                .innerJoin(REPRESENTATION_DATA_TABLE + ' as repCon', function () {
+                    let onCondition = this.on('repCon.resource_id', '=', 'f_id')
+                    if (criteria.representation?.id) {
+                        onCondition.andOn('repCon.id', '=', db.raw('?', [criteria.representation.id]))
+                    }
+                    if (criteria.representation?.type) {
+                        onCondition.andOn('repCon.type', '=', db.raw('?', [criteria.representation.type]))
+                    }
+                    if (criteria.representation?.role) {
+                        onCondition.andOn('repCon.role', '=', db.raw('?', [criteria.representation.role]))
+                    }
+                    if (criteria.representation?.mime) {
+                        onCondition.andOn('repCon.mime', '=', db.raw('?', [criteria.representation.mime]))
+                    }
+                    if (criteria.representation?.extension) {
+                        onCondition.andOn('repCon.extension', '=', db.raw('?', [criteria.representation.extension]))
+                    }
+                    if (criteria.representation?.is_external) {
+                        onCondition.andOn('repCon.is_external', '=', db.raw('?', [criteria.representation.is_external]))
+                    }
+                    if (criteria.representation?.is_primary) {
+                        onCondition.andOn('repCon.is_primary', '=', db.raw('?', [criteria.representation.is_primary]))
+                    }
+                    if (criteria.representation?.uploading) {
+                        onCondition.andOn('repCon.uploading', '=', db.raw('?', [criteria.representation.uploading]))
+                    }
+                })
+        }
+
+        const getMarkValueRawCondition = (value: IMarkItemCriteria['value'], tName: string): Knex.Raw => {
+            let condition: Knex.Raw = db.raw(tName + '.value = ?', [value])
+            if (value === null) {
+                condition = db.raw(tName + '.value IS NULL')
+            } else if (value === 'not null') {
+                condition = db.raw(tName + '.value IS NOT NULL')
+            } else if (Array.isArray(value)) {
+                if ('string' === typeof value[0]) {
+                    condition = db.raw(tName + '.value ' + value[0] + ' ?', [value[1]])
+                } else {
+                    condition = db.raw(tName + '.value >= ? AND ' + tName + '.value <= ?', [value[0], value[1]])
+                }
+            }
+            return condition
+        }
+
+        if (criteria.mark && (!Array.isArray(criteria.mark) || Object.keys(criteria.mark).length > 0)) {
+            if (!Array.isArray(criteria.mark)) {
+                criteria.mark = [criteria.mark]
+            }
+            let joinCount = 0
+            for (const markAndCondition of criteria.mark) {
+                const tName = 'mark' + joinCount++
+                filterQuery = filterQuery
+                    .innerJoin(MARK_DATA_TABLE + ' as ' + tName, function () {
+                        let onCondition = this.on(tName + '.resource_id', '=', 'f_id')
+                        if (!Array.isArray(markAndCondition)) {
+                            onCondition.andOn(tName + '.type', '=', db.raw('?', [markAndCondition.type]))
+                            onCondition.andOn(tName + '.name', '=', db.raw('?', [markAndCondition.name]))
+                            if (markAndCondition.value !== undefined) {
+                                onCondition.andOn(getMarkValueRawCondition(markAndCondition.value, tName))
+                            }
+                        } else {
+                            onCondition.andOn(function () {
+                                for (const markOrCondition of markAndCondition) {
+                                    this.orOn(function () {
+                                        this.andOn(tName + '.type', '=', db.raw('?', [markOrCondition.type]))
+                                        this.andOn(tName + '.name', '=', db.raw('?', [markOrCondition.name]))
+                                        if (markOrCondition.value !== undefined) {
+                                            this.andOn(getMarkValueRawCondition(markOrCondition.value, tName))
+                                        }
+                                    })
+                                }
+                            })
+
+                        }
+                    })
+            }
+        }
+
+        // resource conditions
+        if (criteria.data) {
+            if (criteria.data.id) {
+                filterQuery = filterQuery.andWhere({
+                    'f_id': criteria.data.id
+                })
+            }
+        }
+        if (criteria.hierarchy && criteria.hierarchy.parent_id) {
+            filterQuery = filterQuery.orderBy(RESOURCE_HIERARCHY_TABLE + '.order_index', criteria.hierarchy.order || 'asc')
+        }
+
+
+        let query = this.db<typeof columnsConfig>(filterQuery)
             .select()
             .column(columnsConfig)
 
         // resource tables:
         query = query
-            .innerJoin(RESOURCE_INFO_TABLE, function () {
+            .leftJoin(RESOURCE_DATA_TABLE, function() {
+                this.on(RESOURCE_DATA_TABLE + '.id', '=', 'f_t.f_id')
+            })
+            .leftJoin(RESOURCE_INFO_TABLE, function () {
                 this.on(RESOURCE_INFO_TABLE + '.id', '=', RESOURCE_DATA_TABLE + '.id')
             })
-            .innerJoin(RESOURCE_HIERARCHY_TABLE, function () {
-                let onCondition = this.on(RESOURCE_HIERARCHY_TABLE + '.id', '=', RESOURCE_DATA_TABLE + '.id')
-                if (criteria.hierarchy && criteria.hierarchy.parent_id) {
-                    onCondition.andOn(RESOURCE_HIERARCHY_TABLE + '.parent_id', '=', db.raw('?', [criteria.hierarchy.parent_id]))
-                }
+            .leftJoin(RESOURCE_HIERARCHY_TABLE, function () {
+                this.on(RESOURCE_HIERARCHY_TABLE + '.id', '=', RESOURCE_DATA_TABLE + '.id')
             })
 
         // representation tables
@@ -547,98 +661,12 @@ export default class DbManager {
                 this.on(MARK_KV_TABLE + '.resource_id', '=', RESOURCE_DATA_TABLE + '.id')
             })
 
-        // CONDITION JOINS
-
-        if (criteria.representation && Object.keys(criteria.representation).length > 0) {
-            query = query
-                .innerJoin(REPRESENTATION_DATA_TABLE + ' as repCon', function () {
-                    let onCondition = this.on(REPRESENTATION_DATA_TABLE + '.resource_id', '=', RESOURCE_DATA_TABLE + '.id')
-                    if (criteria.representation?.id) {
-                        onCondition.andOn(REPRESENTATION_DATA_TABLE + '.id', '=', db.raw('?', [criteria.representation.id]))
-                    }
-                    if (criteria.representation?.type) {
-                        onCondition.andOn(REPRESENTATION_DATA_TABLE + '.type', '=', db.raw('?', [criteria.representation.type]))
-                    }
-                    if (criteria.representation?.role) {
-                        onCondition.andOn(REPRESENTATION_DATA_TABLE + '.role', '=', db.raw('?', [criteria.representation.role]))
-                    }
-                    if (criteria.representation?.mime) {
-                        onCondition.andOn(REPRESENTATION_DATA_TABLE + '.mime', '=', db.raw('?', [criteria.representation.mime]))
-                    }
-                    if (criteria.representation?.extension) {
-                        onCondition.andOn(REPRESENTATION_DATA_TABLE + '.extension', '=', db.raw('?', [criteria.representation.extension]))
-                    }
-                    if (criteria.representation?.is_external) {
-                        onCondition.andOn(REPRESENTATION_DATA_TABLE + '.is_external', '=', db.raw('?', [criteria.representation.is_external]))
-                    }
-                    if (criteria.representation?.is_primary) {
-                        onCondition.andOn(REPRESENTATION_DATA_TABLE + '.is_primary', '=', db.raw('?', [criteria.representation.is_primary]))
-                    }
-                    if (criteria.representation?.uploading) {
-                        onCondition.andOn(REPRESENTATION_DATA_TABLE + '.uploading', '=', db.raw('?', [criteria.representation.uploading]))
-                    }
-                })
+        if ('undefined' !== typeof criteria.limit) {
+            query = query.limit(criteria.limit)
         }
 
-        const getMarkValueRawCondition = (value: IMarkItemCriteria['value']): Knex.Raw => {
-            let condition: Knex.Raw = db.raw(MARK_DATA_TABLE + '.value = ?', [value])
-            if (value === null) {
-                condition = db.raw(MARK_DATA_TABLE + '.value IS NULL')
-            } else if (value === 'not null') {
-                condition = db.raw(MARK_DATA_TABLE + '.value IS NOT NULL')
-            } else if (Array.isArray(value)) {
-                if ('string' === typeof value[0]) {
-                    condition = db.raw(MARK_DATA_TABLE + '.value ' + value[0] + ' ?', [value[1]])
-                } else {
-                    condition = db.raw(MARK_DATA_TABLE + '.value >= ? AND ' + MARK_DATA_TABLE + '.value <= ?', [value[0], value[1]])
-                }
-            }
-            return condition
-        }
-
-        if (criteria.mark && (!Array.isArray(criteria.mark) || Object.keys(criteria.mark).length > 0)) {
-            if (!Array.isArray(criteria.mark)) {
-                criteria.mark = [criteria.mark]
-            }
-            let joinCount = 0
-            for (const markAndCondition of criteria.mark) {
-                query = query
-                    .innerJoin(MARK_DATA_TABLE + ' as mark' + joinCount, function () {
-                        let onCondition = this.on(MARK_DATA_TABLE + '.resource_id', '=', RESOURCE_DATA_TABLE + '.id')
-                        if (!Array.isArray(markAndCondition)) {
-                            onCondition.andOn(MARK_DATA_TABLE + '.type', '=', db.raw('?', [markAndCondition.type]))
-                            onCondition.andOn(MARK_DATA_TABLE + '.name', '=', db.raw('?', [markAndCondition.name]))
-                            if (markAndCondition.value !== undefined) {
-                                onCondition.andOn(getMarkValueRawCondition(markAndCondition.value))
-                            }
-                        } else {
-                            onCondition.andOn(function () {
-                                for (const markOrCondition of markAndCondition) {
-                                    this.orOn(function () {
-                                        this.andOn(MARK_DATA_TABLE + '.type', '=', db.raw('?', [markOrCondition.type]))
-                                        this.andOn(MARK_DATA_TABLE + '.name', '=', db.raw('?', [markOrCondition.name]))
-                                        if (markOrCondition.value !== undefined) {
-                                            this.andOn(getMarkValueRawCondition(markOrCondition.value))
-                                        }
-                                    })
-                                }
-                            })
-
-                        }
-                    })
-            }
-        }
-
-        // resource conditions
-        if (criteria.data) {
-            if (criteria.data.id) {
-                query = query.andWhere({
-                    'data_id': criteria.data.id
-                })
-            }
-        }
-        if (criteria.hierarchy && criteria.hierarchy.parent_id) {
-            query = query.orderBy(RESOURCE_HIERARCHY_TABLE + '.order_index', criteria.hierarchy.order || 'asc')
+        if ('undefined' !== typeof criteria.offset) {
+            query = query.offset(criteria.offset)
         }
 
         // console.log(query.toSQL())

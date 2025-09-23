@@ -225,6 +225,8 @@ declare class DbManager {
             uploading?: boolean;
         };
         mark?: IMarkCriteria;
+        limit?: number;
+        offset?: number;
     }): PromisedContext<IResourceDTE[]>;
 }
 
@@ -320,6 +322,8 @@ declare class Core extends EventEmitter {
             uploading?: boolean;
         };
         mark?: IMarkCriteria;
+        limit?: number;
+        offset?: number;
     }): PromisedContext<IResourceDTE[]>;
     fullRescan(reportCallback: (report: {
         resources: number;
@@ -608,6 +612,8 @@ declare class Query extends Plugin {
             uploading?: boolean;
         };
         mark?: IMarkCriteria;
+        limit?: number;
+        offset?: number;
     }): PromisedContext<IResourceDTE[]>;
 }
 

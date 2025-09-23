@@ -57,6 +57,8 @@ export default class Query extends Plugin {
             uploading?: boolean
         }
         mark?: IMarkCriteria
+        limit?: number
+        offset?: number
     }): PromisedContext<IResourceDTE[]> {
         return await this.api.findResources(criteria)
     }
