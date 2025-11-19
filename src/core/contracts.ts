@@ -142,12 +142,23 @@ export interface IResourceHierarchyRecord {
 
 export interface IRepresentationDataRecord extends IRepresentationDataDTC {
     resource_id: IDString
+    created_at: number
+    updated_at: number
+    role: string
+    mime: string | null
+    extension: string | null
+    is_external: boolean
+    is_primary: boolean
+    uploading: boolean
 }
 export interface IRepresentationSourceRecord extends IRepresentationSourceDTC {
     id: IDString
+    url: string | null
+    derived_from: IDString | null
 }
-export interface IRepresentationInfoRecord extends IRepresentationInfoDTC {
+export interface IRepresentationInfoRecord {
     id: IDString
+    data: null | Record<string, unknown>
 }
 export interface IMarkDataRecord extends IMarkData {
     resource_id: IDString

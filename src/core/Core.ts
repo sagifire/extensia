@@ -419,6 +419,10 @@ export default class Core extends EventEmitter {
         return await this.dbManager.getMarkList()
     }
 
+    public async findResourceById(id: IDString): PromisedContext<IResourceDTE | undefined> {
+        return await this.dbManager.findResourceById(id)
+    }
+
     public async findResources(criteria: {
         data?: {
             id?: IDString

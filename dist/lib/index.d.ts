@@ -206,6 +206,7 @@ declare class DbManager {
         max_value: number;
     }[]>;
     getMarkList(): PromisedContext<Record<string, string[]>>;
+    findResourceById(resourceId: IDString): PromisedContext<IResourceDTE | undefined>;
     findResources(criteria: {
         data?: {
             id?: IDString;
@@ -303,6 +304,7 @@ declare class Core extends EventEmitter {
         resources: number;
     }[]>;
     getMarkList(): PromisedContext<Record<string, string[]>>;
+    findResourceById(id: IDString): PromisedContext<IResourceDTE | undefined>;
     findResources(criteria: {
         data?: {
             id?: IDString;
@@ -455,12 +457,23 @@ interface IResourceHierarchyRecord {
 }
 interface IRepresentationDataRecord extends IRepresentationDataDTC {
     resource_id: IDString;
+    created_at: number;
+    updated_at: number;
+    role: string;
+    mime: string | null;
+    extension: string | null;
+    is_external: boolean;
+    is_primary: boolean;
+    uploading: boolean;
 }
 interface IRepresentationSourceRecord extends IRepresentationSourceDTC {
     id: IDString;
+    url: string | null;
+    derived_from: IDString | null;
 }
-interface IRepresentationInfoRecord extends IRepresentationInfoDTC {
+interface IRepresentationInfoRecord {
     id: IDString;
+    data: null | Record<string, unknown>;
 }
 interface IMarkDataRecord extends IMarkData {
     resource_id: IDString;

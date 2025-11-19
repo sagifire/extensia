@@ -447,6 +447,124 @@ export default class DbManager {
         return ctx
     }
 
+    public async findResourceById(resourceId: IDString): PromisedContext<IResourceDTE | undefined> {
+        let ctx = new Context<IResourceDTE | undefined>(undefined)
+        try {
+            const resourceDataRecord: IResourceDataRecord | undefined = await this.db<IResourceDataRecord>(RESOURCE_DATA_TABLE)
+                .where({ id: resourceId })
+                .first()
+            if (resourceDataRecord) {
+                const resourceHierarchyRecord: IResourceHierarchyRecord | undefined = await this.db<IResourceHierarchyRecord>(RESOURCE_HIERARCHY_TABLE)
+                    .where({ id: resourceId })
+                    .first()
+                const resourceInfoRecord: IResourceInfoRecord | undefined = await this.db<IResourceInfoRecord>(RESOURCE_INFO_TABLE)
+                    .where({ id: resourceId })
+                    .first()
+                const resourceRepresentationDataRecord: Array<{
+                    source_url: string | null,
+                    source_derived_from: IDString | null,
+                    info_data: string | null
+                } & IRepresentationDataRecord> | undefined = await this.db<IRepresentationDataRecord>(REPRESENTATION_DATA_TABLE)
+                    .select({
+                        id: RESOURCE_DATA_TABLE + '.id',
+                        type: REPRESENTATION_DATA_TABLE + '.type',
+                        role: REPRESENTATION_DATA_TABLE + '.role',
+                        mime: REPRESENTATION_DATA_TABLE + '.mime',
+                        extension: REPRESENTATION_DATA_TABLE + '.extension',
+                        created_at: RESOURCE_DATA_TABLE + '.created_at',
+                        updated_at: RESOURCE_DATA_TABLE + '.updated_at',
+                        is_primary: REPRESENTATION_DATA_TABLE + '.is_primary',
+                        is_external: REPRESENTATION_DATA_TABLE + '.is_external',
+                        uploading: REPRESENTATION_DATA_TABLE + '.uploading',
+                        source_url: REPRESENTATION_SOURCE_TABLE + '.url',
+                        source_derived_from: REPRESENTATION_SOURCE_TABLE + '.derived_from',
+                        info_data: REPRESENTATION_INFO_TABLE + '.data'
+                    })
+                    .leftJoin(REPRESENTATION_INFO_TABLE, function () {
+                        this.on(REPRESENTATION_INFO_TABLE + '.id', '=', REPRESENTATION_DATA_TABLE + '.id')
+                    })
+                    .leftJoin(REPRESENTATION_SOURCE_TABLE, function () {
+                        this.on(REPRESENTATION_SOURCE_TABLE + '.id', '=', REPRESENTATION_DATA_TABLE + '.id')
+                    })
+                    .where({ resource_id: resourceId })
+                const resourceMarkRecord: IMarkDataRecord[] | undefined = await this.db<IMarkDataRecord>(MARK_DATA_TABLE)
+                    .where({ resource_id: resourceId })
+                const resourceKVRecord: IMarkKVRecord[] | undefined = await this.db<IMarkKVRecord>(MARK_KV_TABLE)
+                    .where({ resource_id: resourceId })
+
+                if (resourceHierarchyRecord && resourceInfoRecord) {
+                    let resource: IResourceDTE = {
+                        data: {
+                            id: resourceDataRecord.id,
+                            created_at: resourceDataRecord.created_at,
+                            updated_at: resourceDataRecord.updated_at,
+                            hidden: resourceDataRecord.hidden,
+                            locked: resourceDataRecord.locked,
+                            is_deleted: resourceDataRecord.is_deleted
+                        },
+                        hierarchy: {
+                            parent_id: resourceHierarchyRecord.parent_id,
+                            order_index: resourceHierarchyRecord.order_index,
+                            path: this.getPaths(resourceDataRecord.id),
+                            children: []
+                        },
+                        info: {
+                            title: resourceInfoRecord.title,
+                            description: resourceInfoRecord.description
+                        },
+                        representations: [],
+                        marks: [],
+                        kv: {}
+                    }
+                    // representations
+                    if (resourceRepresentationDataRecord?.length) {
+                        for(const representation of resourceRepresentationDataRecord) {
+                            resource.representations.push({data: {
+                                    id: resourceDataRecord.id,
+                                    type: representation.type,
+                                    role: representation.role,
+                                    mime: representation.mime,
+                                    extension: representation.extension,
+                                    created_at: representation.created_at,
+                                    updated_at: representation.updated_at,
+                                    is_primary: representation.is_primary,
+                                    is_external: representation.is_external,
+                                    uploading: representation.uploading
+                                },
+                                source: {
+                                    url: representation.source_url,
+                                    derived_from: representation.source_derived_from
+                                },
+                                info: {
+                                    data: representation.info_data as (Record<string, unknown> | null)
+                                }})
+                        }
+                    }
+                    // marks
+                    if (resourceMarkRecord?.length) {
+                        for(const mark of resourceMarkRecord) {
+                            resource.marks.push({name: mark.name, type: mark.type, value: mark.value})
+                        }
+                    }
+                    // kv
+                    if (resourceKVRecord?.length) {
+                        for(const kv of resourceKVRecord) {
+                            if ('undefined' === typeof resource.kv[kv.component]) {
+                                resource.kv[kv.component] = {}
+                            }
+                            resource.kv[kv.component][kv.attribute] = kv.value
+                        }
+                    }
+
+                    ctx.result = resource
+                }
+            }
+        } catch (e) {
+            ctx.applyException(e)
+        }
+        return ctx
+    }
+
     public async findResources(criteria: {
         data?: {
             id?: IDString
