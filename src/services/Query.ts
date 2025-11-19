@@ -38,6 +38,10 @@ export default class Query extends Plugin {
         return this.api.getMarkList()
     }
 
+    public async findResourceById(id: IDString) {
+        return this.api.findResourceById(id)
+    }
+
     public async findResources(criteria: {
         data?: {
             id?: IDString

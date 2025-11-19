@@ -2678,6 +2678,9 @@ var Query = class extends Plugin {
   getMarkList() {
     return this.api.getMarkList();
   }
+  async findResourceById(id) {
+    return this.api.findResourceById(id);
+  }
   async findResources(criteria) {
     return await this.api.findResources(criteria);
   }

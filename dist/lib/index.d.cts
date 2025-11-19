@@ -606,6 +606,7 @@ declare class Query extends Plugin {
         resources: number;
     }[]>;
     getMarkList(): PromisedContext<Record<string, string[]>>;
+    findResourceById(id: IDString): Promise<Context<IResourceDTE | undefined>>;
     findResources(criteria: {
         data?: {
             id?: IDString;
