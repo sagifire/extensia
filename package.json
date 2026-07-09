@@ -1,56 +1,11 @@
 {
   "name": "@sagifire/extensia",
-  "version": "0.0.8",
-  "description": "Extensia is a library for managing media resources with a flexible tagging and organization storage system.",
+  "version": "0.1.0",
+  "description": "Extensia is an in-process library for working with media resources.",
   "license": "MIT",
   "author": "achvyl@gmail.com",
   "type": "module",
-  "main": "./dist/lib/index.cjs",
-  "module": "./dist/lib/index.js",
-  "types": "./dist/lib/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/lib/index.d.ts",
-      "import": "./dist/lib/index.js",
-      "require": "./dist/lib/index.cjs"
-    }
-  },
-  "files": [
-    "dist"
-  ],
-  "sideEffects": false,
   "engines": {
-    "node": ">=22"
-  },
-  "bin": {
-    "extensia-cli": "./dist/cli/cli.js",
-    "extensia": "./dist/cli/cli.js"
-  },
-  "scripts": {
-    "build": "npm run build:lib & npm run build:cli",
-    "build:lib": "tsup src/index.ts --format esm,cjs --dts --out-dir dist/lib --sourcemap --clean",
-    "build:cli": "tsup src/cli.ts --format esm --out-dir dist/cli --clean",
-    "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run build"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "devDependencies": {
-    "@types/node": "^24.3.1",
-    "@typescript-eslint/eslint-plugin": "^8.43.0",
-    "@typescript-eslint/parser": "^8.43.0",
-    "eslint": "^9.35.0",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-prettier": "^5.5.4",
-    "prettier": "^3.6.2",
-    "tsup": "^8.5.0",
-    "typescript": "^5.9.2"
-  },
-  "dependencies": {
-    "file-type": "^21.0.0",
-    "knex": "^3.1.0",
-    "uuid25": "^0.1.5",
-    "uuidv7": "^1.0.2"
+    "node": ">=24"
   }
 }
