@@ -28,7 +28,7 @@ Gate: пройдений у `TASK-07.26-0002`; пам'ять прийнята л
 
 ## Фаза 1 — Контракти й каркас композиції
 
-Стан: next.
+Стан: active — internal `P1-WP4` реалізовано в BP1-04/RUN-001, має green independent audit і прийнято людиною; наступні gates — `P1-STAB` через BP1-05/BP1-06 та окремий Phase 1 human gate.
 
 Wave IDs: `P1-WP1` tooling/package -> паралельні `P1-WP2` domain contracts і `P1-WP3` IoC composition -> `P1-WP4` internal lifecycle slice -> `P1-STAB`. Original application-facing `P1-VS1` superseded у цій хвилі та deferred до owner gate public config/storage integration.
 

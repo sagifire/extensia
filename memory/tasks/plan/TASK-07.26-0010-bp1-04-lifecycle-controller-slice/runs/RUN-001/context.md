@@ -1,13 +1,15 @@
 # Контекст RUN-001
 
 Preparation Status: prepared
-Execution Status: not started
+Execution Status: completed
+Status: review-ready
+Started: 2026-07-10
 
 ## Роль і режим
 
 - Agent Role при activation: Agent Implementer.
 - Execution Mode: `autonomous-implementation`.
-- Task status під час preparation: `backlog`; activation має атомарно перевести task/progress/state у `active` перед implementation.
+- Task status at activation: `active`; activation атомарно синхронізувала task/progress/state і run metadata перед implementation. Current task status після run: `review`.
 
 ## Джерела рішення
 

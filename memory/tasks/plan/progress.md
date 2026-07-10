@@ -21,7 +21,7 @@
 - [x] **[Done]** [BP1-01 / TASK-07.26-0005](TASK-07.26-0005-bp1-01-esm-typescript-package-baseline/index.md) - ESM TypeScript tooling/package gate реалізовано, незалежно перевірено та прийнято людиною.
 - [x] **[Done]** [BP1-02 / TASK-07.26-0007](TASK-07.26-0007-bp1-02-pure-domain-contract-kernel/index.md) - Pure domain contract kernel реалізовано, незалежно перевірено та прийнято людиною.
 - [x] **[Done]** [BP1-03 / TASK-07.26-0008](TASK-07.26-0008-bp1-03-ioc-composition-skeleton/index.md) - Internal IoC composition/conformance skeleton реалізовано, незалежно перевірено та прийнято людиною.
-- [ ] **[Backlog]** [BP1-04 / TASK-07.26-0010](TASK-07.26-0010-bp1-04-lifecycle-controller-slice/index.md) - Strict internal Runtime Controller slice; RUN-001 prepared, execution not started.
+- [x] **[Done]** [BP1-04 / TASK-07.26-0010](TASK-07.26-0010-bp1-04-lifecycle-controller-slice/index.md) - Strict internal Runtime Controller slice реалізовано, незалежно перевірено та прийнято людиною.
 - [ ] **[Backlog]** [BP1-05 / TASK-07.26-0011](TASK-07.26-0011-bp1-05-phase-1-stabilization/index.md) - Стабілізація Phase 1 після accepted BP1-04 та підготовка versioned audit evidence.
 - [ ] **[Backlog]** [BP1-06 / TASK-07.26-0012](TASK-07.26-0012-bp1-06-phase-1-independent-audit/index.md) - Незалежний architecture/package audit Phase 1 після BP1-05 review-ready.
 

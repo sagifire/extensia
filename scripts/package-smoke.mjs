@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { execFileSync } from "node:child_process";
@@ -31,6 +31,23 @@ function runNpm(args, options) {
 }
 
 assertNode24();
+
+const packageJson = JSON.parse(
+  readFileSync(join(root, "package.json"), "utf8"),
+);
+assert.deepEqual(Object.keys(packageJson.exports).sort(), [
+  ".",
+  "./package.json",
+]);
+assert.deepEqual(Object.keys(packageJson.exports["."]).sort(), [
+  "default",
+  "import",
+  "types",
+]);
+assert.ok(
+  !("require" in packageJson.exports["."]),
+  "Root exports must not expose CommonJS.",
+);
 
 let tarballPath;
 let consumer;
@@ -75,10 +92,16 @@ try {
     "dist/index.d.ts.map",
     "dist/index.js",
     "dist/index.js.map",
+    "dist/runtime/lifecycle.d.ts",
+    "dist/runtime/lifecycle.d.ts.map",
+    "dist/runtime/lifecycle.js",
+    "dist/runtime/lifecycle.js.map",
     "package.json",
   ]);
   assert.ok(
-    !packageContents.some((file) => file.endsWith(".cjs")),
+    !packageContents.some(
+      (file) => file.endsWith(".cjs") || file.endsWith(".cts"),
+    ),
     "Packed package must not contain CommonJS output.",
   );
 
@@ -93,7 +116,7 @@ try {
   );
   writeFileSync(
     join(consumer, "consumer.ts"),
-    'import "@sagifire/extensia";\n',
+    'import type {} from "@sagifire/extensia";\nexport {};\n',
   );
 
   runNpm(
@@ -108,11 +131,26 @@ try {
     ],
     { cwd: consumer },
   );
-  run(
-    process.execPath,
-    ["--input-type=module", "--eval", 'await import("@sagifire/extensia");'],
-    { cwd: consumer },
-  );
+  const rootImportProbe = `
+    import assert from "node:assert/strict";
+
+    const globalKeys = Reflect.ownKeys(globalThis);
+    const environment = { ...process.env };
+    const listeners = process.eventNames().map((name) => [name, process.listenerCount(name)]);
+    const namespace = await import("@sagifire/extensia");
+
+    assert.deepEqual(Object.keys(namespace), []);
+    assert.deepEqual(Reflect.ownKeys(globalThis), globalKeys);
+    assert.deepEqual({ ...process.env }, environment);
+    assert.deepEqual(
+      process.eventNames().map((name) => [name, process.listenerCount(name)]),
+      listeners,
+    );
+  `;
+  run(process.execPath, ["--input-type=module", "--eval", rootImportProbe], {
+    cwd: consumer,
+    timeout: 5_000,
+  });
   run(
     process.execPath,
     [
@@ -122,21 +160,18 @@ try {
     ],
     { cwd: consumer },
   );
-  for (const subpath of [
-    "internal",
-    "testkit",
-    "driver",
-    "plugin",
-    "composition/diagnostics",
-    "composition/inspection",
-    "composition/root",
-    "composition/tokens",
-    "domain/json",
-    "domain/scalars",
-    "domain/snapshots",
-    "dist/composition/root.js",
-    "dist/domain/scalars.js",
-  ]) {
+  const emittedJavaScript = packageContents.filter(
+    (file) => file.startsWith("dist/") && file.endsWith(".js"),
+  );
+  const rejectedSubpaths = new Set(["internal", "testkit", "driver", "plugin"]);
+  for (const emittedPath of emittedJavaScript) {
+    const directPath = emittedPath.slice("dist/".length);
+    rejectedSubpaths.add(emittedPath);
+    rejectedSubpaths.add(directPath);
+    rejectedSubpaths.add(directPath.slice(0, -".js".length));
+  }
+
+  for (const subpath of [...rejectedSubpaths].sort()) {
     const specifier = `@sagifire/extensia/${subpath}`;
     run(
       process.execPath,

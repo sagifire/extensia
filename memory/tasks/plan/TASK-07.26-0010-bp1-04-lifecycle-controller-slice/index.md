@@ -7,6 +7,7 @@ Canonical task `BP1-04` для strict internal Runtime Controller/lifecycle slic
 ## Файли
 
 - [Task](task.md) - Internal scope, readiness, критерії приймання, verification, architecture pressure й memory sync для BP1-04.
+- [Closure](closure.md) - Whole-task human approval, фінальний підсумок, залишкові ризики й перевірка синхронізації пам’яті.
 
 ## Папки
 

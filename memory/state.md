@@ -8,7 +8,7 @@ Internal Stage: `v2`
 
 ## Поточний фокус
 
-`BP1-01`, `BP1-02` і `BP1-03` завершені та прийняті людиною. Owner decision звузив BP1-04 до strict internal `P1-WP4`; public-contract blocker прибрано, RUN-001 підготовлений без implementation, а `TASK-07.26-0013` завершена й прийнята людиною.
+`BP1-01`, `BP1-02`, `BP1-03` і `BP1-04` завершені та прийняті людиною. `BP1-04 / RUN-001` закрила strict internal `P1-WP4` з green repeated independent audit без розширення public root API; наступний окремий крок — BP1-05 stabilization.
 
 ## Поточний стан продукту
 
@@ -17,16 +17,16 @@ Internal Stage: `v2`
 - Product/domain/technical design розгорнуто зі source specifications, але самі specifications мають статус draft.
 - Усі 37 product requirements мають статус `accepted`; detailed contracts і open questions все ще проходять окремі stabilization gates.
 - Detailed source specifications зберігаються в `memory/references/extensia-v2/`; obsolete non-IoC documents і root `v2/` видалені.
-- Internal pure domain contract kernel і його tests реалізовані в `BP1-02`; runtime, public API, Storage Driver і plugins ще відсутні.
-- Internal IoC composition/conformance skeleton реалізовано в `BP1-03` через test-only probes; production runtime modules і lifecycle controller навмисно відсутні.
+- Internal pure domain contract kernel і його tests реалізовані в `BP1-02`; public API, Storage Driver і plugins ще відсутні.
+- Internal IoC composition/conformance skeleton реалізовано в `BP1-03`; `BP1-04` додала generic internal lifecycle host/controller, deterministic startup/rollback/stop, safe diagnostics і final composed-runtime disposal без production subsystem map або public exports.
 - Exact `@sagifire/ioc@0.0.2` встановлено й executable conformance matrix підтвердила придатність internal composition baseline з Extensia-owned lifecycle та synchronous multi contributions.
 - Date-bound Phase 1 tooling baseline реалізовано: TypeScript `6.0.3`, unbundled ESM `tsc`, Vitest `4.1.10`, committed npm lockfile, root-only exports і explicit package gates успішно пройдені на Node.js 24.
 - Прийняті UUID v4 `IDString`, numeric epoch-millisecond `Timestamp` і deeply readonly detached JSON-safe DTO реалізовані як internal domain contracts без public root export.
 
 ## Активні задачі
 
-Немає active або review задач. `TASK-07.26-0013`, `TASK-07.26-0009`, `BP1-01` (`TASK-07.26-0005`), `BP1-02` (`TASK-07.26-0007`) і `BP1-03` (`TASK-07.26-0008`) завершені як `done`.
-- `BP1-04` (`TASK-07.26-0010`) має status `backlog` і prepared/not-started `RUN-001`; `BP1-05` (`TASK-07.26-0011`) і `BP1-06` (`TASK-07.26-0012`) мають status `backlog` без run/research artifacts.
+Немає active або review задач. `BP1-04` (`TASK-07.26-0010`), `TASK-07.26-0013`, `TASK-07.26-0009`, `BP1-01` (`TASK-07.26-0005`), `BP1-02` (`TASK-07.26-0007`) і `BP1-03` (`TASK-07.26-0008`) завершені як `done`.
+- `BP1-05` (`TASK-07.26-0011`) і `BP1-06` (`TASK-07.26-0012`) мають status `backlog` без run/research artifacts.
 
 ## Останні рішення
 
@@ -44,11 +44,13 @@ Internal Stage: `v2`
 - `BP1-01` реалізувала exact-pinned Node.js 24 ESM tooling/package baseline; `npm ci` і повний package gate зелені, а task-level human approval дозволив activation наступних Phase 1 задач.
 - `BP1-02` реалізувала internal pure domain contract kernel із 50 tests, detached JSON-safe readonly snapshots і закритим незалежним audit; результат прийнято людиною, public root/subpath API не розширено.
 - `BP1-03` реалізувала internal IoC composition/conformance skeleton із 16 composition tests, safe diagnostics/inspection, synchronous registration boundary і закритим незалежним audit; результат прийнято людиною, public root/subpath API не розширено.
-- `BP1-04`, `BP1-05` і `BP1-06` підготовлені як canonical backlog tasks; BP1-04 має strict internal boundary і prepared RUN-001, а BP1-06 виконується як незалежний `autonomous-research` audit із bounded meta-review.
+- `BP1-04`, `BP1-05` і `BP1-06` підготовлені як canonical tasks; BP1-04 реалізовано в strict internal boundary, незалежно перевірено й прийнято людиною, а BP1-06 виконується як незалежний `autonomous-research` audit із bounded meta-review після dependency gates.
 - `TASK-07.26-0009` пройшла whole-task human review і завершена як `done`; closure містить фінальну перевірку memory sync.
 - Користувач підтвердив strict BP1-04 boundary: root API не розширюється; packed smoke перевіряє тільки import/no-side-effects/no-accidental-exports/internal-subpath-failure; lifecycle виконується internal integration harness.
 - BP1-04 тепер закриває internal `P1-WP4`; original public `P1-VS1` superseded/deferred до owner gate public config/storage integration.
-- `TASK-07.26-0013` пройшла whole-task human review і завершена як `done`; TASK-0010/RUN-001 готові до окремої activation.
+- `TASK-07.26-0013` пройшла whole-task human review і завершена як `done`; її owner-approved boundary застосовано в TASK-0010/RUN-001.
+- Користувач 2026-07-10 явно активував `BP1-04 / TASK-07.26-0010`; RUN-001 реалізовано, initial audit findings закриті, repeated audit повернув `REVIEW_READY` без відкритих P0–P3 findings.
+- Користувач 2026-07-10 виконав whole-task review BP1-04 і явно дозволив завершити TASK-07.26-0010 як `done`.
 - `TASK-07.26-0006` пройшла whole-task human review і завершена як `done`; closure містить фінальну перевірку memory sync.
 - `TASK-07.26-0003` прийнята людиною й завершена як `done`; detailed rolling-wave plan та незалежний audit залишаються довгоживучими reports.
 - Поточний і цільовий domain state зберігаються окремо.
@@ -58,15 +60,15 @@ Internal Stage: `v2`
 
 - Усі три source specifications мають статус draft; conceptual signatures не можна випадково заморозити як public API.
 - Source specifications задають широку surface area. Реалізація без вертикальних slices створить сильний architecture pressure і ризик незавершених cross-cutting guarantees.
-- Tooling/package reproducibility та IoC composition conformance прийняті; production lifecycle controller, startup rollback і ready-state publication ще не реалізовані.
+- Tooling/package reproducibility, IoC composition conformance й strict internal lifecycle controller/rollback/ready-state publication реалізовані; public Extensia Module lifecycle/config/storage integration лишаються deferred design gate.
 - Перший concrete Storage Driver, atomic commit protocol, journal format і recovery matrix не визначені.
 - Public facade methods, error catalog, hook payloads і compatibility policy потребують окремих design gates.
 - Runtime reference містить історичні self-references на видалений non-IoC filename; canonical source policy явно перенаправляє до актуального IoC document.
 
 ## Наступні кроки
 
-1. Окремо активувати BP1-04/RUN-001; execution package уже підготовлений.
-2. Виконати BP1-05/BP1-06 після dependency gates.
+1. Окремо активувати BP1-05 для Phase 1 stabilization; задача лишається backlog до явної команди.
+2. Виконати BP1-06 після dependency gate BP1-05.
 3. Не починати Phase 2 read-only Resource slice до audit і human gate Phase 1, який явно приймає deferred public P1-VS1.
 
 ## Відкриті питання

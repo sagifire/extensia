@@ -1,6 +1,6 @@
 # TASK-07.26-0010: BP1-04 — Реалізувати internal lifecycle controller slice
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-10
@@ -44,23 +44,23 @@ Current Fixation: n/a
 - `BP1-01` (`TASK-07.26-0005`), `BP1-02` (`TASK-07.26-0007`) і `BP1-03` (`TASK-07.26-0008`) завершені та прийняті людиною.
 - Owner decision `TASK-07.26-0013/FIX-001` визначає strict internal/public/package boundary і прибирає попередній public-contract activation blocker.
 - ADR-0003/ADR-0006 та technical architecture/rules/open questions задають composition/lifecycle constraints, але не стабілізують internal names як public API.
-- `RUN-001` підготовлений як execution package, але не запущений. Activation окремо й атомарно переводить task/progress/state у `active` та оновлює run execution metadata перед implementation.
+- `RUN-001` активовано 2026-07-10 явною командою користувача; task/progress/state і run execution metadata синхронізовано перед implementation.
 - Після завершення TASK-0013 і явної команди activation інших design blockers для RUN-001 немає.
 
 ## Критерії приймання
 
-- [ ] Composition/construction не запускає active resources і не публікує internal ready state.
-- [ ] Descriptor IDs/orders валідуються до startup; invalid/duplicate data завершується normalized pre-start failure, at-most-once runtime disposal і state `failed` без active resource starts.
-- [ ] Startup є sequential і deterministic за `(order, id)`; ready/started публікується тільки після всіх resolved starts.
-- [ ] Contribution із rejected start локально прибирає partial acquisition; controller не додає його в ledger і не викликає його `stop()`.
-- [ ] Rollback/stop очищає resolved-start ledger у reverse order, не short-circuit після failure й викликає кожний stop at most once.
-- [ ] Lifecycle host викликає composed-runtime disposal at most once; active-resource cleanup і graph/provider disposal не дублюють ownership.
-- [ ] Failure aggregates мають deterministic order і містять тільки Extensia-owned codes, safe IDs та stages.
-- [ ] Internal start/stop/busy/invalid/retry policy відповідає exact RUN-001 requirements і покрита transition matrix.
-- [ ] Storage-shaped fixture лишається test-only generic lifecycle contribution без driver/durability contract claims.
-- [ ] Root namespace має zero exports; package exports лишаються `.` і `./package.json`; all emitted internal direct/dist subpaths недоступні.
-- [ ] Packed root import у fresh child завершується без timeout/persistent handles та не змінює bounded global/env/listener snapshots.
-- [ ] `RUN-001` містить повний package/lifecycle evidence, independent audit, architecture-pressure review і memory sync.
+- [x] Composition/construction не запускає active resources і не публікує internal ready state.
+- [x] Descriptor IDs/orders валідуються до startup; invalid/duplicate data завершується normalized pre-start failure, at-most-once runtime disposal і state `failed` без active resource starts.
+- [x] Startup є sequential і deterministic за `(order, id)`; ready/started публікується тільки після всіх resolved starts.
+- [x] Contribution із rejected start локально прибирає partial acquisition; controller не додає його в ledger і не викликає його `stop()`.
+- [x] Rollback/stop очищає resolved-start ledger у reverse order, не short-circuit після failure й викликає кожний stop at most once.
+- [x] Lifecycle host викликає composed-runtime disposal at most once; active-resource cleanup і graph/provider disposal не дублюють ownership.
+- [x] Failure aggregates мають deterministic order і містять тільки Extensia-owned codes, safe IDs та stages.
+- [x] Internal start/stop/busy/invalid/retry policy відповідає exact RUN-001 requirements і покрита transition matrix.
+- [x] Storage-shaped fixture лишається test-only generic lifecycle contribution без driver/durability contract claims.
+- [x] Root namespace має zero exports; package exports лишаються `.` і `./package.json`; all emitted internal direct/dist subpaths недоступні.
+- [x] Packed root import у fresh child завершується без timeout/persistent handles та не змінює bounded global/env/listener snapshots.
+- [x] `RUN-001` містить повний package/lifecycle evidence, independent audit, architecture-pressure review і memory sync.
 
 ## Перевірка
 
@@ -90,7 +90,7 @@ Current Fixation: n/a
 
 ## Прогони
 
-- [RUN-001](runs/RUN-001/index.md) - prepared / not started - Execution package internal lifecycle controller slice.
+- [RUN-001](runs/RUN-001/index.md) - review-ready - Internal lifecycle controller slice з green independent audit і package gate.
 
 ## Дослідження
 
