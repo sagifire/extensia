@@ -22,18 +22,21 @@ export type LifecycleState =
 export type LifecycleFailureCode =
   | "LIFECYCLE_VALIDATION_FAILED"
   | "LIFECYCLE_START_FAILED"
+  | "LIFECYCLE_PUBLICATION_FAILED"
   | "LIFECYCLE_STOP_FAILED"
   | "RUNTIME_DISPOSE_FAILED"
   | "LIFECYCLE_BUSY"
   | "LIFECYCLE_INVALID_STATE";
 
 export type LifecycleFailureStage =
-  "validation" | "start" | "stop" | "dispose" | "transition";
+  "validation" | "start" | "publication" | "stop" | "dispose" | "transition";
 
 export interface LifecycleContribution {
   readonly id: string;
   readonly order: number;
   start(): Promise<void>;
+  publishReady?(): void;
+  unpublishReady?(): void;
   stop(): Promise<void>;
 }
 
@@ -91,6 +94,8 @@ export const LIFECYCLE_CONTRIBUTIONS: ContributionToken<LifecycleContribution> =
 
 interface CleanupLedgerEntry {
   readonly contribution: LifecycleContribution;
+  published: boolean;
+  unpublishAttempted: boolean;
   stopAttempted: boolean;
 }
 
@@ -101,6 +106,12 @@ export function lifecycleContribution(
     id: contribution.id,
     order: contribution.order,
     start: contribution.start,
+    ...(contribution.publishReady === undefined
+      ? {}
+      : { publishReady: contribution.publishReady }),
+    ...(contribution.unpublishReady === undefined
+      ? {}
+      : { unpublishReady: contribution.unpublishReady }),
     stop: contribution.stop,
   });
 }
@@ -163,6 +174,19 @@ function validateContributions(
       );
     }
 
+    if (
+      (contribution.publishReady === undefined) !==
+      (contribution.unpublishReady === undefined)
+    ) {
+      failures.push(
+        failureEntry(
+          "LIFECYCLE_VALIDATION_FAILED",
+          "validation",
+          safeId ? contribution.id : undefined,
+        ),
+      );
+    }
+
     if (safeId) {
       if (seenIds.has(contribution.id)) {
         failures.push(
@@ -195,7 +219,7 @@ function orderContributions(
   );
 }
 
-function createLifecycleHost(
+export function createRuntimeLifecycleHost(
   composition: ExtensiaComposition<
     Readonly<{
       lifecycle: ReturnType<typeof multiCapability<LifecycleContribution>>;
@@ -254,6 +278,32 @@ function createLifecycleHost(
     return Object.freeze(failures);
   }
 
+  function unpublishLedger(): readonly LifecycleFailureEntry[] {
+    const failures: LifecycleFailureEntry[] = [];
+
+    for (let index = ledger.length - 1; index >= 0; index -= 1) {
+      const entry = ledger[index];
+      if (entry === undefined || !entry.published || entry.unpublishAttempted) {
+        continue;
+      }
+
+      entry.unpublishAttempted = true;
+      try {
+        entry.contribution.unpublishReady?.();
+      } catch {
+        failures.push(
+          failureEntry(
+            "LIFECYCLE_PUBLICATION_FAILED",
+            "publication",
+            entry.contribution.id,
+          ),
+        );
+      }
+    }
+
+    return Object.freeze(failures);
+  }
+
   async function start(): Promise<LifecycleResult> {
     if (state === "started") return successful(state);
     if (state === "starting" || state === "stopping") {
@@ -274,10 +324,37 @@ function createLifecycleHost(
     for (const contribution of orderContributions(contributions)) {
       try {
         await contribution.start();
-        ledger.push({ contribution, stopAttempted: false });
+        ledger.push({
+          contribution,
+          published: false,
+          unpublishAttempted: false,
+          stopAttempted: false,
+        });
       } catch {
         const failures = [
           failureEntry("LIFECYCLE_START_FAILED", "start", contribution.id),
+          ...(await cleanupLedger()),
+          ...(await disposeRuntime()),
+        ];
+        state = "failed";
+        return failed(state, record(failures));
+      }
+    }
+
+    for (const entry of ledger) {
+      if (entry.contribution.publishReady === undefined) continue;
+
+      entry.published = true;
+      try {
+        entry.contribution.publishReady();
+      } catch {
+        const failures = [
+          failureEntry(
+            "LIFECYCLE_PUBLICATION_FAILED",
+            "publication",
+            entry.contribution.id,
+          ),
+          ...unpublishLedger(),
           ...(await cleanupLedger()),
           ...(await disposeRuntime()),
         ];
@@ -301,7 +378,11 @@ function createLifecycleHost(
     }
 
     state = "stopping";
-    const failures = [...(await cleanupLedger()), ...(await disposeRuntime())];
+    const failures = [
+      ...unpublishLedger(),
+      ...(await cleanupLedger()),
+      ...(await disposeRuntime()),
+    ];
     state = "stopped";
 
     return failures.length === 0
@@ -336,6 +417,9 @@ export async function composeRuntimeHost(
   });
 
   return result.ok
-    ? Object.freeze({ ok: true, host: createLifecycleHost(result.composition) })
+    ? Object.freeze({
+        ok: true,
+        host: createRuntimeLifecycleHost(result.composition),
+      })
     : Object.freeze({ ok: false, failure: result.failure });
 }

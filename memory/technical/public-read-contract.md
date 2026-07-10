@@ -1,13 +1,13 @@
 # Мінімальний public read contract
 
-Status: accepted design; shared internal seam materialized, public slice not implemented
+Status: implemented by BP2-04 / RUN-001, independently reviewed and accepted by whole-task human review
 Applied Artifact: `APP-07.26-0021-001` (published)
 Source Decision: `BP2-01 / TASK-07.26-0015 / FIX-001`
 Detailed Design: [Мінімальний public read contract Extensia](../reports/research/2026-07-10-extensia-minimal-public-read-contract.md)
 
 ## Межа
 
-Цей документ фіксує рівно Phase 2 `P2-DG1` contract для майбутнього P2-VS1. Він не є claim про production implementation, package export або final Storage Driver. Усі наведені public exports призначені тільки для root `@sagifire/extensia`; Phase 2 не створює subpath exports і не експортує Core, IoC, tokens чи internal seam.
+Цей документ фіксує рівно Phase 2 `P2-DG1` contract, реалізований у `BP2-04 / RUN-001` як bounded P2-VS1. Він не є claim про final Storage Driver або ширшу release compatibility freeze. Усі наведені public exports доступні тільки з root `@sagifire/extensia`; Phase 2 не створює subpath exports і не експортує Core, IoC, tokens чи internal seam.
 
 ## Root/type snapshot
 
@@ -104,11 +104,11 @@ export interface ExtensiaModule {
 export function createExtensia(config: ExtensiaConfig): ExtensiaModule
 ```
 
-Private brands є declaration-only type identities, не runtime/public values. Snapshot повторює canonical deep-readonly JSON-safe domain contract без скорочення field shapes.
+Private brands є declaration-only type identities, не runtime/public values. Snapshot повторює canonical deep-readonly JSON-safe domain contract без скорочення field shapes. `BP2-04 / RUN-001` експортує exact root value `createExtensia` і наведені type contracts; packed runtime/type consumer перевіряє цей surface.
 
 ## Construction, lifecycle та publication
 
-`createExtensia(config)` є side-effect-free. Воно без виклику getters/accessors перевіряє own data-property descriptors для raw config, `storage` і `driver`. Missing, malformed або accessor envelope зберігається як internal invalid-config sentinel; `start()` повертає `CONFIG_INVALID` до відкриття resources. Valid construction capture-ить exact driver object identity у новий frozen normalized envelope `{ storage: { driver } }`. Caller envelope після construction не reread; його mutation не впливає на module. Driver object навмисно не clone-иться та не freeze-иться.
+`createExtensia(config)` є side-effect-free. Воно без виклику getters/accessors читає own data-property descriptor `storage` з raw config і own data-property descriptor `driver` зі storage envelope. Missing, malformed або accessor envelope зберігається як internal invalid-config sentinel. `start()` повторно перевіряє поточні `mode`/method data properties captured driver, включно з prototype methods, без accessor invocation і повертає `CONFIG_INVALID` до composition або відкриття resources. Valid construction capture-ить exact driver object identity у новий frozen normalized envelope `{ storage: { driver } }`. Caller envelope після construction не reread; його mutation не впливає на module. Driver object навмисно не clone-иться та не freeze-иться, тому його integration shape revalidate-иться на `start()`.
 
 Module states: `created`, `starting`, `started`, `stopping`, `stopped`, `failed`. `start()` у `started` idempotent; під час transition повертає `MODULE_BUSY`; після `stopped` або `failed` повертає `MODULE_INVALID_STATE`. Failure open/scan/domain validation/composition/provider робить reverse cleanup, close та composition disposal, не публікує facade і переходить у `failed`. `stop()` у `created` або `stopped` idempotent; у `failed` не повторює already-attempted startup cleanup, залишає safe diagnostics і переходить у `stopped`.
 
@@ -126,7 +126,7 @@ Facade method спочатку бере read-intake lease лише у `started`.
 
 Facade/owner names мають exact lowercase ASCII pattern `^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$` і 1..128 chars. Whitespace, uppercase та інші forms відхиляються без silent rewrite. `query` і `storage` reserved; їх реєструє лише Module-owned composition lease для allowlisted system extension `extensia.default-api`, не self-asserted boolean. Validation order: open lease/provenance, canonical name, reserved policy, owner/dependency shape, duplicate, provider creation, registration, freeze. Contributions — synchronous immutable multi descriptors; async creation виконує Extensia Runtime Controller. Provider не отримує raw resolver.
 
-One shared internal seam не є package API. BP2-01A materialized `src/system-extensions/default-api/resource-read-port.ts`: typed `resource.get`/`resource.tree.get` requests, `CoreReadResult`, overload-based `CoreResourceReadPort` і `CORE_RESOURCE_READ_PORT` token ID `extensia.internal.system-extensions.default-api.core-resource-read-port`. Only expected internal failure — `RESOURCE_NOT_FOUND`. Consumer `extensia.default-api` є semantic owner token; BP2-02 bind/adapt-ить provider implementation, BP2-03 створює facade adapter без duplicate contract.
+One shared internal seam не є package API. BP2-01A materialized `src/system-extensions/default-api/resource-read-port.ts`: typed `resource.get`/`resource.tree.get` requests, `CoreReadResult`, overload-based `CoreResourceReadPort` і `CORE_RESOURCE_READ_PORT` token ID `extensia.internal.system-extensions.default-api.core-resource-read-port`. Only expected internal failure — `RESOURCE_NOT_FOUND`. Consumer `extensia.default-api` є semantic owner token; BP2-02 materialized internal provider над readonly driver/greedy Resource index, BP2-03 materialized facade adapter і shared Registry, а BP2-04 поєднала їх через єдиний public-owned composition/lifecycle path без duplicate contract або subpath export.
 
 ## Failure matrix і compatibility
 

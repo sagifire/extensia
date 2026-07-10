@@ -4,6 +4,6 @@ describe("package entry point", () => {
   it("loads as an ESM module", async () => {
     const packageModule = await import("./index.js");
 
-    expect(Object.keys(packageModule)).toEqual([]);
+    expect(Object.keys(packageModule)).toEqual(["createExtensia"]);
   });
 });

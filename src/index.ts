@@ -1,6 +1,27 @@
-/**
- * Public package entry point.
- *
- * Runtime and domain APIs are intentionally introduced by later vertical slices.
- */
-export {};
+export { createExtensia } from "./public/extensia.js";
+export type {
+  AssetSnapshot,
+  ExtensiaConfig,
+  ExtensiaError,
+  ExtensiaErrorCode,
+  ExtensiaInspection,
+  ExtensiaModule,
+  ExtensiaModuleState,
+  ExtensiaResult,
+  IDString,
+  JSONArray,
+  JSONObject,
+  JSONPrimitive,
+  JSONValue,
+  MarkSnapshot,
+  QueryFacade,
+  ReadonlyResourceDriver,
+  ResourceChildRefSnapshot,
+  ResourceDataSnapshot,
+  ResourceKVSnapshot,
+  ResourceSnapshot,
+  ResourceTreeViewSnapshot,
+  SafeDiagnostic,
+  StorageFacade,
+  Timestamp,
+} from "./public/contracts.js";

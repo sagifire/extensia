@@ -7,3 +7,5 @@ Canonical stabilization task `BP2-05` для Phase 2 evidence перед indepen
 ## Файли
 
 - [Task](task.md) - Stabilization scope, correction loop, acceptance, verification і architecture gates BP2-05.
+- [Runs](runs/index.md) - Execution runs і versioned stabilization evidence.
+- [Closure](closure.md) - Whole-task human approval, final status і наступна окрема activation gate.

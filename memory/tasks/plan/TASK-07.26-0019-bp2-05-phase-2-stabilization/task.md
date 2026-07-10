@@ -1,11 +1,11 @@
 # TASK-07.26-0019: BP2-05 — Стабілізувати Phase 2
 
-Status: backlog
+Status: done
 Type: chore
 Execution Mode: autonomous-implementation
 Created: 2026-07-10
 Owner Role: System Engineer Hat
-Current Run: n/a
+Current Run: RUN-001
 Current Research: n/a
 Current Fixation: n/a
 
@@ -27,11 +27,11 @@ BP2-01..04 `done`; послідовна активація після прийн
 
 ## Критерії приймання
 
-- [ ] Усі P2 gates зелені; public API дорівнює погодженому snapshot.
-- [ ] Commands повертають failure до mutation; reads не мають journal/write dependency.
-- [ ] DTO detached, Registry frozen, Core/IoC не leaked.
-- [ ] Clean versioned package evidence повне; немає blocker/high/medium findings.
-- [ ] Немає speculative Phase 3 code; factual memory synchronized.
+- [x] Усі P2 gates зелені; public API дорівнює погодженому snapshot.
+- [x] Commands повертають failure до mutation; reads не мають journal/write dependency.
+- [x] DTO detached, Registry frozen, Core/IoC не leaked.
+- [x] Clean versioned package evidence повне; немає blocker/high/medium findings.
+- [x] Немає speculative Phase 3 code; factual memory synchronized.
 
 ## Перевірка
 

@@ -28,8 +28,8 @@ Updated: 2026-07-10
 |---|---|---|
 | Storage Driver contract | planned | Абстракція для metadata, asset files, staging, journal, write lock і recovery. |
 | Concrete full driver | unselected | Physical format і driver package ще не визначені. |
-| Read-only driver | planned | Capability mode для safe reads без state mutation. |
-| Hot Metadata Index | planned | Process-local in-memory read model для greedy/lazy modes. |
+| Read-only driver | current-experimental | Public Phase 2 Resource listing contract інтегровано BP2-04; це не final Storage Driver contract і не concrete durable implementation. |
+| Hot Metadata Index | current | Internal Resource-only greedy index BP2-02; lazy mode, wider metadata й durable semantics не реалізовані. |
 | Operation Journal | planned | Append-only persistent journal через Storage Driver. |
 
 Extensia Core не залежить напряму від local filesystem, S3, NFS або packed format. Вибір першого concrete driver є окремим design decision.
@@ -38,8 +38,8 @@ Extensia Core не залежить напряму від local filesystem, S3, 
 
 | Елемент | Статус | Рішення |
 |---|---|---|
-| Extensia Module | planned | Application-facing lifecycle і facade access boundary. |
-| Facades | planned | `storage`, `query` та plugin-owned custom facades. |
+| Extensia Module | current-bounded | Root `createExtensia`, six-state lifecycle, safe inspection і nullable facade access реалізовані BP2-04 для read-only Phase 2 slice. |
+| Facades | current-bounded | Shared Registry і system `storage`/`query` adapters реалізовані BP2-03 та опубліковані через BP2-04 Module; custom/plugin API ще не реалізований. |
 | Plugins/hooks | planned | Trusted in-process механізм розширень. |
 | Advanced IoC extension modules | unselected | Optional/experimental surface; не входить у normal plugin API без окремого рішення. |
 
@@ -66,10 +66,13 @@ Publishable `src/**` збирається окремим `tsconfig.build.json`; 
 
 `BP1-05/R1` повторно підтвердила current baseline на Node.js `v24.17.0` / npm `11.13.0`: clean `npm ci`, повний `npm run check`, 7 test files / 75 tests, 38 packed paths і 36 controlled emitted artifacts із byte-identical SHA-256 після повторного build. Це verification evidence, а не нове dependency або compatibility рішення.
 
+`BP2-05/R1` повторно підтверджує Phase 2 package baseline на Node.js `v24.17.0` / npm `11.13.0`: clean `npm ci`, повний `npm run check`, 10 test files / 112 tests, 66 packed paths і 64 controlled emitted artifacts із byte-identical SHA-256 після повторного build; два послідовні tarball samples також byte-identical. Це stabilization evidence, а не нове dependency або compatibility рішення.
+
 ## Package і source boundaries
 
 - Package manager baseline — npm, exact direct pins і committed `package-lock.json`; BP1-01 прибрала lockfile з `.gitignore` і зафіксувала відтворення через `npm ci`.
 - Phase 1 експортує тільки package root і `./package.json` через explicit `exports`; wildcard/internal exports, CJS і runtime IoC tokens заборонені.
+- Phase 2 root експортує exact `createExtensia` і bounded public type contracts; internal Core/index/Facade Registry/default-api artifacts збираються у `dist/**`, але package exports не відкривають їх, а installed-tarball smoke відхиляє direct і `dist/*` subpaths.
 - Subpaths `./testkit`, `./driver`, `./plugin` можуть з'явитися тільки після власних contract/compatibility gates.
 - Package gate включає clean typecheck/build/lint/format/test, `npm pack`, `publint`, `attw` і runtime/type consumer встановленого tarball.
 - API Extractor не є Phase 1 hard dependency; compatibility spike має бути виконаний не пізніше Phase 7.

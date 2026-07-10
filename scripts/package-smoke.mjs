@@ -48,6 +48,7 @@ assert.ok(
   !("require" in packageJson.exports["."]),
   "Root exports must not expose CommonJS.",
 );
+assert.deepEqual(packageJson.dependencies, { "@sagifire/ioc": "0.0.2" });
 
 let tarballPath;
 let consumer;
@@ -76,6 +77,14 @@ try {
     "dist/composition/tokens.d.ts.map",
     "dist/composition/tokens.js",
     "dist/composition/tokens.js.map",
+    "dist/core/resource-index.d.ts",
+    "dist/core/resource-index.d.ts.map",
+    "dist/core/resource-index.js",
+    "dist/core/resource-index.js.map",
+    "dist/core/resource-read-runtime.d.ts",
+    "dist/core/resource-read-runtime.d.ts.map",
+    "dist/core/resource-read-runtime.js",
+    "dist/core/resource-read-runtime.js.map",
     "dist/domain/json.d.ts",
     "dist/domain/json.d.ts.map",
     "dist/domain/json.js",
@@ -92,10 +101,26 @@ try {
     "dist/index.d.ts.map",
     "dist/index.js",
     "dist/index.js.map",
+    "dist/public/contracts.d.ts",
+    "dist/public/contracts.d.ts.map",
+    "dist/public/contracts.js",
+    "dist/public/contracts.js.map",
+    "dist/public/extensia.d.ts",
+    "dist/public/extensia.d.ts.map",
+    "dist/public/extensia.js",
+    "dist/public/extensia.js.map",
+    "dist/runtime/facades.d.ts",
+    "dist/runtime/facades.d.ts.map",
+    "dist/runtime/facades.js",
+    "dist/runtime/facades.js.map",
     "dist/runtime/lifecycle.d.ts",
     "dist/runtime/lifecycle.d.ts.map",
     "dist/runtime/lifecycle.js",
     "dist/runtime/lifecycle.js.map",
+    "dist/system-extensions/default-api/facades.d.ts",
+    "dist/system-extensions/default-api/facades.d.ts.map",
+    "dist/system-extensions/default-api/facades.js",
+    "dist/system-extensions/default-api/facades.js.map",
     "dist/system-extensions/default-api/resource-read-port.d.ts",
     "dist/system-extensions/default-api/resource-read-port.d.ts.map",
     "dist/system-extensions/default-api/resource-read-port.js",
@@ -107,6 +132,22 @@ try {
       (file) => file.endsWith(".cjs") || file.endsWith(".cts"),
     ),
     "Packed package must not contain CommonJS output.",
+  );
+  assert.ok(
+    !packageContents.some((file) =>
+      /(?:journal|operation-engine|write-runtime|write-port)/i.test(file),
+    ),
+    "Phase 2 package must not contain a write or Journal runtime path.",
+  );
+  const publicRuntimeSource = readFileSync(
+    join(root, "dist", "public", "extensia.js"),
+    "utf8",
+  );
+  assert.ok(
+    !/(?:journal|operation-engine|write-runtime|write-port)/i.test(
+      publicRuntimeSource,
+    ),
+    "Public integration must not depend on a write or Journal runtime path.",
   );
 
   consumer = mkdtempSync(join(tmpdir(), "extensia-package-consumer-"));
@@ -120,7 +161,73 @@ try {
   );
   writeFileSync(
     join(consumer, "consumer.ts"),
-    'import type {} from "@sagifire/extensia";\nexport {};\n',
+    `import { createExtensia } from "@sagifire/extensia";
+import type {
+  AssetSnapshot,
+  ExtensiaConfig,
+  ExtensiaError,
+  ExtensiaErrorCode,
+  ExtensiaInspection,
+  ExtensiaModule,
+  ExtensiaModuleState,
+  ExtensiaResult,
+  IDString,
+  JSONArray,
+  JSONObject,
+  JSONPrimitive,
+  JSONValue,
+  MarkSnapshot,
+  QueryFacade,
+  ReadonlyResourceDriver,
+  ResourceChildRefSnapshot,
+  ResourceDataSnapshot,
+  ResourceKVSnapshot,
+  ResourceSnapshot,
+  ResourceTreeViewSnapshot,
+  SafeDiagnostic,
+  StorageFacade,
+  Timestamp,
+} from "@sagifire/extensia";
+
+declare const config: ExtensiaConfig;
+const module: ExtensiaModule = createExtensia(config);
+const state: ExtensiaModuleState = module.getState();
+class TypeDriver implements ReadonlyResourceDriver {
+  readonly mode = "readonly";
+  async open(): Promise<void> {}
+  async close(): Promise<void> {}
+  async *listResources(): AsyncIterable<ResourceSnapshot> {}
+}
+const classDriverModule: ExtensiaModule = createExtensia({
+  storage: { driver: new TypeDriver() },
+});
+type PublicContract = readonly [
+  AssetSnapshot,
+  ExtensiaError,
+  ExtensiaErrorCode,
+  ExtensiaInspection,
+  ExtensiaResult<unknown>,
+  IDString,
+  JSONArray,
+  JSONObject,
+  JSONPrimitive,
+  JSONValue,
+  MarkSnapshot,
+  QueryFacade,
+  ReadonlyResourceDriver,
+  ResourceChildRefSnapshot,
+  ResourceDataSnapshot,
+  ResourceKVSnapshot,
+  ResourceSnapshot,
+  ResourceTreeViewSnapshot,
+  SafeDiagnostic,
+  StorageFacade,
+  Timestamp,
+];
+void state;
+void classDriverModule;
+export type { PublicContract };
+`,
   );
 
   runNpm(
@@ -143,13 +250,66 @@ try {
     const listeners = process.eventNames().map((name) => [name, process.listenerCount(name)]);
     const namespace = await import("@sagifire/extensia");
 
-    assert.deepEqual(Object.keys(namespace), []);
+    assert.deepEqual(Object.keys(namespace), ["createExtensia"]);
+    assert.equal(typeof namespace.createExtensia, "function");
     assert.deepEqual(Reflect.ownKeys(globalThis), globalKeys);
     assert.deepEqual({ ...process.env }, environment);
     assert.deepEqual(
       process.eventNames().map((name) => [name, process.listenerCount(name)]),
       listeners,
     );
+
+    const id = "550e8400-e29b-41d4-a716-446655440000";
+    const events = [];
+    const snapshot = {
+      assets: [],
+      data: {
+        created_at: 1_784_294_400_000,
+        description: null,
+        hidden: false,
+        id,
+        is_deleted: false,
+        locked: false,
+        order_index: 0,
+        parent_id: null,
+        title: "packed consumer",
+        updated_at: 1_784_294_400_000,
+      },
+      kv: {},
+      marks: [],
+    };
+    class Driver {
+      mode = "readonly";
+      async open() { events.push("open"); }
+      async close() { events.push("close"); }
+      async *listResources() { events.push("scan"); yield snapshot; }
+    }
+    const driver = new Driver();
+    const extensia = namespace.createExtensia({ storage: { driver } });
+    assert.deepEqual(await extensia.start(), { ok: true, value: undefined });
+    assert.deepEqual(await extensia.query().getResource(id), {
+      ok: true,
+      value: snapshot,
+    });
+    const uninspectable = new Proxy({}, {
+      get() { throw new Error("readonly input was inspected"); },
+      ownKeys() { throw new Error("readonly input was inspected"); },
+    });
+    assert.equal(
+      (await extensia.storage().createResource(uninspectable)).error.code,
+      "STORAGE_READONLY",
+    );
+    const staleQuery = extensia.query();
+    assert.deepEqual(await extensia.stop(), { ok: true, value: undefined });
+    assert.equal((await staleQuery.getResource(id)).error.code, "MODULE_NOT_READY");
+    assert.deepEqual(events, ["open", "scan", "close"]);
+
+    const mutableDriver = new Driver();
+    const invalid = namespace.createExtensia({
+      storage: { driver: mutableDriver },
+    });
+    mutableDriver.mode = "full";
+    assert.equal((await invalid.start()).error.code, "CONFIG_INVALID");
   `;
   run(process.execPath, ["--input-type=module", "--eval", rootImportProbe], {
     cwd: consumer,

@@ -1,11 +1,11 @@
 # TASK-07.26-0016: BP2-02 — Реалізувати read-only Core Extension Port і minimal index
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-10
 Owner Role: System Engineer Hat
-Current Run: n/a
+Current Run: `RUN-001`
 Current Research: n/a
 Current Fixation: n/a
 
@@ -35,12 +35,12 @@ Public facade/Registry/Extensia Module, writes/journal/locks/recovery/sync, Asse
 
 ## Критерії приймання
 
-- [ ] Погоджений read contract реалізований без спекулятивних методів.
-- [ ] `children` виводяться тільки з `parent_id`; матриця invalid fixtures точна.
-- [ ] Snapshots detached; driver objects не витікають.
-- [ ] Немає journal/write dependency або public surface expansion.
-- [ ] Initialization failure rollback/disposal і fresh isolation перевірені.
-- [ ] Повні package gates зелені, результат пройшов незалежне ревю.
+- [x] Погоджений read contract реалізований без спекулятивних методів.
+- [x] `children` виводяться тільки з `parent_id`; матриця invalid fixtures точна.
+- [x] Snapshots detached; driver objects не витікають.
+- [x] Немає journal/write dependency або public surface expansion.
+- [x] Initialization failure rollback/disposal і fresh isolation перевірені.
+- [x] Повні package gates зелені, результат пройшов незалежне ревю.
 
 ## Перевірка
 

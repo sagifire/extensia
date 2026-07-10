@@ -584,6 +584,127 @@ describe("internal runtime lifecycle host", () => {
     });
   });
 
+  it("publishes only at the synchronous ready boundary and unpublishes before cleanup", async () => {
+    const startGate = deferred();
+    const stopGate = deferred();
+    const events: string[] = [];
+    let visible = false;
+    const result = await composeRuntimeHost({
+      register(registry) {
+        registry.use(
+          createLifecycleModule("probe.ready-publication", [
+            lifecycleContribution({
+              id: "published",
+              order: 0,
+              async start(): Promise<void> {
+                events.push("start");
+                await startGate.promise;
+              },
+              publishReady(): void {
+                visible = true;
+                events.push("publish");
+              },
+              unpublishReady(): void {
+                visible = false;
+                events.push("unpublish");
+              },
+              async stop(): Promise<void> {
+                events.push("stop");
+                await stopGate.promise;
+              },
+            }),
+          ]),
+        );
+      },
+    });
+    assertHost(result);
+
+    const starting = result.host.start();
+    expect(result.host.state).toBe("starting");
+    expect(visible).toBe(false);
+    startGate.resolve();
+    await expect(starting).resolves.toEqual({ ok: true, state: "started" });
+    expect(visible).toBe(true);
+    expect(events).toEqual(["start", "publish"]);
+
+    const stopping = result.host.stop();
+    expect(result.host.state).toBe("stopping");
+    expect(visible).toBe(false);
+    expect(events).toEqual(["start", "publish", "unpublish", "stop"]);
+    stopGate.resolve();
+    await expect(stopping).resolves.toEqual({ ok: true, state: "stopped" });
+  });
+
+  it("rolls back published contributions when ready publication fails", async () => {
+    const events: string[] = [];
+    const first = lifecycleContribution({
+      id: "first-publication",
+      order: 0,
+      async start(): Promise<void> {
+        events.push("start:first");
+      },
+      publishReady(): void {
+        events.push("publish:first");
+      },
+      unpublishReady(): void {
+        events.push("unpublish:first");
+      },
+      async stop(): Promise<void> {
+        events.push("stop:first");
+      },
+    });
+    const second = lifecycleContribution({
+      id: "second-publication",
+      order: 1,
+      async start(): Promise<void> {
+        events.push("start:second");
+      },
+      publishReady(): void {
+        events.push("publish:second");
+        throw new Error(SECRET_SENTINEL);
+      },
+      unpublishReady(): void {
+        events.push("unpublish:second");
+      },
+      async stop(): Promise<void> {
+        events.push("stop:second");
+      },
+    });
+    const result = await composeRuntimeHost({
+      register(registry) {
+        registry.use(
+          createLifecycleModule("probe.publication-failure", [second, first]),
+        );
+      },
+    });
+    assertHost(result);
+
+    await expect(result.host.start()).resolves.toEqual({
+      ok: false,
+      state: "failed",
+      failures: [
+        {
+          code: "LIFECYCLE_PUBLICATION_FAILED",
+          stage: "publication",
+          contributionId: "second-publication",
+        },
+      ],
+    });
+    expect(events).toEqual([
+      "start:first",
+      "start:second",
+      "publish:first",
+      "publish:second",
+      "unpublish:second",
+      "unpublish:first",
+      "stop:second",
+      "stop:first",
+    ]);
+    expect(JSON.stringify(result.host.inspect())).not.toContain(
+      SECRET_SENTINEL,
+    );
+  });
+
   it("stops from created, normalizes disposal failure, and never retries", async () => {
     const events: string[] = [];
     let disposalAttempts = 0;

@@ -8,7 +8,7 @@ Internal Stage: `v2`
 
 ## Поточний фокус
 
-Phase 1 завершена й прийнята людиною. `BP2-01 / TASK-07.26-0015`, owner application `TASK-07.26-0021` і `BP2-01A / TASK-07.26-0022` завершені як `done`; `APP-07.26-0021-001` published, а один internal shared read-port/token source artifact materialized, independently reviewed і прийнятий людиною. BP2-02/BP2-03 не активовані.
+Phase 1 завершена й прийнята людиною. `BP2-01 / TASK-07.26-0015`, owner application `TASK-07.26-0021`, `BP2-01A / TASK-07.26-0022`, `BP2-02 / TASK-07.26-0016`, `BP2-03 / TASK-07.26-0017`, `BP2-04 / TASK-07.26-0018` і `BP2-05 / TASK-07.26-0019` завершені як `done`; `APP-07.26-0021-001` published. Phase 2 stabilization R1 незалежно перевірена й прийнята людиною; BP2-06 лишається окремою backlog activation gate.
 
 ## Поточний стан продукту
 
@@ -17,7 +17,10 @@ Phase 1 завершена й прийнята людиною. `BP2-01 / TASK-07
 - Product/domain/technical design розгорнуто зі source specifications, але самі specifications мають статус draft.
 - Усі 37 product requirements мають статус `accepted`; detailed contracts і open questions все ще проходять окремі stabilization gates.
 - Detailed source specifications зберігаються в `memory/references/extensia-v2/`; obsolete non-IoC documents і root `v2/` видалені.
-- Internal pure domain contract kernel і його tests реалізовані в `BP1-02`; public API, Storage Driver і plugins ще відсутні.
+- Internal pure domain contract kernel і його tests реалізовані в `BP1-02`; bounded public Phase 2 read API реалізований у BP2-04, а final Storage Driver, successful writes і plugins ще відсутні.
+- Internal BP2-02 Core read slice реалізує readonly Resource listing port, greedy by-id/children index, exact shared read-port provider і lifecycle cleanup; це не public/final Storage Driver або facade.
+- Internal BP2-03 slice реалізує єдиний Facade Provider/Registry mechanism, `extensia.default-api` query/storage adapters, trusted reserved provenance, atomic ready publication і intake drain.
+- BP2-04 RUN-001 реалізувала root-only public Extensia Module read slice: exact type/value exports, descriptor-safe config, normalized lifecycle/results, safe inspection, stable ready `query`/`storage` facades і packed consumer verification; результат прийнятий whole-task human review.
 - Internal IoC composition/conformance skeleton реалізовано в `BP1-03`; `BP1-04` додала generic internal lifecycle host/controller, deterministic startup/rollback/stop, safe diagnostics і final composed-runtime disposal без production subsystem map або public exports.
 - Exact `@sagifire/ioc@0.0.2` встановлено й executable conformance matrix підтвердила придатність internal composition baseline з Extensia-owned lifecycle та synchronous multi contributions.
 - Date-bound Phase 1 tooling baseline реалізовано: TypeScript `6.0.3`, unbundled ESM `tsc`, Vitest `4.1.10`, committed npm lockfile, root-only exports і explicit package gates успішно пройдені на Node.js 24.
@@ -25,9 +28,13 @@ Phase 1 завершена й прийнята людиною. `BP2-01 / TASK-07
 
 ## Активні задачі
 
-- `BP2-01A / TASK-07.26-0022` завершена як `done`; `RUN-001` materialized exact internal shared read-port/token source artifact без runtime implementation, independently reviewed і прийнятий людиною. BP2-02/BP2-03 не активовані.
+- `BP2-05 / TASK-07.26-0019` завершена як `done`: RUN-001 виконала risk-based Phase 2 stabilization, clean package/reproducibility evidence і memory sync без Phase 3 feature work; initial evidence P2 закрито, repeated audit `REVIEW_READY` без відкритих P0–P3, whole-task review прийнятий людиною.
+- `BP2-04 / TASK-07.26-0018` завершена як `done`: RUN-001 реалізувала root public contract, Extensia Module lifecycle, readonly driver integration та application/package verification; repeated independent audit не має відкритих P0-P3, whole-task review прийнятий людиною.
+- `BP2-03 / TASK-07.26-0017` завершена як `done`: RUN-001 implementation, memory sync і повний 100-test package gate зелені; repeated independent audit `REVIEW_READY` без відкритих P0-P3, whole-task review прийнятий людиною.
+- `BP2-02 / TASK-07.26-0016` завершена як `done`: implementation, 87-test suite, package gates, memory sync і repeated independent audit `REVIEW_READY` завершені без відкритих P0–P3 та прийняті людиною.
+- `BP2-01A / TASK-07.26-0022` завершена як `done`; `RUN-001` materialized exact internal shared read-port/token source artifact без runtime implementation, independently reviewed і прийнятий людиною; BP2-02/BP2-03 згодом окремо активовані й завершені.
 - `BP2-01 / TASK-07.26-0015` завершена як `done`: design/research result і окрема `FIX-001` погоджені людиною; fixation застосована owner TASK-0021 і `APP-07.26-0021-001` published.
-- `TASK-07.26-0014` завершена як `done`: canonical `BP2-01`…`BP2-06` підготовлені, незалежно перевірені й прийняті людиною; `BP2-01` згодом окремо активована й завершена, решта лишаються `backlog` без execution artifacts.
+- `TASK-07.26-0014` завершена як `done`: canonical `BP2-01`…`BP2-06` підготовлені, незалежно перевірені й прийняті людиною; на момент preparation лише `BP2-01` була активована, а подальші BP2 tasks проходили окремі activation gates.
 - `BP1-06` (`TASK-07.26-0012`), `BP1-05` (`TASK-07.26-0011`), `BP1-04` (`TASK-07.26-0010`), `TASK-07.26-0013`, `TASK-07.26-0009`, `BP1-01` (`TASK-07.26-0005`), `BP1-02` (`TASK-07.26-0007`) і `BP1-03` (`TASK-07.26-0008`) завершені як `done`.
 
 ## Останні рішення
@@ -60,12 +67,21 @@ Phase 1 завершена й прийнята людиною. `BP2-01 / TASK-07
 - Користувач 2026-07-10 виконав whole-task review BP1-06, дозволив завершити TASK-07.26-0012 як `done` і окремо підтвердив Phase 1 human gate: internal `P1-WP4` прийнятий, original public/application-facing `P1-VS1` superseded/deferred до owner gate public config/storage integration.
 - `TASK-07.26-0006` пройшла whole-task human review і завершена як `done`; closure містить фінальну перевірку memory sync.
 - `TASK-07.26-0003` прийнята людиною й завершена як `done`; detailed rolling-wave plan та незалежний audit залишаються довгоживучими reports.
-- `TASK-07.26-0014` підготувала canonical Phase 2 backlog set `BP2-01`…`BP2-06`; тільки BP2-01 може бути наступною activation, а BP2-02/BP2-03 залежать від окремої human-approved fixation application task зі shared internal seam.
+- `TASK-07.26-0014` підготувала canonical Phase 2 backlog set `BP2-01`…`BP2-06`; на момент підготовки лише BP2-01 могла бути наступною activation, а BP2-02/BP2-03 залежали від окремої fixation application task зі shared internal seam.
 - Користувач 2026-07-10 виконав whole-task review TASK-07.26-0014 і явно дозволив завершити її як `done`; це рішення не активує жодну BP2 task.
 - Користувач 2026-07-10 виконав whole-task review `BP2-01 / TASK-07.26-0015` і дозволив завершити її як `done`; exact design proposal прийнято як task result, але `FIX-001` не отримала окремого approval, canonical memory/source не змінені, implementation tasks не активовані.
 - Користувач 2026-07-10 окремо підтвердив `BP2-01 / FIX-001` з approval scope `fixation-only`; це дозволяє підготувати owner application task, але не є application і не активує implementation.
 - Користувач 2026-07-10 активував `TASK-07.26-0021` і дозволив незалежних субагентів для рев’ю; independent pre-audit `APPLY` і repeated post-audit `PASS` дозволили application та publication `APP-07.26-0021-001` до whole-task human review.
 - Користувач 2026-07-10 виконав whole-task review TASK-07.26-0021 і явно дозволив завершити її як `done`; canonical contract/ADR, prepared BP2-01A та `APP-07.26-0021-001` прийняті без activation implementation tasks.
+- Користувач 2026-07-10 явно активував `BP2-02 / TASK-07.26-0016` і дозволив незалежних субагентів для рев’ю; RUN-001 реалізувала bounded internal Core Resource read slice без activation BP2-03.
+- Користувач 2026-07-10 виконав whole-task review `BP2-02 / TASK-07.26-0016` і явно дозволив завершити задачу як `done`; це не активує BP2-03 або BP2-04.
+- Користувач 2026-07-10 явно активував `BP2-03 / TASK-07.26-0017` і дозволив незалежних субагентів для рев’ю; RUN-001 реалізувала bounded internal Facade Registry/default API slice без activation BP2-04.
+- Initial independent audit BP2-03 виявив два P1 у trusted provenance і publication rollback; обидві причини виправлено, а repeated audit повернув `REVIEW_READY` без нових P0-P3.
+- Користувач 2026-07-10 виконав whole-task review `BP2-03 / TASK-07.26-0017` і явно дозволив завершити задачу як `done`; це не активує BP2-04.
+- Користувач 2026-07-10 явно активував `BP2-04 / TASK-07.26-0018` і дозволив незалежних субагентів для рев'ю; створено RUN-001 для послідовної public integration поверх завершених BP2-02/BP2-03.
+- Initial independent audit BP2-04 виявив P1 у class/prototype driver compatibility та start-time shape revalidation; причину виправлено, а repeated audit повернув `REVIEW_READY` без відкритих P0-P3.
+- Користувач 2026-07-10 виконав whole-task review `BP2-04 / TASK-07.26-0018` і явно дозволив завершити задачу як `done`; це не активує BP2-05.
+- Користувач 2026-07-10 виконав whole-task review `BP2-05 / TASK-07.26-0019` і явно дозволив завершити задачу як `done`; це не активує BP2-06.
 - Поточний і цільовий domain state зберігаються окремо.
 - `TASK-07.26-0002` прийнята людиною й завершена як `done`; cumulative результат зафіксовано в task closure.
 
@@ -80,7 +96,7 @@ Phase 1 завершена й прийнята людиною. `BP2-01 / TASK-07
 
 ## Наступні кроки
 
-1. Окремо вирішити, чи активувати BP2-02 і/або BP2-03; вони можуть виконуватися паралельно лише після власних explicit activation decisions.
+1. Окремо вирішити, чи активувати BP2-06.
 
 ## Відкриті питання
 

@@ -1,11 +1,11 @@
 # TASK-07.26-0018: BP2-04 — Інтегрувати public read-only Resource vertical slice
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-10
 Owner Role: System Engineer Hat / Product Lead Hat
-Current Run: n/a
+Current Run: RUN-001
 Current Research: n/a
 Current Fixation: n/a
 
@@ -30,12 +30,12 @@ BP2-02 і BP2-03 `done` та synchronized; окрема activation створю�
 
 ## Критерії приймання
 
-- [ ] Запакована supported API стартує readonly runtime і повертає точні Resource/tree snapshots.
-- [ ] Mutation snapshot не впливає на наступне читання.
-- [ ] Storage command повертає погоджену failure, стан не змінюється.
-- [ ] Source/dependency probes доводять відсутність write/journal path; instrumentation використовує лише погоджену production boundary без test-only Journal contract.
-- [ ] Raw IoC/Core/tokens недоступні; Registry frozen on ready.
-- [ ] Startup/query/stop failures очищені й нормалізовані; fresh runtimes ізольовані.
+- [x] Запакована supported API стартує readonly runtime і повертає точні Resource/tree snapshots.
+- [x] Mutation snapshot не впливає на наступне читання.
+- [x] Storage command повертає погоджену failure, стан не змінюється.
+- [x] Source/dependency probes доводять відсутність write/journal path; instrumentation використовує лише погоджену production boundary без test-only Journal contract.
+- [x] Raw IoC/Core/tokens недоступні; Registry frozen on ready.
+- [x] Startup/query/stop failures очищені й нормалізовані; fresh runtimes ізольовані.
 
 ## Перевірка
 

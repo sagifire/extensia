@@ -1,11 +1,11 @@
 # TASK-07.26-0017: BP2-03 — Реалізувати shared Facade Provider/Registry і system facades
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-10
 Owner Role: System Engineer Hat
-Current Run: n/a
+Current Run: RUN-001
 Current Research: n/a
 Current Fixation: n/a
 
@@ -35,12 +35,12 @@ Current Fixation: n/a
 
 ## Критерії приймання
 
-- [ ] Системний шлях використовує єдиний provider mechanism, придатний для майбутніх custom providers без постачання plugin API.
-- [ ] Duplicate/reserved/missing dependency failures виникають до ready.
-- [ ] Registry заморожений до publication; public facade surface стає видимою тільки в `ready`; частково побудовані facades ніколи не observable.
-- [ ] Storage commands завжди повертають явну failure; query йде через погоджену Core seam.
-- [ ] Немає arbitrary resolver/private token leakage; cleanup deterministic.
-- [ ] Повні package gates зелені, результат пройшов незалежне ревю.
+- [x] Системний шлях використовує єдиний provider mechanism, придатний для майбутніх custom providers без постачання plugin API.
+- [x] Duplicate/reserved/missing dependency failures виникають до ready.
+- [x] Registry заморожений до publication; public facade surface стає видимою тільки в `ready`; частково побудовані facades ніколи не observable.
+- [x] Storage commands завжди повертають явну failure; query йде через погоджену Core seam.
+- [x] Немає arbitrary resolver/private token leakage; cleanup deterministic.
+- [x] Повні package gates зелені, результат пройшов незалежне ревю.
 
 ## Перевірка
 

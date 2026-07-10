@@ -46,7 +46,7 @@ Allowed parallelism: до завершення `P1-WP1` — лише read-only r
 
 ## Фаза 2 — Read-only Resource slice та API foundation
 
-Стан: P2-DG1 applied як accepted design (`APP-07.26-0021-001` published); implementation ще не починалася.
+Стан: P2-DG1 applied, BP2-01A/BP2-02/BP2-03 завершені; P2-VS1 реалізований у `BP2-04 / RUN-001`, independently reviewed і прийнятий whole-task human review. P2-STAB у `BP2-05 / RUN-001` завершений, independently verified і прийнятий whole-task human review; BP2-06 лишається окремою backlog activation gate.
 
 Wave IDs: `P2-DG1` мінімальний read API contract -> `BP2-01A` materialized shared seam -> паралельні `P2-WP2` Core/Index і `P2-WP3` Facade Registry -> `P2-VS1` public Resource read -> `P2-STAB`.
 

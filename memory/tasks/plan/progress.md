@@ -29,12 +29,12 @@
 
 ## Фаза 2 — Read-only Resource slice та API foundation
 
-- [x] **[Done]** [BP2-01 / TASK-07.26-0015](TASK-07.26-0015-bp2-01-minimal-public-read-contract/index.md) - Мінімальний public read contract прийнятий; FIX-001 applied canonical owner TASK-0021, post-audit publication pending.
-- [x] **[Done]** [BP2-01A / TASK-07.26-0022](TASK-07.26-0022-bp2-01a-materialize-read-port/index.md) - Exact internal shared read-port/token source artifact materialized, independently reviewed і прийнятий людиною; BP2-02/BP2-03 не активовані.
-- [ ] **[Backlog]** [BP2-02 / TASK-07.26-0016](TASK-07.26-0016-bp2-02-read-only-core-index/index.md) - Read-only Core Extension Port і minimal Resource index після approved/applied BP2-01 design.
-- [ ] **[Backlog]** [BP2-03 / TASK-07.26-0017](TASK-07.26-0017-bp2-03-facade-registry-system-facades/index.md) - Shared Facade Provider/Registry і system facades після approved/applied BP2-01 design; дозволена паралельність із BP2-02.
-- [ ] **[Backlog]** [BP2-04 / TASK-07.26-0018](TASK-07.26-0018-bp2-04-public-resource-read-slice/index.md) - Послідовна інтеграція public read-only Resource vertical slice після BP2-02/BP2-03.
-- [ ] **[Backlog]** [BP2-05 / TASK-07.26-0019](TASK-07.26-0019-bp2-05-phase-2-stabilization/index.md) - Phase 2 stabilization і versioned evidence після BP2-04.
+- [x] **[Done]** [BP2-01 / TASK-07.26-0015](TASK-07.26-0015-bp2-01-minimal-public-read-contract/index.md) - Мінімальний public read contract прийнятий; FIX-001 applied owner TASK-0021, а `APP-07.26-0021-001` published.
+- [x] **[Done]** [BP2-01A / TASK-07.26-0022](TASK-07.26-0022-bp2-01a-materialize-read-port/index.md) - Exact internal shared read-port/token source artifact materialized, independently reviewed і прийнятий людиною; BP2-02/BP2-03 згодом окремо активовані та завершені.
+- [x] **[Done]** [BP2-02 / TASK-07.26-0016](TASK-07.26-0016-bp2-02-read-only-core-index/index.md) - Bounded internal read-only Core Resource slice реалізовано, незалежно перевірено та прийнято людиною.
+- [x] **[Done]** [BP2-03 / TASK-07.26-0017](TASK-07.26-0017-bp2-03-facade-registry-system-facades/index.md) - Shared Facade Provider/Registry і internal system facades реалізовані, незалежно перевірені та прийняті людиною.
+- [x] **[Done]** [BP2-04 / TASK-07.26-0018](TASK-07.26-0018-bp2-04-public-resource-read-slice/index.md) - Public read-only Resource slice реалізований, незалежно перевірений і прийнятий людиною; BP2-05 активований окремим рішенням.
+- [x] **[Done]** [BP2-05 / TASK-07.26-0019](TASK-07.26-0019-bp2-05-phase-2-stabilization/index.md) - Phase 2 stabilization evidence R1 independently verified і прийнята whole-task human review; BP2-06 не активована.
 - [ ] **[Backlog]** [BP2-06 / TASK-07.26-0020](TASK-07.26-0020-bp2-06-phase-2-independent-audit/index.md) - Independent API/architecture audit після review-ready BP2-05 перед Phase 2 human gate.
 
 Activation order: `BP2-01 done -> TASK-07.26-0021 / APP-07.26-0021-001 published -> BP2-01A/TASK-07.26-0022 done -> separately activated BP2-02/BP2-03 -> BP2-04 -> BP2-05 review-ready -> BP2-06 -> human gate Phase 2`.
