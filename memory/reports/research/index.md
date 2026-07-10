@@ -11,3 +11,4 @@
 ## Файли
 
 - [План реалізації Extensia 0.1.0](2026-07-09-extensia-v0-1-0-delivery-plan.md) - Деталізований rolling-wave planning report для TASK-07.26-0003.
+- [Незалежний audit Phase 1](2026-07-10-extensia-phase-1-independent-audit.md) - Canonical detailed report BP1-06 проти accepted stabilization evidence `R1`.

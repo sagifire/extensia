@@ -8,7 +8,7 @@ Internal Stage: `v2`
 
 ## Поточний фокус
 
-`BP1-01`…`BP1-05` завершені та прийняті людиною. `BP1-05 / RUN-001` підготувала complete evidence revision `R1`, закрила initial audit findings і пройшла green repeated independent audit без production code changes. Наступний окремий крок — activation BP1-06.
+Phase 1 завершена й прийнята людиною. `BP1-01`…`BP1-06` мають status `done`; independent `BP1-06 / RSCH-001` підтвердила evidence revision `R1` без відкритих P0–P3 findings. Human gate явно прийняв internal `P1-WP4` boundary і deferred original public/application-facing `P1-VS1`.
 
 ## Поточний стан продукту
 
@@ -26,8 +26,7 @@ Internal Stage: `v2`
 ## Активні задачі
 
 Немає active або review задач.
-- `BP1-05` (`TASK-07.26-0011`), `BP1-04` (`TASK-07.26-0010`), `TASK-07.26-0013`, `TASK-07.26-0009`, `BP1-01` (`TASK-07.26-0005`), `BP1-02` (`TASK-07.26-0007`) і `BP1-03` (`TASK-07.26-0008`) завершені як `done`.
-- `BP1-06` (`TASK-07.26-0012`) лишається backlog без research artifact до окремої activation.
+- `BP1-06` (`TASK-07.26-0012`), `BP1-05` (`TASK-07.26-0011`), `BP1-04` (`TASK-07.26-0010`), `TASK-07.26-0013`, `TASK-07.26-0009`, `BP1-01` (`TASK-07.26-0005`), `BP1-02` (`TASK-07.26-0007`) і `BP1-03` (`TASK-07.26-0008`) завершені як `done`.
 
 ## Останні рішення
 
@@ -55,6 +54,8 @@ Internal Stage: `v2`
 - `BP1-05 / RUN-001` повторно підтвердила Phase 1 baseline: clean package gate, 75 tests, 38 packed paths, 36 byte-identical controlled artifacts і zero accidental public surface; production code не змінювався.
 - Initial independent audit BP1-05 повернув 2 P2 evidence findings і 1 P3 memory wording finding; remediation закрито repeated audit verdict `REVIEW_READY` без відкритих P0–P3.
 - Користувач 2026-07-10 виконав whole-task review BP1-05 і явно дозволив завершити TASK-07.26-0011 як `done`.
+- `BP1-06 / RSCH-001` незалежно відтворила clean package/lifecycle evidence, підтвердила 36 controlled hashes, не виявила відкритих product/package findings і пройшла repeated bounded meta-review `REVIEW_READY`.
+- Користувач 2026-07-10 виконав whole-task review BP1-06, дозволив завершити TASK-07.26-0012 як `done` і окремо підтвердив Phase 1 human gate: internal `P1-WP4` прийнятий, original public/application-facing `P1-VS1` superseded/deferred до owner gate public config/storage integration.
 - `TASK-07.26-0006` пройшла whole-task human review і завершена як `done`; closure містить фінальну перевірку memory sync.
 - `TASK-07.26-0003` прийнята людиною й завершена як `done`; detailed rolling-wave plan та незалежний audit залишаються довгоживучими reports.
 - Поточний і цільовий domain state зберігаються окремо.
@@ -71,8 +72,8 @@ Internal Stage: `v2`
 
 ## Наступні кроки
 
-1. Окремо активувати BP1-06 проти accepted evidence revision `R1`.
-2. Не починати Phase 2 read-only Resource slice до BP1-06 і human gate Phase 1, який явно приймає deferred public P1-VS1.
+1. Окремо підготувати canonical Phase 2 design task для мінімального read API/public config-storage integration gate.
+2. Не активувати implementation Phase 2 до task preparation і відповідного owner approval.
 
 ## Відкриті питання
 

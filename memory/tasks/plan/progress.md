@@ -23,11 +23,11 @@
 - [x] **[Done]** [BP1-03 / TASK-07.26-0008](TASK-07.26-0008-bp1-03-ioc-composition-skeleton/index.md) - Internal IoC composition/conformance skeleton реалізовано, незалежно перевірено та прийнято людиною.
 - [x] **[Done]** [BP1-04 / TASK-07.26-0010](TASK-07.26-0010-bp1-04-lifecycle-controller-slice/index.md) - Strict internal Runtime Controller slice реалізовано, незалежно перевірено та прийнято людиною.
 - [x] **[Done]** [BP1-05 / TASK-07.26-0011](TASK-07.26-0011-bp1-05-phase-1-stabilization/index.md) - Phase 1 stabilization evidence R1 незалежно перевірено та прийнято людиною без production code changes.
-- [ ] **[Backlog]** [BP1-06 / TASK-07.26-0012](TASK-07.26-0012-bp1-06-phase-1-independent-audit/index.md) - Незалежний architecture/package audit Phase 1 після BP1-05 review-ready.
+- [x] **[Done]** [BP1-06 / TASK-07.26-0012](TASK-07.26-0012-bp1-06-phase-1-independent-audit/index.md) - Незалежний Phase 1 audit прийнято; human gate підтвердив internal `P1-WP4` і deferred public `P1-VS1`.
 
 ## Фаза 2 — Read-only Resource slice та API foundation
 
-Немає canonical tasks: деталізація починається тільки після human gate Phase 1.
+Немає canonical tasks: Phase 1 human gate пройдений, наступний крок — окрема підготовка першої Phase 2 design task без автоматичної activation.
 
 ## Фаза 3 — Перший journal-backed Resource write slice
 

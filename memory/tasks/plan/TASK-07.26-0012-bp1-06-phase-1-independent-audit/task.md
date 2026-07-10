@@ -1,12 +1,12 @@
 # TASK-07.26-0012: BP1-06 — Провести незалежний architecture/package audit Phase 1
 
-Status: backlog
+Status: done
 Type: research
 Execution Mode: autonomous-research
 Created: 2026-07-10
 Owner Role: System Engineer Hat / Product Lead Hat
 Current Run: n/a
-Current Research: n/a
+Current Research: RSCH-001
 Current Fixation: n/a
 
 ## Мета
@@ -53,15 +53,15 @@ BP1-06 є correctness gate після owner stabilization BP1-05. Вона не 
 
 ## Критерії приймання
 
-- [ ] Critical build/package/lifecycle evidence незалежно відтворене, а environment/commands/limitations явні.
-- [ ] Acceptance traceability BP1-01..05, public/internal boundary, IoC composition і lifecycle cleanup перевірені.
-- [ ] Blocker/high/medium findings відсутні або закриті owner corrections і незалежно rechecked.
-- [ ] Accepted risks явні та містять owner, impact, rationale і follow-up; low findings класифіковані.
-- [ ] Canonical detailed report і task-local RSCH узгоджені, не дублюють суперечливі sources of truth.
-- [ ] Canonical memory consistency та required index updates перевірені.
-- [ ] Report містить recommendation `pass`, `conditional pass` або `fail`; unresolved blocker/high/medium забороняє `pass` і Phase 1 gate.
-- [ ] Окрема independent Agent Reviewer session виконала bounded meta-review research result без незакритих blocker/high/medium findings.
-- [ ] Результат переданий на task-level human review; human gate Phase 1 лишається окремим рішенням.
+- [x] Critical build/package/lifecycle evidence незалежно відтворене, а environment/commands/limitations явні.
+- [x] Acceptance traceability BP1-01..05, public/internal boundary, IoC composition і lifecycle cleanup перевірені.
+- [x] Blocker/high/medium findings відсутні або закриті owner corrections і незалежно rechecked.
+- [x] Accepted risks явні та містять owner, impact, rationale і follow-up; low findings класифіковані.
+- [x] Canonical detailed report і task-local RSCH узгоджені, не дублюють суперечливі sources of truth.
+- [x] Canonical memory consistency та required index updates перевірені.
+- [x] Report містить recommendation `pass`, `conditional pass` або `fail`; unresolved blocker/high/medium забороняє `pass` і Phase 1 gate.
+- [x] Окрема independent Agent Reviewer session виконала bounded meta-review research result без незакритих blocker/high/medium findings.
+- [x] Результат переданий на task-level human review; human gate Phase 1 лишається окремим рішенням.
 
 ## Перевірка
 
@@ -108,7 +108,7 @@ BP1-06 є correctness gate після owner stabilization BP1-05. Вона не 
 
 ## Дослідження
 
-Немає. `RSCH-001` створюється під час activation після BP1-05 review-ready gate.
+- [RSCH-001](research/RSCH-001.md) — завершений і прийнятий незалежний architecture/package audit Phase 1 проти accepted evidence revision `R1`.
 
 ## Фіксації
 
