@@ -8,7 +8,7 @@ Internal Stage: `v2`
 
 ## Поточний фокус
 
-Phase 1 завершена й прийнята людиною. `BP2-01 / TASK-07.26-0015`, owner application `TASK-07.26-0021`, `BP2-01A / TASK-07.26-0022`, `BP2-02 / TASK-07.26-0016`, `BP2-03 / TASK-07.26-0017`, `BP2-04 / TASK-07.26-0018` і `BP2-05 / TASK-07.26-0019` завершені як `done`; `APP-07.26-0021-001` published. Phase 2 stabilization R1 незалежно перевірена й прийнята людиною; BP2-06 лишається окремою backlog activation gate.
+Phase 1 і Phase 2 завершені та прийняті explicit human gates. Усі canonical Phase 2 tasks `BP2-01`, owner application `TASK-07.26-0021`, `BP2-01A`, `BP2-02`…`BP2-06` мають status `done`; `APP-07.26-0021-001` published. Independent BP2-06 audit отримав repeated meta-review `REVIEW_READY`, recommendation `pass` і whole-task approval. Phase 3 не активована й не має canonical tasks.
 
 ## Поточний стан продукту
 
@@ -28,6 +28,7 @@ Phase 1 завершена й прийнята людиною. `BP2-01 / TASK-07
 
 ## Активні задачі
 
+- `BP2-06 / TASK-07.26-0020` завершена як `done`: `RSCH-001` відтворила clean/package/API/architecture evidence, repeated bounded meta-review повернув `REVIEW_READY`, recommendation `pass` прийнята whole-task review, а explicit human gate завершив Phase 2.
 - `BP2-05 / TASK-07.26-0019` завершена як `done`: RUN-001 виконала risk-based Phase 2 stabilization, clean package/reproducibility evidence і memory sync без Phase 3 feature work; initial evidence P2 закрито, repeated audit `REVIEW_READY` без відкритих P0–P3, whole-task review прийнятий людиною.
 - `BP2-04 / TASK-07.26-0018` завершена як `done`: RUN-001 реалізувала root public contract, Extensia Module lifecycle, readonly driver integration та application/package verification; repeated independent audit не має відкритих P0-P3, whole-task review прийнятий людиною.
 - `BP2-03 / TASK-07.26-0017` завершена як `done`: RUN-001 implementation, memory sync і повний 100-test package gate зелені; repeated independent audit `REVIEW_READY` без відкритих P0-P3, whole-task review прийнятий людиною.
@@ -89,14 +90,14 @@ Phase 1 завершена й прийнята людиною. `BP2-01 / TASK-07
 
 - Усі три source specifications мають статус draft; conceptual signatures не можна випадково заморозити як public API.
 - Source specifications задають широку surface area. Реалізація без вертикальних slices створить сильний architecture pressure і ризик незавершених cross-cutting guarantees.
-- Tooling/package reproducibility, IoC composition conformance й strict internal lifecycle controller/rollback/ready-state publication реалізовані; public Extensia Module lifecycle/config/storage integration лишаються deferred design gate.
+- Tooling/package reproducibility, IoC composition conformance, strict internal lifecycle controller/rollback/ready-state publication і bounded public Extensia Module lifecycle/config/readonly-storage integration реалізовані та прийняті Phase 2 human gate; final write/storage contracts лишаються deferred owner gates.
 - Перший concrete Storage Driver, atomic commit protocol, journal format і recovery matrix не визначені.
 - BP2-01 owner task застосувала canonical public read contract/ADR і shared seam design; `APP-07.26-0021-001` published. Write API, повний error catalog, hooks і release compatibility policy лишаються окремими gates.
 - Runtime reference містить історичні self-references на видалений non-IoC filename; canonical source policy явно перенаправляє до актуального IoC document.
 
 ## Наступні кроки
 
-1. Окремо вирішити, чи активувати BP2-06.
+1. Окремо вирішити, чи готувати owner design gate і canonical task set Phase 3; завершення Phase 2 не активує Phase 3 автоматично.
 
 ## Відкриті питання
 

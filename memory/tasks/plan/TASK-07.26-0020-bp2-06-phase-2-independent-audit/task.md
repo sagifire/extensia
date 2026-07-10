@@ -1,12 +1,12 @@
 # TASK-07.26-0020: BP2-06 — Провести незалежний API/architecture audit Phase 2
 
-Status: backlog
+Status: done
 Type: research
 Execution Mode: autonomous-research
 Created: 2026-07-10
 Owner Role: System Engineer Hat / Product Lead Hat
 Current Run: n/a
-Current Research: n/a
+Current Research: RSCH-001
 Current Fixation: n/a
 
 ## Мета
@@ -27,7 +27,7 @@ Implementation fixes, новий design, Phase 3 foundations або автома
 
 ## Залежності та незалежність
 
-- BP2-05 має status `review` і повне versioned evidence.
+- BP2-05 завершена як `done` після whole-task approval і має повне versioned evidence `R1`; це сильніше за початковий dependency gate `review`.
 - Виконавець — незалежний `Agent Reviewer`, який не виконував BP2 implementation/stabilization.
 - Виконавець audit не редагує перевірені artifacts; findings повертаються owner tasks/follow-up.
 
@@ -40,12 +40,12 @@ Implementation fixes, новий design, Phase 3 foundations або автома
 
 ## Критерії приймання
 
-- [ ] Критичне evidence незалежно відтворено; traceability від design до implementation повна.
-- [ ] Blocker/high/medium findings відсутні або виправлені owner і повторно перевірені.
-- [ ] Прийняті risks, limitations і low findings явні.
-- [ ] Recommendation `pass`, `conditional pass` або `fail` явна.
-- [ ] Незакриті blocker/high/medium забороняють pass/review-ready/human gate.
-- [ ] Незалежне bounded meta-review завершене без відкритих material findings.
+- [x] Критичне evidence незалежно відтворено; traceability від design до implementation повна.
+- [x] Blocker/high/medium findings відсутні або виправлені owner і повторно перевірені.
+- [x] Прийняті risks, limitations і low findings явні.
+- [x] Recommendation `pass`, `conditional pass` або `fail` явна.
+- [x] Незакриті blocker/high/medium забороняють pass/review-ready/human gate.
+- [x] Незалежне bounded meta-review завершене без відкритих material findings.
 
 ## Перевірка
 
