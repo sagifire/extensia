@@ -1,7 +1,42 @@
 # Task Progress
 
-## Unsorted
+## Позапланові задачі
+
+- [x] **[Done]** [TASK-07.26-0004-organize-progress-and-prepare-bp1-01](TASK-07.26-0004-organize-progress-and-prepare-bp1-01/index.md) - Упорядкування фазового task progress і canonical preparation `BP1-01`.
+
+## Планування
+
+- [x] **[Done]** [TASK-07.26-0003-plan-extensia-v0-1-0-delivery](TASK-07.26-0003-plan-extensia-v0-1-0-delivery/index.md) - Детально сплановано реалізацію `0.1.0` через rolling waves, вертикальні зрізи, стабілізацію, оцінку складності й рівня інтелекту агентів.
+
+## Фаза 0 — Базовий стан проекту
 
 - [x] **[Done]** [TASK-07.26-0001-prepare-extensia-v0-1-0-transition](TASK-07.26-0001-prepare-extensia-v0-1-0-transition/index.md) - Підготовка переходу проекту до розробки `extensia v0.1.0` як умовної v2.
 - [x] **[Done]** [TASK-07.26-0002-bootstrap-extensia-project-memory](TASK-07.26-0002-bootstrap-extensia-project-memory/index.md) - Project Memory розгорнута й прийнята: references консолідовані, obsolete files видалені, 37 requirements accepted.
-- [x] **[Done]** [TASK-07.26-0003-plan-extensia-v0-1-0-delivery](TASK-07.26-0003-plan-extensia-v0-1-0-delivery/index.md) - Детально сплановано реалізацію `0.1.0` через rolling waves, вертикальні зрізи, стабілізацію, оцінку складності й рівня інтелекту агентів.
+
+## Фаза 1 — Контракти й каркас композиції
+
+- [ ] **[Backlog]** [BP1-01 / TASK-07.26-0005](TASK-07.26-0005-bp1-01-esm-typescript-package-baseline/index.md) - Налаштувати ESM TypeScript package baseline як послідовний P1-WP1 tooling gate.
+
+## Фаза 2 — Read-only Resource slice та API foundation
+
+Немає canonical tasks: деталізація починається тільки після human gate Phase 1.
+
+## Фаза 3 — Перший journal-backed Resource write slice
+
+Немає canonical tasks: owner design gates створюються після human gate Phase 2.
+
+## Фаза 4 — Assets і перший concrete durable Storage Driver
+
+Немає canonical tasks: rolling-wave деталізація не починається до owner gates Phase 3.
+
+## Фаза 5 — Повний read model і синхронізація кількох instances
+
+Немає canonical tasks: rolling-wave деталізація не починається до owner gates Phase 4.
+
+## Фаза 6 — Базова extension ecosystem
+
+Немає canonical tasks: rolling-wave деталізація не починається до owner gates Phase 5.
+
+## Фаза 7 — Стабілізація релізу `0.1.0`
+
+Немає canonical tasks: rolling-wave деталізація не починається до owner gates попередніх фаз.

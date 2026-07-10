@@ -8,7 +8,7 @@ Internal Stage: `v2`
 
 ## Поточний фокус
 
-Project Memory для release `0.1.0` розгорнута, а детальний rolling-wave план реалізації прийнятий людиною в `TASK-07.26-0003`. Поточний фокус — підготовка найближчої Phase 1 tooling/package task `BP1-01`; тільки після її gate можна паралельно запускати domain contracts `BP1-02` та IoC composition skeleton `BP1-03`.
+Canonical `BP1-01` підготовлена як backlog task для послідовного P1-WP1 tooling/package gate. `TASK-07.26-0004` прийнята людиною та завершена як `done`; наступна implementation дія — активувати `BP1-01` та створити її `RUN-001`.
 
 ## Поточний стан продукту
 
@@ -24,7 +24,7 @@ Project Memory для release `0.1.0` розгорнута, а детальни�
 
 ## Активні задачі
 
-Немає active задач. `TASK-07.26-0003` прийнята людиною й завершена як `done`; найближчі BP1 proposals ще не створені як canonical tasks.
+Немає active задач. `TASK-07.26-0004` завершена як `done`; `BP1-01` (`TASK-07.26-0005`) очікує активації зі статусом `backlog`.
 
 ## Останні рішення
 
@@ -52,9 +52,9 @@ Project Memory для release `0.1.0` розгорнута, а детальни�
 
 ## Наступні кроки
 
-1. Створити `BP1-01` як canonical tooling/package task і реалізувати відтворюваний ESM TypeScript package gate.
-2. Після зеленого BP1-01 gate паралельно створити/виконати `BP1-02` для domain contracts і `BP1-03` для IoC composition skeleton.
-3. Інтегрувати результати у lifecycle slice `BP1-04`, виконати stabilization/audit Phase 1 і лише після human gate деталізувати наступну wave.
+1. Активувати `BP1-01` і створити її `RUN-001` для реалізації відтворюваного ESM TypeScript package gate.
+2. Після зеленого BP1-01 gate окремо створити/активувати `BP1-02` для domain contracts і `BP1-03` для IoC composition skeleton.
+3. Завершити Phase 1 lifecycle slice та stabilization перед наступним human gate.
 
 ## Відкриті питання
 
