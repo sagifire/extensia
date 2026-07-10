@@ -2,6 +2,7 @@
 
 ## Позапланові задачі
 
+- [x] **[Done]** [TASK-07.26-0009-prepare-bp1-04-bp1-05-bp1-06](TASK-07.26-0009-prepare-bp1-04-bp1-05-bp1-06/index.md) - Canonical `BP1-04`/`BP1-05`/`BP1-06` підготовлено, незалежно перевірено та прийнято людиною.
 - [x] **[Done]** [TASK-07.26-0006-record-phase-0-review-and-prepare-bp1-02-bp1-03](TASK-07.26-0006-record-phase-0-review-and-prepare-bp1-02-bp1-03/index.md) - Зафіксовано phase-level review фази 0 та підготовлено canonical `BP1-02`/`BP1-03`.
 - [x] **[Done]** [TASK-07.26-0004-organize-progress-and-prepare-bp1-01](TASK-07.26-0004-organize-progress-and-prepare-bp1-01/index.md) - Упорядкування фазового task progress і canonical preparation `BP1-01`.
 
@@ -19,6 +20,9 @@
 - [x] **[Done]** [BP1-01 / TASK-07.26-0005](TASK-07.26-0005-bp1-01-esm-typescript-package-baseline/index.md) - ESM TypeScript tooling/package gate реалізовано, незалежно перевірено та прийнято людиною.
 - [x] **[Done]** [BP1-02 / TASK-07.26-0007](TASK-07.26-0007-bp1-02-pure-domain-contract-kernel/index.md) - Pure domain contract kernel реалізовано, незалежно перевірено та прийнято людиною.
 - [x] **[Done]** [BP1-03 / TASK-07.26-0008](TASK-07.26-0008-bp1-03-ioc-composition-skeleton/index.md) - Internal IoC composition/conformance skeleton реалізовано, незалежно перевірено та прийнято людиною.
+- [ ] **[Backlog]** [BP1-04 / TASK-07.26-0010](TASK-07.26-0010-bp1-04-lifecycle-controller-slice/index.md) - Lifecycle controller і architecture-enabling slice; activation блокує окремий owner-approved public lifecycle contract gate.
+- [ ] **[Backlog]** [BP1-05 / TASK-07.26-0011](TASK-07.26-0011-bp1-05-phase-1-stabilization/index.md) - Стабілізація Phase 1 після accepted BP1-04 та підготовка versioned audit evidence.
+- [ ] **[Backlog]** [BP1-06 / TASK-07.26-0012](TASK-07.26-0012-bp1-06-phase-1-independent-audit/index.md) - Незалежний architecture/package audit Phase 1 після BP1-05 review-ready.
 
 ## Фаза 2 — Read-only Resource slice та API foundation
 

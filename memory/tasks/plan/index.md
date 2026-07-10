@@ -14,6 +14,10 @@
 - [TASK-07.26-0006-record-phase-0-review-and-prepare-bp1-02-bp1-03](TASK-07.26-0006-record-phase-0-review-and-prepare-bp1-02-bp1-03/index.md) - Інтерактивна фіксація review фази 0 та canonical preparation `BP1-02`/`BP1-03`.
 - [TASK-07.26-0007-bp1-02-pure-domain-contract-kernel](TASK-07.26-0007-bp1-02-pure-domain-contract-kernel/index.md) - Canonical implementation task `BP1-02` для pure domain contract kernel.
 - [TASK-07.26-0008-bp1-03-ioc-composition-skeleton](TASK-07.26-0008-bp1-03-ioc-composition-skeleton/index.md) - Canonical implementation task `BP1-03` для internal IoC composition/conformance skeleton.
+- [TASK-07.26-0009-prepare-bp1-04-bp1-05-bp1-06](TASK-07.26-0009-prepare-bp1-04-bp1-05-bp1-06/index.md) - Інтерактивна підготовка canonical tasks `BP1-04`/`BP1-05`/`BP1-06`.
+- [TASK-07.26-0010-bp1-04-lifecycle-controller-slice](TASK-07.26-0010-bp1-04-lifecycle-controller-slice/index.md) - Canonical implementation task `BP1-04` для lifecycle controller і architecture-enabling slice.
+- [TASK-07.26-0011-bp1-05-phase-1-stabilization](TASK-07.26-0011-bp1-05-phase-1-stabilization/index.md) - Canonical implementation task `BP1-05` для стабілізації Phase 1.
+- [TASK-07.26-0012-bp1-06-phase-1-independent-audit](TASK-07.26-0012-bp1-06-phase-1-independent-audit/index.md) - Canonical autonomous-research task `BP1-06` для незалежного architecture/package audit Phase 1.
 
 ## Файли
 

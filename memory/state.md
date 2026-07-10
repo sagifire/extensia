@@ -8,7 +8,7 @@ Internal Stage: `v2`
 
 ## Поточний фокус
 
-`BP1-01`, `BP1-02` і `BP1-03` завершені та прийняті людиною. Phase 1 tooling, pure domain contracts та internal IoC composition/conformance baseline зелені; наступний lifecycle/stabilization slice ще не оформлено як canonical task.
+`BP1-01`, `BP1-02` і `BP1-03` завершені та прийняті людиною. Canonical backlog tasks `BP1-04`, `BP1-05` і `BP1-06` підготовлені та прийняті в межах завершеної `TASK-07.26-0009`. Найближчий implementation slice — BP1-04, але до activation потрібен окремий owner-approved design/fixation gate exact minimal root lifecycle contract.
 
 ## Поточний стан продукту
 
@@ -25,7 +25,8 @@ Internal Stage: `v2`
 
 ## Активні задачі
 
-Немає active або review задач. `BP1-01` (`TASK-07.26-0005`), `BP1-02` (`TASK-07.26-0007`) і `BP1-03` (`TASK-07.26-0008`) завершені як `done`.
+Немає active або review задач. `TASK-07.26-0009`, `BP1-01` (`TASK-07.26-0005`), `BP1-02` (`TASK-07.26-0007`) і `BP1-03` (`TASK-07.26-0008`) завершені як `done`.
+- `BP1-04` (`TASK-07.26-0010`), `BP1-05` (`TASK-07.26-0011`) і `BP1-06` (`TASK-07.26-0012`) мають статус `backlog` і не мають run/research artifacts.
 
 ## Останні рішення
 
@@ -43,6 +44,8 @@ Internal Stage: `v2`
 - `BP1-01` реалізувала exact-pinned Node.js 24 ESM tooling/package baseline; `npm ci` і повний package gate зелені, а task-level human approval дозволив activation наступних Phase 1 задач.
 - `BP1-02` реалізувала internal pure domain contract kernel із 50 tests, detached JSON-safe readonly snapshots і закритим незалежним audit; результат прийнято людиною, public root/subpath API не розширено.
 - `BP1-03` реалізувала internal IoC composition/conformance skeleton із 16 composition tests, safe diagnostics/inspection, synchronous registration boundary і закритим незалежним audit; результат прийнято людиною, public root/subpath API не розширено.
+- `BP1-04`, `BP1-05` і `BP1-06` підготовлені як canonical backlog tasks; BP1-04 не активується до окремого owner-approved gate exact minimal root lifecycle contract, а BP1-06 виконується як незалежний `autonomous-research` audit із bounded meta-review.
+- `TASK-07.26-0009` пройшла whole-task human review і завершена як `done`; closure містить фінальну перевірку memory sync.
 - `TASK-07.26-0006` пройшла whole-task human review і завершена як `done`; closure містить фінальну перевірку memory sync.
 - `TASK-07.26-0003` прийнята людиною й завершена як `done`; detailed rolling-wave plan та незалежний audit залишаються довгоживучими reports.
 - Поточний і цільовий domain state зберігаються окремо.
@@ -59,8 +62,9 @@ Internal Stage: `v2`
 
 ## Наступні кроки
 
-1. Визначити й підготувати наступний Phase 1 lifecycle slice та stabilization gate як canonical task.
-2. Не починати Phase 2 read-only Resource slice до відповідного Phase 1 human gate.
+1. Окремо спроектувати й зафіксувати exact minimal root lifecycle contract для activation BP1-04.
+2. Після applied gate активувати BP1-04 зі створенням `RUN-001`.
+3. Не починати Phase 2 read-only Resource slice до audit і human gate Phase 1.
 
 ## Відкриті питання
 
