@@ -155,7 +155,7 @@ Update змінює лише own `title`/`description`, reload-ить latest com
 
 Capability check -> descriptor-safe parse -> operation plan/UUID/time -> local locks -> recovery-clean storage session -> latest-state read -> validated next snapshot та prepared index change -> transaction stage -> fingerprint verify -> outcome-definite commit -> index publish -> cleanup -> detached committed result.
 
-BP3-02 materialized internal foundation для normalized atomic local locks, explicit disposable operation scopes, engine intake close-and-drain, pre-staging cancellation та post-commit warning/fail-close result. Resource-specific pipeline handler, storage session/transaction runtime, fingerprint, index publication wiring і public success лишаються наступними bounded tasks.
+BP3-02 materialized internal foundation для normalized atomic local locks, explicit disposable operation scopes, engine intake close-and-drain, pre-staging cancellation та post-commit warning/fail-close result. BP3-03 materialized internal deterministic full-driver fixture, canonical fingerprint/integrity helpers, exclusive recovery-clean session/transaction runtime, committed-only journal, generation-safe crash recovery та coherent startup scan coordinator. Resource-specific pipeline handler, application wiring, index publication wiring і public success лишаються наступними bounded tasks.
 
 ## Compatibility і stop conditions
 

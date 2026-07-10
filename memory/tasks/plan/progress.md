@@ -47,7 +47,7 @@ Activation order: `BP2-01 done -> TASK-07.26-0021 / APP-07.26-0021-001 published
 - [x] **[Done]** [TASK-07.26-0024](TASK-07.26-0024-apply-bp3-01-fix-001/index.md) - `APP-07.26-0024-001` published, repeated post-audit `PASS`, whole-task result прийнятий людиною.
 - [x] **[Done]** [BP3-01A / TASK-07.26-0025](TASK-07.26-0025-bp3-01a-materialize-write-protocol-seams/index.md) - Shared source-only write protocol seams materialized, full gate і repeated independent audit зелені, whole-task result прийнятий людиною.
 - [x] **[Done]** [BP3-02 / P3-WP1 / TASK-07.26-0026](TASK-07.26-0026-bp3-02-operation-engine-foundation/index.md) - Internal Operation Engine foundation реалізована, independently reviewed і прийнята whole-task human review; BP3-03 не активована.
-- [ ] **[Backlog]** [BP3-03 / P3-WP2 / TASK-07.26-0027](TASK-07.26-0027-bp3-03-deterministic-full-fake-recovery/index.md) - Deterministic full fake/journal/recovery; depends on done BP3-01A.
+- [x] **[Done]** [BP3-03 / P3-WP2 / TASK-07.26-0027](TASK-07.26-0027-bp3-03-deterministic-full-fake-recovery/index.md) - Deterministic full fake/journal/recovery реалізовано, independently reviewed і прийнято whole-task human review; BP3-04 не активована.
 - [ ] **[Backlog]** [BP3-04 / P3-VS1 / TASK-07.26-0028](TASK-07.26-0028-bp3-04-resource-create-slice/index.md) - Resource create/read-back; depends on done BP3-02 and BP3-03.
 - [ ] **[Backlog]** [BP3-05 / P3-VS2 / TASK-07.26-0029](TASK-07.26-0029-bp3-05-resource-update-slice/index.md) - Own-metadata update/read-back; depends on done BP3-04.
 - [ ] **[Backlog]** [P3-STAB1 / TASK-07.26-0030](TASK-07.26-0030-p3-stab1-create-update-foundation/index.md) - Bounded create/update stabilization before P3-DG2; depends on done BP3-05.

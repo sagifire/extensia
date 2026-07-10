@@ -1,6 +1,6 @@
 # BP3-03 / P3-WP2 / TASK-07.26-0027: Deterministic full fake, journal і recovery
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-10
@@ -21,3 +21,11 @@ Concrete durability/layout, public create/update success, BP3-02 engine behavior
 ## Acceptance
 
 Failure injection усіх cut points; readonly/full capability matrix; committed-only journal/cursor rules; reusable contract suite без public/test-only storage protocol.
+
+## Поточний run
+
+- `RUN-001` — completed; deterministic full fake, committed journal, recovery coordinator і executable contract matrix готові до human review.
+
+## Human review
+
+Whole-task result прийнятий користувачем 2026-07-11. Це рішення завершує TASK-07.26-0027 і не активує BP3-04.
