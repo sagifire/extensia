@@ -1,70 +1,77 @@
-# TASK-07.26-0010: BP1-04 — Реалізувати lifecycle controller і architecture-enabling slice
+# TASK-07.26-0010: BP1-04 — Реалізувати internal lifecycle controller slice
 
 Status: backlog
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-10
 Owner Role: Product Lead Hat / System Engineer Hat
-Current Run: n/a
+Current Run: RUN-001
 Current Research: n/a
 Current Fixation: n/a
 
 ## Мета
 
-Реалізувати lifecycle-only architecture-enabling slice `construction -> compose -> start -> ready/failed -> stop/dispose` поверх прийнятих domain та IoC foundations без передчасної реалізації facades, plugins, durable runtime або ширшого public API.
+Реалізувати internal architecture-enabling slice `compose -> start -> ready/failed -> stop/dispose` поверх прийнятих domain та IoC foundations без нового public root API, facade/plugin surface або Storage Driver integration contract.
 
 ## Продуктовий контекст
 
-`BP1-01`, `BP1-02` і `BP1-03` створили зелений tooling/package baseline, pure domain contract kernel та internal IoC composition/conformance skeleton. Наступний крок Phase 1 має довести application-facing lifecycle boundary, Extensia-owned startup/rollback і cleanup на deterministic readonly fake driver. Root package entry зараз навмисно не експортує runtime/domain API, а exact public config і conceptual signatures лишаються нестабілізованими.
+`BP1-01`, `BP1-02` і `BP1-03` створили зелений tooling/package baseline, pure domain contract kernel та internal IoC composition/conformance skeleton. Owner decision у `TASK-07.26-0013/FIX-001` звузив BP1-04 до internal `P1-WP4`: lifecycle correctness доводиться internal integration harness, root package лишається без runtime/domain exports, а original public `P1-VS1` successful host scenario deferred до owner gate public config/storage integration.
 
 ## Обсяг
 
-- Реалізувати side-effect-free Extensia Module construction boundary у межах окремо погодженого мінімального public lifecycle contract.
-- Реалізувати internal Runtime Controller і мінімальний набір production lifecycle modules/capabilities, потрібний лише цьому slice.
-- Визначити й реалізувати explicit module/controller state machines та ordered startup stages.
-- Реалізувати readonly deterministic fake Storage Driver contract/binding для lifecycle/failure tests без durability claims.
-- Реалізувати reverse startup rollback, cleanup aggregation і guaranteed composed-runtime disposal.
-- Надати detached immutable safe lifecycle diagnostics/inspection без instances, secrets або private provider values.
-- Розширити fresh-composition harness lifecycle scenarios та перевірити ізоляцію instances.
-- Додати packed Node.js 24 smoke через погоджену application boundary.
+- Реалізувати internal Runtime Controller і lifecycle host, який володіє composed-runtime disposal.
+- Реалізувати immutable generic internal lifecycle contribution descriptor: safe `id`, deterministic `order`, async `start()`/`stop()`.
+- Реалізувати pre-start descriptor validation, sequential deterministic startup, resolved-start cleanup ledger і reverse cleanup.
+- Реалізувати explicit internal lifecycle state machine та normalized Extensia-owned results/diagnostics.
+- Гарантувати local partial-start cleanup ownership contribution-ом, at-most-once contribution stop і at-most-once composed-runtime disposal.
+- Реалізувати deterministic failure aggregation без raw errors, causes, instances, secrets або unsafe config.
+- Додати readonly storage-shaped lifecycle fixture як test-only contribution без Storage Driver semantics.
+- Перевірити construction/start/failure/rollback/stop/disposal тільки internal integration harness із fresh composition per scenario.
+- Посилити packed package boundary smoke без construction/start runtime: import, bounded no-side-effects, zero exports, unchanged exports map, no CJS та exhaustive internal subpath rejection.
 
 ## Поза обсягом
 
+- Public Extensia Module factory/class/config/result/state/inspection contract або successful public start.
+- Будь-які нові root/subpath runtime, lifecycle, domain, testkit, driver чи plugin exports.
 - `storage`/`query` facades, Facade Registry, plugin/extension API, hooks або dynamic extensions.
+- Public/full Storage Driver contract, durable persistence, journal, index, recovery, locks або external sync.
 - Resource/Asset/Mark/KV read/write behavior і Core operation pipeline.
-- Full Storage Driver, durable persistence, journal, index, recovery, locks або external sync.
-- Production subsystem module map поза мінімумом lifecycle slice.
-- Final public config shape, compatibility policy або exact APIs поза окремо погодженим мінімальним lifecycle contract.
-- Public IoC tokens, raw runtime, arbitrary resolver або service locator.
+- Restart/retry, lifecycle operation waiting/cancellation або final public concurrency policy.
+- Production subsystem module map поза мінімумом internal lifecycle slice.
 
-## Залежності та activation gate
+## Залежності та readiness
 
 - `BP1-01` (`TASK-07.26-0005`), `BP1-02` (`TASK-07.26-0007`) і `BP1-03` (`TASK-07.26-0008`) завершені та прийняті людиною.
-- До activation і створення `RUN-001` обов'язковий окремий applied owner-approved design/fixation gate, який фіксує exact мінімальний root lifecycle contract: exported symbol/factory/class, construction/config input, lifecycle result/state shape, inspection exposure і compatibility status.
-- Conceptual signatures source specifications не є authority exact contract; ADR-0003/ADR-0006 та technical architecture/rules/open questions задають constraints.
-- Без applied public-contract gate ця задача лишається `backlog`.
+- Owner decision `TASK-07.26-0013/FIX-001` визначає strict internal/public/package boundary і прибирає попередній public-contract activation blocker.
+- ADR-0003/ADR-0006 та technical architecture/rules/open questions задають composition/lifecycle constraints, але не стабілізують internal names як public API.
+- `RUN-001` підготовлений як execution package, але не запущений. Activation окремо й атомарно переводить task/progress/state у `active` та оновлює run execution metadata перед implementation.
+- Після завершення TASK-0013 і явної команди activation інших design blockers для RUN-001 немає.
 
 ## Критерії приймання
 
-- [ ] Construction не виконує active side effects і не публікує partially initialized runtime.
-- [ ] Module/controller state transitions явні; ready/started публікується лише після успіху всіх required stages.
-- [ ] Failure injection на кожному startup stage виконує deterministic reverse cleanup усіх initialized resources і guaranteed runtime disposal.
-- [ ] Cleanup failure не припиняє cleanup решти resources; результат/diagnostics зберігає повну safe інформацію про failures.
-- [ ] Double/concurrent `start()`/`stop()` behavior відповідає погодженій bounded/idempotency-aware policy й покрите tests.
-- [ ] Fake driver реалізує той самий мінімальний lifecycle port, який очікується від production driver, без паралельної test-only architecture.
-- [ ] Diagnostics/inspection detached, immutable й не містить secrets, provider instances, raw runtime або private values.
-- [ ] Fresh module instances не ділять mutable lifecycle state; post-compose patching/override не використовується.
-- [ ] Packed Node.js 24 smoke доводить construction/start/stop через погоджену root lifecycle boundary без IoC leak.
-- [ ] `RUN-001` містить exact contract authority, lifecycle/failure evidence, independent audit, architecture-pressure review і memory sync.
+- [ ] Composition/construction не запускає active resources і не публікує internal ready state.
+- [ ] Descriptor IDs/orders валідуються до startup; invalid/duplicate data завершується normalized pre-start failure, at-most-once runtime disposal і state `failed` без active resource starts.
+- [ ] Startup є sequential і deterministic за `(order, id)`; ready/started публікується тільки після всіх resolved starts.
+- [ ] Contribution із rejected start локально прибирає partial acquisition; controller не додає його в ledger і не викликає його `stop()`.
+- [ ] Rollback/stop очищає resolved-start ledger у reverse order, не short-circuit після failure й викликає кожний stop at most once.
+- [ ] Lifecycle host викликає composed-runtime disposal at most once; active-resource cleanup і graph/provider disposal не дублюють ownership.
+- [ ] Failure aggregates мають deterministic order і містять тільки Extensia-owned codes, safe IDs та stages.
+- [ ] Internal start/stop/busy/invalid/retry policy відповідає exact RUN-001 requirements і покрита transition matrix.
+- [ ] Storage-shaped fixture лишається test-only generic lifecycle contribution без driver/durability contract claims.
+- [ ] Root namespace має zero exports; package exports лишаються `.` і `./package.json`; all emitted internal direct/dist subpaths недоступні.
+- [ ] Packed root import у fresh child завершується без timeout/persistent handles та не змінює bounded global/env/listener snapshots.
+- [ ] `RUN-001` містить повний package/lifecycle evidence, independent audit, architecture-pressure review і memory sync.
 
 ## Перевірка
 
-- Lifecycle transition matrix для normal, double і concurrent start/stop cases.
-- Injected failure matrix на кожному startup stage з exact cleanup order assertions.
-- Resource leak, fake driver close і composed-runtime disposal assertions.
-- Safe diagnostics/inspection tests із secret/private sentinel values.
+- Descriptor validation і deterministic ordering matrix.
+- Validation failure disposal/aggregate matrix, включно з dispose reject та omission unsafe invalid ID.
+- Lifecycle transition matrix для created/starting/started/stopping/stopped/failed.
+- Partial-start ownership, resolved-start ledger і reverse cleanup tests.
+- Injected start/stop/dispose failures, aggregate order і at-most-once call assertions.
+- Safe diagnostics/inspection sentinel tests.
 - Fresh-composition та cross-instance isolation tests.
-- Root export/type surface checks і packed Node.js 24 start/stop smoke.
+- Root namespace/exports/no-CJS checks, bounded no-side-effects child import і exhaustive emitted internal subpath rejection.
 - Повний clean package gate, успадкований від `BP1-01`.
 
 ## Пов'язана пам'ять
@@ -78,13 +85,12 @@ Current Fixation: n/a
 - `memory/technical/decisions/ADR-0006-phase-1-tooling-and-ioc-baseline.md`
 - `memory/domain/current/implementation-state.md`
 - `memory/reports/research/2026-07-09-extensia-v0-1-0-delivery-plan.md`
-- `memory/tasks/plan/TASK-07.26-0007-bp1-02-pure-domain-contract-kernel/task.md`
 - `memory/tasks/plan/TASK-07.26-0008-bp1-03-ioc-composition-skeleton/task.md`
-- owner-approved public lifecycle contract fixation після її створення
+- `memory/tasks/plan/TASK-07.26-0013-fix-internal-bp1-04-boundary-and-prepare-run/fixations/FIX-001.md`
 
 ## Прогони
 
-Немає. `RUN-001` створюється тільки після applied activation gate.
+- [RUN-001](runs/RUN-001/index.md) - prepared / not started - Execution package internal lifecycle controller slice.
 
 ## Дослідження
 
@@ -92,20 +98,20 @@ Current Fixation: n/a
 
 ## Фіксації
 
-Немає. Exact minimal root lifecycle contract має бути зафіксований окремою owner-approved design/fixation task до activation.
+Немає task-local fixations. Owner decision і execution-boundary fixation зберігаються в `TASK-07.26-0013/FIX-001`.
 
 ## Очікувана синхронізація пам'яті
 
-- Technical/current implementation state: оновити factual lifecycle/controller/fake-driver status і підтверджені limitations.
-- Accepted ADR і target architecture: очікувано `not needed`; discrepancy або нове рішення проводити через окрему fixation/ADR.
-- Task memory/indexes: оновити run artifacts, status, evidence та навігацію.
-- `state.md`: оновити після accepted result BP1-04.
-- Product/domain/knowledge memory: очікувано `not needed` без конкретного підтвердженого розходження.
+- Technical/current implementation state: оновити factual lifecycle/controller status, tests і limitations після implementation.
+- Product roadmap: не заявляти виконання deferred public `P1-VS1`; BP1-04 закриває тільки internal `P1-WP4`.
+- Accepted ADR/target architecture: очікувано `not needed`; discrepancy або нове рішення проводити окремою fixation/ADR.
+- Task/run/indexes/state: оновити status, evidence та навігацію.
+- Product/domain/knowledge memory: очікувано `not needed` без confirmed discrepancy.
 
 ## Architecture pressure
 
-Заборонені speculative horizontal subsystem modules, public service locator, другий Composition Root, premature facade/plugin/config contract, fake-only parallel architecture, implicit recovery/durability claims і cleanup shortcuts. Якщо реалізація потребує contract понад applied activation gate, task зупиняється для окремого design/fixation decision.
+Заборонені public/test-only lifecycle exports, fake-only parallel architecture, de facto Storage Driver contract, second Composition Root, service locator, mutable post-compose overrides, duplicate cleanup ownership, speculative subsystem modules і public compatibility claims із internal state/result names. Якщо implementation потребує public config/storage decision, task зупиняється для owner gate.
 
 ## Додатковий контекст
 
-Planning identifier `BP1-04` зберігає traceability до `P1-WP4/P1-VS1`, а `TASK-07.26-0010` є stable canonical task identifier. Оцінка planning report: `1/3/1/3/2/3=13 -> C3`; обсяг L, ризик високий, невизначеність середня, упевненість середня; рекомендований агент і аудитор — `сильний`.
+Planning identifier `BP1-04` тепер простежується до internal `P1-WP4`. Original application-facing `P1-VS1` superseded/deferred і не вважається виконаним цією задачею. Оцінка лишається `C3`, обсяг L, ризик високий; рекомендований агент і незалежний аудитор — `сильний`.

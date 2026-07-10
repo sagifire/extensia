@@ -2,8 +2,12 @@
 
 ## Призначення
 
-Canonical task `BP1-04` для lifecycle controller і першого architecture-enabling slice Phase 1 після окремого gate мінімального public lifecycle contract.
+Canonical task `BP1-04` для strict internal Runtime Controller/lifecycle slice Phase 1 без нового public root API.
 
 ## Файли
 
-- [Task](task.md) - Scope, activation gate, залежності, критерії приймання, verification, architecture pressure й очікувана memory sync для BP1-04.
+- [Task](task.md) - Internal scope, readiness, критерії приймання, verification, architecture pressure й memory sync для BP1-04.
+
+## Папки
+
+- [Прогони](runs/index.md) - Prepared та виконані autonomous implementation runs задачі.

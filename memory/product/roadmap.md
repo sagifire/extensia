@@ -30,15 +30,17 @@ Gate: пройдений у `TASK-07.26-0002`; пам'ять прийнята л
 
 Стан: next.
 
-Wave IDs: `P1-WP1` tooling/package -> паралельні `P1-WP2` domain contracts і `P1-WP3` IoC composition -> `P1-WP4/P1-VS1` lifecycle slice -> `P1-STAB`.
+Wave IDs: `P1-WP1` tooling/package -> паралельні `P1-WP2` domain contracts і `P1-WP3` IoC composition -> `P1-WP4` internal lifecycle slice -> `P1-STAB`. Original application-facing `P1-VS1` superseded у цій хвилі та deferred до owner gate public config/storage integration.
 
 - Реалізувати прийнятий у ADR-0006 TypeScript/build/test/package baseline для Node.js 24 ESM package.
 - Виконати executable conformance/implementation перевіреного `@sagifire/ioc@0.0.2` API проти internal composition contracts.
 - Реалізувати доменні data contracts та перевірки чистих інваріантів.
-- Побудувати Extensia Composition Root, базові runtime modules, typed tokens і lifecycle controller з fake Storage Driver.
+- Побудувати Extensia Composition Root, мінімальні internal lifecycle modules/contributions і Runtime Controller з deterministic storage-shaped lifecycle fixture без Storage Driver contract claims.
 - Додати composition diagnostics і fresh-composition test harness.
 
-Gate: runtime graph валідовується до startup, стає immutable після `compose()`, start/stop/cleanup перевірені tests.
+Gate: runtime graph валідовується до startup, стає immutable після `compose()`, internal start/rollback/stop/cleanup/disposal перевірені tests, а root package лишається encapsulated без accidental exports. Successful public construction/start не входить у BP1-04.
+
+Phase 1 exception: BP1-04 закриває architecture-enabling internal `P1-WP4`, але не original public `P1-VS1`. Human gate Phase 1 має явно прийняти це deferred scope до Phase 2; historical planning report не переписується.
 
 Allowed parallelism: до завершення `P1-WP1` — лише read-only research і fixture preparation; після tooling gate `P1-WP2` та `P1-WP3` можуть виконуватися паралельно.
 

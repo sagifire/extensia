@@ -18,6 +18,7 @@
 - [TASK-07.26-0010-bp1-04-lifecycle-controller-slice](TASK-07.26-0010-bp1-04-lifecycle-controller-slice/index.md) - Canonical implementation task `BP1-04` для lifecycle controller і architecture-enabling slice.
 - [TASK-07.26-0011-bp1-05-phase-1-stabilization](TASK-07.26-0011-bp1-05-phase-1-stabilization/index.md) - Canonical implementation task `BP1-05` для стабілізації Phase 1.
 - [TASK-07.26-0012-bp1-06-phase-1-independent-audit](TASK-07.26-0012-bp1-06-phase-1-independent-audit/index.md) - Canonical autonomous-research task `BP1-06` для незалежного architecture/package audit Phase 1.
+- [TASK-07.26-0013-fix-internal-bp1-04-boundary-and-prepare-run](TASK-07.26-0013-fix-internal-bp1-04-boundary-and-prepare-run/index.md) - Інтерактивна фіксація internal-only boundary BP1-04 та підготовка RUN-001.
 
 ## Файли
 
