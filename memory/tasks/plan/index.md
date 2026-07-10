@@ -19,6 +19,15 @@
 - [TASK-07.26-0011-bp1-05-phase-1-stabilization](TASK-07.26-0011-bp1-05-phase-1-stabilization/index.md) - Canonical implementation task `BP1-05` для стабілізації Phase 1.
 - [TASK-07.26-0012-bp1-06-phase-1-independent-audit](TASK-07.26-0012-bp1-06-phase-1-independent-audit/index.md) - Canonical autonomous-research task `BP1-06` для незалежного architecture/package audit Phase 1.
 - [TASK-07.26-0013-fix-internal-bp1-04-boundary-and-prepare-run](TASK-07.26-0013-fix-internal-bp1-04-boundary-and-prepare-run/index.md) - Інтерактивна фіксація internal-only boundary BP1-04 та підготовка RUN-001.
+- [TASK-07.26-0014-prepare-phase-2-task-set](TASK-07.26-0014-prepare-phase-2-task-set/index.md) - Інтерактивна підготовка canonical task set `BP2-01`…`BP2-06` без activation.
+- [TASK-07.26-0015-bp2-01-minimal-public-read-contract](TASK-07.26-0015-bp2-01-minimal-public-read-contract/index.md) - Canonical design task `BP2-01` для мінімального public read contract і shared internal seam.
+- [TASK-07.26-0016-bp2-02-read-only-core-index](TASK-07.26-0016-bp2-02-read-only-core-index/index.md) - Canonical implementation task `BP2-02` для read-only Core Extension Port і minimal Resource index.
+- [TASK-07.26-0017-bp2-03-facade-registry-system-facades](TASK-07.26-0017-bp2-03-facade-registry-system-facades/index.md) - Canonical implementation task `BP2-03` для shared Facade Provider/Registry і system facades.
+- [TASK-07.26-0018-bp2-04-public-resource-read-slice](TASK-07.26-0018-bp2-04-public-resource-read-slice/index.md) - Canonical implementation task `BP2-04` для public read-only Resource vertical slice.
+- [TASK-07.26-0019-bp2-05-phase-2-stabilization](TASK-07.26-0019-bp2-05-phase-2-stabilization/index.md) - Canonical implementation task `BP2-05` для стабілізації Phase 2.
+- [TASK-07.26-0020-bp2-06-phase-2-independent-audit](TASK-07.26-0020-bp2-06-phase-2-independent-audit/index.md) - Canonical autonomous-research task `BP2-06` для independent API/architecture audit Phase 2.
+- [TASK-07.26-0021-apply-bp2-01-fix-001](TASK-07.26-0021-apply-bp2-01-fix-001/index.md) - Owner interactive application task для approved `BP2-01 / FIX-001` без activation implementation.
+- [TASK-07.26-0022-bp2-01a-materialize-read-port](TASK-07.26-0022-bp2-01a-materialize-read-port/index.md) - Done chore: один internal shared read-port/token source artifact materialized після application gate.
 
 ## Файли
 

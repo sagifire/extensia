@@ -9,9 +9,9 @@ Updated: 2026-07-10
 
 ## Composition і package structure
 
-- Який остаточний public config: окремі `plugins` і `extensions` чи одна normalized application-facing collection?
+- Який остаточний public config за межами applied Phase 2 readonly `{ storage: { driver } }`: окремі `plugins` і `extensions` чи одна normalized application-facing collection?
 - Які IoC tokens є internal, які можуть стати public/experimental extension tokens, і як версіонувати їхні IDs?
-- Де остаточно живе Facade Registry: у runtime module чи extension layer після Core startup?
+- Де остаточно живе Facade Registry за межами applied Phase 2 Module-owned lifecycle/freeze/provenance boundary: у runtime module чи extension layer після Core startup?
 - Чи входить Advanced IoC Extension Module API у `0.1.0`, чи лишається deferred/experimental?
 
 ## Runtime і storage
@@ -27,12 +27,12 @@ Updated: 2026-07-10
 
 ## API та extensions
 
-- Які exact method names і input/result DTO входять у stabilized `storage` та `query` facades?
-- Який остаточний error code catalog і чи `cause` доступний у production diagnostics?
+- Які exact method names і input/result DTO входять поза applied Phase 2 `query.getResource`/`query.getResourceTree` та experimental readonly `storage.createResource(input: unknown)`?
+- Який остаточний error code catalog поза bounded Phase 2 subset і чи `cause` доступний у production diagnostics?
 - Які hook names стабільні, які payload contracts вони мають і які handlers виконуються sequential/parallel?
 - Як optional plugin failure взаємодіє з declared facades і transitive dependencies?
 - Як агрегуються stop failures/warnings без втрати cleanup інших plugins?
-- Чи facade names case-sensitive, normalized або namespaced за обов'язковою policy?
+- Яка policy namespacing/custom facade names існує поза applied lowercase exact naming, reserved `query`/`storage` і Module-owned provenance Phase 2?
 - Яку compatibility policy застосувати до public facades, plugin API, hooks, Core Extension Port та experimental APIs до/після `0.1.0`?
 
 ## Testing і release

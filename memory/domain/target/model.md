@@ -108,6 +108,6 @@ Runtime повертає detached snapshots без shared mutable references і�
 
 ### Відкладені contract gates
 
-- Exact facade input/result shapes і public package exports визначаються у P2-DG1/P7-WP1.
+- Exact bounded Phase 2 facade input/result shapes визначені у [public read contract](../../technical/public-read-contract.md): root construction/lifecycle, two Resource reads, readonly proof і canonical detached snapshots. Full facade catalog, final exports/compatibility policy та release freeze лишаються P7-WP1.
 - Size limits для `Asset.data`, Mark/KV і schema versioning визначаються їхніми owner gates.
 - Implementation не має послаблювати прийняті scalar/DTO contracts або інваріанти без явного design decision.

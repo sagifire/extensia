@@ -16,3 +16,4 @@ ADR-like рішення з технічними або структурними 
 - [ADR-0004 Facade-first extension boundary](ADR-0004-facade-first-extension-boundary.md) - Прийнята межа public facades, plugins і frozen registry; exact API contracts лишаються окремими gates.
 - [ADR-0005 Core operation consistency](ADR-0005-core-operation-consistency.md) - Прийнята write model через Core, Storage Driver, Journal та Hot Metadata Index; physical protocol лишається окремим gate.
 - [ADR-0006 Phase 1 tooling та IoC baseline](ADR-0006-phase-1-tooling-and-ioc-baseline.md) - Прийнятий date-bound Node.js 24 ESM toolchain і перевірені integration boundaries `@sagifire/ioc@0.0.2`.
+- [ADR-0007 Мінімальний public read contract](ADR-0007-minimal-public-read-contract.md) - Exact P2-DG1 factory/module/result/facade publication/shared seam decision.

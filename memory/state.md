@@ -8,7 +8,7 @@ Internal Stage: `v2`
 
 ## Поточний фокус
 
-Phase 1 завершена й прийнята людиною. `BP1-01`…`BP1-06` мають status `done`; independent `BP1-06 / RSCH-001` підтвердила evidence revision `R1` без відкритих P0–P3 findings. Human gate явно прийняв internal `P1-WP4` boundary і deferred original public/application-facing `P1-VS1`.
+Phase 1 завершена й прийнята людиною. `BP2-01 / TASK-07.26-0015`, owner application `TASK-07.26-0021` і `BP2-01A / TASK-07.26-0022` завершені як `done`; `APP-07.26-0021-001` published, а один internal shared read-port/token source artifact materialized, independently reviewed і прийнятий людиною. BP2-02/BP2-03 не активовані.
 
 ## Поточний стан продукту
 
@@ -25,7 +25,9 @@ Phase 1 завершена й прийнята людиною. `BP1-01`…`BP1-0
 
 ## Активні задачі
 
-Немає active або review задач.
+- `BP2-01A / TASK-07.26-0022` завершена як `done`; `RUN-001` materialized exact internal shared read-port/token source artifact без runtime implementation, independently reviewed і прийнятий людиною. BP2-02/BP2-03 не активовані.
+- `BP2-01 / TASK-07.26-0015` завершена як `done`: design/research result і окрема `FIX-001` погоджені людиною; fixation застосована owner TASK-0021 і `APP-07.26-0021-001` published.
+- `TASK-07.26-0014` завершена як `done`: canonical `BP2-01`…`BP2-06` підготовлені, незалежно перевірені й прийняті людиною; `BP2-01` згодом окремо активована й завершена, решта лишаються `backlog` без execution artifacts.
 - `BP1-06` (`TASK-07.26-0012`), `BP1-05` (`TASK-07.26-0011`), `BP1-04` (`TASK-07.26-0010`), `TASK-07.26-0013`, `TASK-07.26-0009`, `BP1-01` (`TASK-07.26-0005`), `BP1-02` (`TASK-07.26-0007`) і `BP1-03` (`TASK-07.26-0008`) завершені як `done`.
 
 ## Останні рішення
@@ -58,6 +60,12 @@ Phase 1 завершена й прийнята людиною. `BP1-01`…`BP1-0
 - Користувач 2026-07-10 виконав whole-task review BP1-06, дозволив завершити TASK-07.26-0012 як `done` і окремо підтвердив Phase 1 human gate: internal `P1-WP4` прийнятий, original public/application-facing `P1-VS1` superseded/deferred до owner gate public config/storage integration.
 - `TASK-07.26-0006` пройшла whole-task human review і завершена як `done`; closure містить фінальну перевірку memory sync.
 - `TASK-07.26-0003` прийнята людиною й завершена як `done`; detailed rolling-wave plan та незалежний audit залишаються довгоживучими reports.
+- `TASK-07.26-0014` підготувала canonical Phase 2 backlog set `BP2-01`…`BP2-06`; тільки BP2-01 може бути наступною activation, а BP2-02/BP2-03 залежать від окремої human-approved fixation application task зі shared internal seam.
+- Користувач 2026-07-10 виконав whole-task review TASK-07.26-0014 і явно дозволив завершити її як `done`; це рішення не активує жодну BP2 task.
+- Користувач 2026-07-10 виконав whole-task review `BP2-01 / TASK-07.26-0015` і дозволив завершити її як `done`; exact design proposal прийнято як task result, але `FIX-001` не отримала окремого approval, canonical memory/source не змінені, implementation tasks не активовані.
+- Користувач 2026-07-10 окремо підтвердив `BP2-01 / FIX-001` з approval scope `fixation-only`; це дозволяє підготувати owner application task, але не є application і не активує implementation.
+- Користувач 2026-07-10 активував `TASK-07.26-0021` і дозволив незалежних субагентів для рев’ю; independent pre-audit `APPLY` і repeated post-audit `PASS` дозволили application та publication `APP-07.26-0021-001` до whole-task human review.
+- Користувач 2026-07-10 виконав whole-task review TASK-07.26-0021 і явно дозволив завершити її як `done`; canonical contract/ADR, prepared BP2-01A та `APP-07.26-0021-001` прийняті без activation implementation tasks.
 - Поточний і цільовий domain state зберігаються окремо.
 - `TASK-07.26-0002` прийнята людиною й завершена як `done`; cumulative результат зафіксовано в task closure.
 
@@ -67,13 +75,12 @@ Phase 1 завершена й прийнята людиною. `BP1-01`…`BP1-0
 - Source specifications задають широку surface area. Реалізація без вертикальних slices створить сильний architecture pressure і ризик незавершених cross-cutting guarantees.
 - Tooling/package reproducibility, IoC composition conformance й strict internal lifecycle controller/rollback/ready-state publication реалізовані; public Extensia Module lifecycle/config/storage integration лишаються deferred design gate.
 - Перший concrete Storage Driver, atomic commit protocol, journal format і recovery matrix не визначені.
-- Public facade methods, error catalog, hook payloads і compatibility policy потребують окремих design gates.
+- BP2-01 owner task застосувала canonical public read contract/ADR і shared seam design; `APP-07.26-0021-001` published. Write API, повний error catalog, hooks і release compatibility policy лишаються окремими gates.
 - Runtime reference містить історичні self-references на видалений non-IoC filename; canonical source policy явно перенаправляє до актуального IoC document.
 
 ## Наступні кроки
 
-1. Окремо підготувати canonical Phase 2 design task для мінімального read API/public config-storage integration gate.
-2. Не активувати implementation Phase 2 до task preparation і відповідного owner approval.
+1. Окремо вирішити, чи активувати BP2-02 і/або BP2-03; вони можуть виконуватися паралельно лише після власних explicit activation decisions.
 
 ## Відкриті питання
 

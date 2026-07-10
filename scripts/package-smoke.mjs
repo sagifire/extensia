@@ -96,6 +96,10 @@ try {
     "dist/runtime/lifecycle.d.ts.map",
     "dist/runtime/lifecycle.js",
     "dist/runtime/lifecycle.js.map",
+    "dist/system-extensions/default-api/resource-read-port.d.ts",
+    "dist/system-extensions/default-api/resource-read-port.d.ts.map",
+    "dist/system-extensions/default-api/resource-read-port.js",
+    "dist/system-extensions/default-api/resource-read-port.js.map",
     "package.json",
   ]);
   assert.ok(

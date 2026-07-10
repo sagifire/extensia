@@ -46,9 +46,9 @@ Allowed parallelism: до завершення `P1-WP1` — лише read-only r
 
 ## Фаза 2 — Read-only Resource slice та API foundation
 
-Стан: planned.
+Стан: P2-DG1 applied як accepted design (`APP-07.26-0021-001` published); implementation ще не починалася.
 
-Wave IDs: `P2-DG1` мінімальний read API contract -> паралельні `P2-WP2` Core/Index і `P2-WP3` Facade Registry -> `P2-VS1` public Resource read -> `P2-STAB`.
+Wave IDs: `P2-DG1` мінімальний read API contract -> `BP2-01A` materialized shared seam -> паралельні `P2-WP2` Core/Index і `P2-WP3` Facade Registry -> `P2-VS1` public Resource read -> `P2-STAB`.
 
 - Реалізувати Core Extension Port read path для `Resource` поверх read-only/fake Storage Driver.
 - Реалізувати мінімальний Hot Metadata Index для Resource lookup і tree projection без claims про durable state.
@@ -57,6 +57,8 @@ Wave IDs: `P2-DG1` мінімальний read API contract -> паралель�
 - Провести read-only vertical scenario через public facade boundary.
 
 Gate: жодна write-операція не може повернути success; query не пише Journal; DTO є snapshots; registry frozen; public API не розкриває IoC runtime.
+
+`P2-DG1` застосував лише exact public contract у `technical/public-read-contract.md` і ADR-0007. BP2-02/BP2-03 не активуються до published `APP-07.26-0021-001`, `done` BP2-01A та окремого activation decision кожної task; після цих gates вони можуть виконуватися паралельно. Послідовність наступних waves не змінена.
 
 ## Фаза 3 — Перший journal-backed Resource write slice
 

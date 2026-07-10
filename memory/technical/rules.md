@@ -1,7 +1,7 @@
 # Технічні правила
 
 Status: target baseline
-Updated: 2026-07-09
+Updated: 2026-07-10
 
 ## Source і версії
 
@@ -45,13 +45,17 @@ Updated: 2026-07-09
 29. Required extension dependencies декларуються й валідуються до ready state.
 30. Plugin є trusted in-process code, не sandbox; Plugin Context не є IoC container.
 31. Pre-commit filters не створюють side effects, які неможливо відкотити при operation failure.
+32. Для Phase 2 facade/owner name має exact lowercase ASCII pattern `^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$`, 1..128 chars; silent case/whitespace normalization заборонена.
+33. Reserved `query`/`storage` потребують Module-owned trusted composition lease `extensia.default-api`, а не self-asserted provider flag; Registry freeze передує atomic ready publication.
+34. Phase 2 `storage.createResource(input: unknown)` має повернути `STORAGE_READONLY` до читання/validation input або будь-якої mutation; це `experimental-phase-2`, не successful write API.
+35. BP2-02/BP2-03 не створюють parallel або test-only read contract: вони використовують один consumer-owned seam після `done` BP2-01A.
 
 ## Якість
 
-32. Кожний vertical slice перевіряє domain invariants, failure path, cleanup і public/internal boundary.
-33. Tests використовують ті самі public plugin/driver/contracts, що й production, без parallel test-only architecture.
-34. Diagnostics не розкривають secrets, unsafe config, provider values або private runtime instances.
-35. Якщо implementation потребує обходу одного з цих правил, робота зупиняється для design/ADR, а не закріплює workaround.
+36. Кожний vertical slice перевіряє domain invariants, failure path, cleanup і public/internal boundary.
+37. Tests використовують ті самі public plugin/driver/contracts, що й production, без parallel test-only architecture.
+38. Diagnostics не розкривають secrets, unsafe config, provider values або private runtime instances.
+39. Якщо implementation потребує обходу одного з цих правил, робота зупиняється для design/ADR, а не закріплює workaround.
 
 ## Architecture health check
 

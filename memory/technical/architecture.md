@@ -83,6 +83,10 @@ Facades представляють capabilities application code. Plugins дод
 
 Створення Extensia Module з config не активує runtime і не публікує ready facades.
 
+### Applied P2-DG1 read boundary
+
+Для майбутнього Phase 2 застосовано exact root-only `createExtensia(config)` design: construction side-effect-free, safe descriptor extraction не викликає getters, invalid/accessor config зберігається sentinel і дає `CONFIG_INVALID` до resources; factory capture-ить driver identity у frozen envelope й не reread-ить caller envelope. Module матиме dedicated nullable `query()`/`storage()`, лише `getResource`/`getResourceTree`, Registry freeze до atomic ready publication, intake close-and-drain before disposal та один `experimental-phase-2` readonly rejection proof. Shared consumer-owned read-port/token seam materialized у BP2-01A; цей документ не заявляє runtime implementation, final driver/write protocol або другий read contract.
+
 ### Composition
 
 1. Validate й normalize config та extension descriptors.

@@ -11,6 +11,7 @@
 ## Файли
 
 - [Architecture](architecture.md) - Цільова IoC-орієнтована runtime/API architecture і її відмінність від поточного стану.
+- [Public Read Contract](public-read-contract.md) - Applied P2-DG1 minimum public construction/lifecycle/read contract; design accepted, не implementation claim.
 - [Stack](stack.md) - Поточний та запланований технологічний stack зі статусами.
 - [Rules](rules.md) - Обов'язкові технічні правила й архітектурні інваріанти.
 - [Source Specifications](source-specifications.md) - Канонічні source files, виключені документи та правила інтерпретації.
