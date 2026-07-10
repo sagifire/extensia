@@ -18,9 +18,9 @@ Updated: 2026-07-10
 | Module system | current | ESM через `type: module`. |
 | TypeScript | current | Exact compiler baseline `typescript@6.0.3`; NodeNext/ES2024 strict build і no-emit typecheck реалізовані в BP1-01. |
 | Node types | current | Exact direct pin `@types/node@24.12.0` встановлено через committed npm lockfile. |
-| `@sagifire/ioc` | current | Exact internal runtime dependency `@sagifire/ioc@0.0.2` встановлено; composition implementation лишається scope BP1-03. |
+| `@sagifire/ioc` | current | Exact internal runtime dependency `@sagifire/ioc@0.0.2` встановлено; BP1-03 реалізувала internal composition/conformance skeleton без public IoC exports. |
 
-Фактичний API `@sagifire/ioc@0.0.2` перевірено за exact package contents. Він підтримує typed tokens, modules, graph validation, adapters, cardinality, scopes, inspection і disposal. Multi contributions є synchronous values/factories; Extensia самостійно володіє async lifecycle, extension graph, startup rollback і stop ordering. Specification sketches не замінюють package types або conformance tests у BP1-03.
+Фактичний API `@sagifire/ioc@0.0.2` перевірено за exact package contents і executable conformance tests BP1-03. Він підтримує typed tokens, modules, graph validation, adapters, cardinality, scopes, inspection і disposal. Internal Composition Root повертає лише allowlisted immutable capability map, safe detached inspection і контрольовані scope/disposal operations; raw composer/runtime не експонуються. Multi contributions є synchronous values/factories; Extensia самостійно володіє async lifecycle, extension graph, startup rollback і stop ordering.
 
 ## Зберігання
 

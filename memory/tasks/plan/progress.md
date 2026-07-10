@@ -17,8 +17,8 @@
 ## Фаза 1 — Контракти й каркас композиції
 
 - [x] **[Done]** [BP1-01 / TASK-07.26-0005](TASK-07.26-0005-bp1-01-esm-typescript-package-baseline/index.md) - ESM TypeScript tooling/package gate реалізовано, незалежно перевірено та прийнято людиною.
-- [ ] **[Backlog]** [BP1-02 / TASK-07.26-0007](TASK-07.26-0007-bp1-02-pure-domain-contract-kernel/index.md) - Реалізувати pure domain contract kernel після зеленого BP1-01 gate.
-- [ ] **[Backlog]** [BP1-03 / TASK-07.26-0008](TASK-07.26-0008-bp1-03-ioc-composition-skeleton/index.md) - Побудувати internal IoC composition/conformance skeleton після зеленого BP1-01 gate.
+- [x] **[Done]** [BP1-02 / TASK-07.26-0007](TASK-07.26-0007-bp1-02-pure-domain-contract-kernel/index.md) - Pure domain contract kernel реалізовано, незалежно перевірено та прийнято людиною.
+- [x] **[Done]** [BP1-03 / TASK-07.26-0008](TASK-07.26-0008-bp1-03-ioc-composition-skeleton/index.md) - Internal IoC composition/conformance skeleton реалізовано, незалежно перевірено та прийнято людиною.
 
 ## Фаза 2 — Read-only Resource slice та API foundation
 

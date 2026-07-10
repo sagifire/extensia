@@ -2,11 +2,11 @@
 
 Status: target-draft
 Target Release: `0.1.0`
-Updated: 2026-07-09
+Updated: 2026-07-10
 
 ## Статус реалізації
 
-Цей документ описує цільову архітектуру зі draft-специфікацій. Виконувана реалізація наразі відсутня; фактичний стан зафіксовано в `memory/domain/current/implementation-state.md`. Концептуальні TypeScript signatures і module sketches не вважаються стабілізованим public contract без окремого design gate.
+Цей документ описує цільову архітектуру зі draft-специфікацій. Фактично реалізовані лише internal pure domain contract kernel і internal IoC composition/conformance skeleton; production runtime, Extensia Module, Core, Storage Driver та public facades відсутні. Детальний current state зафіксовано в `memory/domain/current/implementation-state.md`. Концептуальні TypeScript signatures і production module sketches не вважаються стабілізованим public contract без окремого design gate.
 
 ## Архітектурна ідея
 
@@ -197,7 +197,7 @@ Baseline не обіцяє dynamic extensions після startup, high-throughpu
 
 ## Architecture health
 
-Оскільки коду ще немає, фактичний architecture pressure не вимірюється. Ризик design pressure уже високий через широку одночасну surface area. Implementation має йти вертикальними slices з dependency gates з `memory/product/roadmap.md`; спроба реалізувати всі підсистеми одним шаром буде сигналом для окремого architecture/design review.
+Фактичні Phase 1 kernel і composition skeleton поки не створюють істотного architecture pressure: вони internal, не розширюють root API і не реалізують speculative production module map. Ризик design pressure лишається високим через широку цільову surface area. Implementation має йти вертикальними slices з dependency gates з `memory/product/roadmap.md`; спроба реалізувати всі підсистеми одним шаром буде сигналом для окремого architecture/design review.
 
 ## Джерела
 

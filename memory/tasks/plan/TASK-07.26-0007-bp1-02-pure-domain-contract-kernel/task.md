@@ -1,11 +1,11 @@
 # TASK-07.26-0007: BP1-02 — Реалізувати pure domain contract kernel
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-10
 Owner Role: Product Lead Hat
-Current Run: n/a
+Current Run: RUN-001
 Current Research: n/a
 Current Fixation: n/a
 
@@ -44,14 +44,14 @@ Extensia потребує єдиного типобезпечного предс
 
 ## Критерії приймання
 
-- [ ] `IDString` приймає лише hyphenated UUID v4 у lower/upper/mixed hex case, повертає lowercase canonical value й відхиляє інші versions/forms.
-- [ ] `Timestamp` приймає лише safe integers у визначеному Date range; invalid Date, strings, fractional/out-of-range/non-finite values відхиляються.
-- [ ] JSON types і validators забороняють non-JSON та non-finite values на будь-якій глибині; valid values проходять JSON roundtrip без зміни semantics.
-- [ ] Domain DTO properties/arrays/records є deeply readonly на type level; builders повертають detached snapshots без mutable aliases.
-- [ ] Pure validators покривають лише явно прийняті invariants Resource/Asset/Mark/KV; поведінка відкритих питань не реалізована неявно.
-- [ ] Compile-time tests доводять readonly boundary, а runtime alias-mutation tests доводять detached ownership без залежності від `Object.freeze()`.
-- [ ] Root package exports не отримують speculative public signatures або subpaths у межах цієї задачі.
-- [ ] `RUN-001` містить evidence tests/typechecks, architecture-pressure review, independent audit findings і memory sync.
+- [x] `IDString` приймає лише hyphenated UUID v4 у lower/upper/mixed hex case, повертає lowercase canonical value й відхиляє інші versions/forms.
+- [x] `Timestamp` приймає лише safe integers у визначеному Date range; invalid Date, strings, fractional/out-of-range/non-finite values відхиляються.
+- [x] JSON types і validators забороняють non-JSON та non-finite values на будь-якій глибині; valid values проходять JSON roundtrip без зміни semantics.
+- [x] Domain DTO properties/arrays/records є deeply readonly на type level; builders повертають detached snapshots без mutable aliases.
+- [x] Pure validators покривають лише явно прийняті invariants Resource/Asset/Mark/KV; поведінка відкритих питань не реалізована неявно.
+- [x] Compile-time tests доводять readonly boundary, а runtime alias-mutation tests доводять detached ownership без залежності від `Object.freeze()`.
+- [x] Root package exports не отримують speculative public signatures або subpaths у межах цієї задачі.
+- [x] `RUN-001` містить evidence tests/typechecks, architecture-pressure review, independent audit findings і memory sync.
 
 ## Перевірка
 
@@ -77,7 +77,7 @@ Extensia потребує єдиного типобезпечного предс
 
 ## Прогони
 
-Немає. Після green `BP1-01`, разом із переходом задачі у `active`, створюються `runs/index.md`, `runs/RUN-001/index.md`, `runs/RUN-001/requirements.md`, `runs/RUN-001/context.md` і `runs/RUN-001/result.md`.
+- [RUN-001](runs/RUN-001/index.md) - Implementation run завершено, незалежно перевірено й прийнято людиною.
 
 ## Дослідження
 

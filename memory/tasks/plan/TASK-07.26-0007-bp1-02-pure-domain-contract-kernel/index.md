@@ -6,8 +6,9 @@ Canonical task `BP1-02` для реалізації чистого domain-contra
 
 ## Папки
 
-Немає. Папка `runs/` і `RUN-001` створюються тільки під час активації задачі після `BP1-01`.
+- [Runs](runs/index.md) - Autonomous implementation runs задачі.
 
 ## Файли
 
 - [Task](task.md) - Scope, залежності, критерії приймання, verification, architecture pressure і очікувана memory sync для BP1-02.
+- [Closure](closure.md) - Whole-task human approval, фінальний підсумок і перевірка синхронізації пам’яті.

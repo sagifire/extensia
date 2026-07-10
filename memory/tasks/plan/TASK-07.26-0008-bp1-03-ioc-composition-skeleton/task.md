@@ -1,11 +1,11 @@
 # TASK-07.26-0008: BP1-03 — Побудувати IoC composition skeleton
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-10
 Owner Role: Product Lead Hat
-Current Run: n/a
+Current Run: RUN-001
 Current Research: n/a
 Current Fixation: n/a
 
@@ -45,14 +45,14 @@ Extensia використовує `@sagifire/ioc` як internal composition laye
 
 ## Критерії приймання
 
-- [ ] Missing required port, cycle, duplicate binding, single/multi cardinality mismatch і invalid adapter graph завершуються deterministic failure до runtime startup.
-- [ ] `compose()` повертає immutable exported capabilities; post-compose mutation/override не використовується, кожен test створює fresh composition.
-- [ ] Module-private providers недоступні поза owner module; application/package root не отримує raw runtime, tokens або arbitrary resolver.
-- [ ] Safe inspection і normalized diagnostics не містять provider instances, secrets, unsafe config або private values.
-- [ ] Synchronous contribution limitation encoded у contracts/tests; async lifecycle behavior не делегується package і не реалізується в цій задачі.
-- [ ] Conformance coverage використовує test-only probe modules; production `extensia.*` subsystem module set не створюється speculative.
-- [ ] Scope/disposal smoke доводить expected package behavior і cleanup; lifecycle rollback/ready semantics лишаються BP1-04.
-- [ ] `RUN-001` містить package API evidence, graph/diagnostic contract results, architecture-pressure review, independent audit findings і memory sync.
+- [x] Missing required port, cycle, duplicate binding, single/multi cardinality mismatch і invalid adapter graph завершуються deterministic failure до runtime startup.
+- [x] `compose()` повертає immutable exported capabilities; post-compose mutation/override не використовується, кожен test створює fresh composition.
+- [x] Module-private providers недоступні поза owner module; application/package root не отримує raw runtime, tokens або arbitrary resolver.
+- [x] Safe inspection і normalized diagnostics не містять provider instances, secrets, unsafe config або private values.
+- [x] Synchronous contribution limitation encoded у contracts/tests; async lifecycle behavior не делегується package і не реалізується в цій задачі.
+- [x] Conformance coverage використовує test-only probe modules; production `extensia.*` subsystem module set не створюється speculative.
+- [x] Scope/disposal smoke доводить expected package behavior і cleanup; lifecycle rollback/ready semantics лишаються BP1-04.
+- [x] `RUN-001` містить package API evidence, graph/diagnostic contract results, architecture-pressure review, independent audit findings і memory sync.
 
 ## Перевірка
 
@@ -80,7 +80,7 @@ Extensia використовує `@sagifire/ioc` як internal composition laye
 
 ## Прогони
 
-Немає. Після green `BP1-01`, разом із переходом задачі у `active`, створюються `runs/index.md`, `runs/RUN-001/index.md`, `runs/RUN-001/requirements.md`, `runs/RUN-001/context.md` і `runs/RUN-001/result.md`.
+- [RUN-001](runs/RUN-001/index.md) - Implementation run завершено, незалежно перевірено й прийнято людиною.
 
 ## Дослідження
 
