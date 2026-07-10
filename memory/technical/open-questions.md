@@ -18,16 +18,15 @@ Updated: 2026-07-10
 
 - Який concrete Storage Driver буде першим supported driver і який його physical metadata/file layout?
 - Яка atomic commit strategy узгоджує metadata, files і committed journal entry для першого driver?
-- Які exact storage-level lock semantics, timeout/cancellation policy та crash behavior?
-- Який type й persistence format має journal `sequence` та як гарантується monotonic order між processes?
-- Чи journal зберігає `started`/`failed`/`rolled_back` entries у baseline, чи тільки committed entries плюс driver staging state?
-- Яка recovery policy для кожного класу partial failure та коли startup має перейти у `failed` замість автоматичного cleanup?
+- Який concrete lock/lease mechanism і timeout потрібні першому physical driver? P3 baseline уже задає exclusive recovery-clean session, cancellation до staging і no outcome change після commit start.
+- Який physical encoding/persistence format матиме прийнята canonical positive-decimal contiguous journal sequence?
+- Який concrete staging/layout mechanism доведе outcome-definite semantic commit і recovery matrix на першому durable driver?
 - Який trigger для External Change Sync: polling, driver notification або explicit refresh; яка cursor persistence policy?
 - Яка correctness/completeness semantics глобальних queries у `lazy` mode?
 
 ## API та extensions
 
-- Які exact method names і input/result DTO входять поза applied Phase 2 `query.getResource`/`query.getResourceTree` та experimental readonly `storage.createResource(input: unknown)`?
+- Які exact method names і input/result DTO входять поза applied Phase 2 reads та accepted bounded P3 root create/own-metadata update contract?
 - Який остаточний error code catalog поза bounded Phase 2 subset і чи `cause` доступний у production diagnostics?
 - Які hook names стабільні, які payload contracts вони мають і які handlers виконуються sequential/parallel?
 - Як optional plugin failure взаємодіє з declared facades і transitive dependencies?
@@ -40,3 +39,10 @@ Updated: 2026-07-10
 - Чи `@extensia/testkit` буде окремим package, subpath export або internal test helper?
 - Які мінімальні failure-injection scenarios є release gate для journal, recovery, driver й startup rollback?
 - Які performance budgets потрібні для greedy startup, lazy first read, index memory usage і serialized writes?
+
+## Закритий P3-DG1 baseline
+
+- Driver-owned outcome-definite transaction commit є єдиним metadata+journal semantic commit path; persistent journal committed-only.
+- Journal sequence є positive decimal string від `1`, contiguous/gap-free; cursor/gap integrity semantics прийняті, physical encoding і retention deferred.
+- Operation/actor identity, full write-set fingerprint idempotency, lock/cancellation baseline, recovery-before-ready і coherent startup scan прийняті.
+- Deterministic full fake має відтворювати transaction, cut-point, crash/fresh-composition, sequence/idempotency/integrity й recovery contracts; concrete durability proof лишається P4 gate.

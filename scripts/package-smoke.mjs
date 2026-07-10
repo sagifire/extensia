@@ -77,6 +77,10 @@ try {
     "dist/composition/tokens.d.ts.map",
     "dist/composition/tokens.js",
     "dist/composition/tokens.js.map",
+    "dist/core/resource-index-write-contracts.d.ts",
+    "dist/core/resource-index-write-contracts.d.ts.map",
+    "dist/core/resource-index-write-contracts.js",
+    "dist/core/resource-index-write-contracts.js.map",
     "dist/core/resource-index.d.ts",
     "dist/core/resource-index.d.ts.map",
     "dist/core/resource-index.js",
@@ -101,6 +105,10 @@ try {
     "dist/index.d.ts.map",
     "dist/index.js",
     "dist/index.js.map",
+    "dist/operations/resource-operation-contracts.d.ts",
+    "dist/operations/resource-operation-contracts.d.ts.map",
+    "dist/operations/resource-operation-contracts.js",
+    "dist/operations/resource-operation-contracts.js.map",
     "dist/public/contracts.d.ts",
     "dist/public/contracts.d.ts.map",
     "dist/public/contracts.js",
@@ -117,6 +125,14 @@ try {
     "dist/runtime/lifecycle.d.ts.map",
     "dist/runtime/lifecycle.js",
     "dist/runtime/lifecycle.js.map",
+    "dist/storage/full-resource-driver-adapter.d.ts",
+    "dist/storage/full-resource-driver-adapter.d.ts.map",
+    "dist/storage/full-resource-driver-adapter.js",
+    "dist/storage/full-resource-driver-adapter.js.map",
+    "dist/storage/resource-write-protocol.d.ts",
+    "dist/storage/resource-write-protocol.d.ts.map",
+    "dist/storage/resource-write-protocol.js",
+    "dist/storage/resource-write-protocol.js.map",
     "dist/system-extensions/default-api/facades.d.ts",
     "dist/system-extensions/default-api/facades.d.ts.map",
     "dist/system-extensions/default-api/facades.js",
@@ -125,6 +141,10 @@ try {
     "dist/system-extensions/default-api/resource-read-port.d.ts.map",
     "dist/system-extensions/default-api/resource-read-port.js",
     "dist/system-extensions/default-api/resource-read-port.js.map",
+    "dist/system-extensions/default-api/resource-write-port.d.ts",
+    "dist/system-extensions/default-api/resource-write-port.d.ts.map",
+    "dist/system-extensions/default-api/resource-write-port.js",
+    "dist/system-extensions/default-api/resource-write-port.js.map",
     "package.json",
   ]);
   assert.ok(
@@ -135,9 +155,11 @@ try {
   );
   assert.ok(
     !packageContents.some((file) =>
-      /(?:journal|operation-engine|write-runtime|write-port)/i.test(file),
+      /(?:journal-(?:runtime|service)|operation-engine|write-runtime)/i.test(
+        file,
+      ),
     ),
-    "Phase 2 package must not contain a write or Journal runtime path.",
+    "Package must not contain a write or Journal runtime implementation path.",
   );
   const publicRuntimeSource = readFileSync(
     join(root, "dist", "public", "extensia.js"),

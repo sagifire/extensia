@@ -66,6 +66,9 @@ Detailed Source: `memory/references/extensia-v2/domain-model-v2.md`
 2. Будь-яка durable зміна Resource, Asset, Mark або KV має виконуватися explicit command через Core operation pipeline.
 3. Runtime має перевіряти ці інваріанти до publication committed state.
 4. Partially successful state не може публікуватися як success.
+5. Bounded P3 create приймає лише non-empty-after-trim string `title` і optional string-or-null `description`, не нормалізує значення та створює лише root Resource з canonical generated defaults.
+6. Bounded P3 update приймає exact own `title`/`description` patch, потребує хоча б одну effective change й змінює own `updated_at`; Hot Index не є write authority.
+7. Caller не може передати create ID/timestamps/parent/order/flags/aggregates, а update не може змінювати parent/order/flags/aggregates до P3-DG2.
 
 ## Правило невизначеності
 

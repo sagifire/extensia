@@ -6,10 +6,10 @@ Updated: 2026-07-10
 
 ## Resource
 
-- Яка точна policy для `updated_at`: чи змінюється він при зміні Asset, Mark, KV і tree relations, чи тільки власних Resource metadata?
+- Як `updated_at` змінюється для Asset, Mark, KV і tree relations? Bounded P3 own `title`/`description` update вже змінює own `updated_at` validated operation clock.
 - Яка семантика `is_deleted`: soft-delete лише для Resource, propagation на children/assets, visibility у queries та можливість restore?
 - Які integrations або plugins першими визначатимуть behavior `locked` і `hidden`, і чи потрібні reserved hook names для них?
-- Які validation rules діють для `title`, `description`, `parent_id` та `order_index`, включно з empty values і numeric range?
+- Які validation rules діють для `parent_id` та `order_index`, включно з numeric range? Для bounded P3 title/description вже прийнято exact structural contract: title string із `trim().length > 0` без normalization, description string або null.
 - Як нормалізується `order_index` під час insert, move і delete в sibling group?
 
 ## Asset

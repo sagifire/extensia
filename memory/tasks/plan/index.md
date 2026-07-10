@@ -28,6 +28,14 @@
 - [TASK-07.26-0020-bp2-06-phase-2-independent-audit](TASK-07.26-0020-bp2-06-phase-2-independent-audit/index.md) - Canonical autonomous-research task `BP2-06` для independent API/architecture audit Phase 2.
 - [TASK-07.26-0021-apply-bp2-01-fix-001](TASK-07.26-0021-apply-bp2-01-fix-001/index.md) - Owner interactive application task для approved `BP2-01 / FIX-001` без activation implementation.
 - [TASK-07.26-0022-bp2-01a-materialize-read-port](TASK-07.26-0022-bp2-01a-materialize-read-port/index.md) - Done chore: один internal shared read-port/token source artifact materialized після application gate.
+- [TASK-07.26-0023-bp3-01-write-journal-recovery-protocol](TASK-07.26-0023-bp3-01-write-journal-recovery-protocol/index.md) - Done canonical design task `BP3-01 / P3-DG1`; approved FIX-001 applied owner TASK-0024.
+- [TASK-07.26-0024-apply-bp3-01-fix-001](TASK-07.26-0024-apply-bp3-01-fix-001/index.md) - Done owner application task; `APP-07.26-0024-001` published і прийнятий whole-task human review.
+- [TASK-07.26-0025-bp3-01a-materialize-write-protocol-seams](TASK-07.26-0025-bp3-01a-materialize-write-protocol-seams/index.md) - Backlog BP3-01A source-only shared write protocol seams.
+- [TASK-07.26-0026-bp3-02-operation-engine-foundation](TASK-07.26-0026-bp3-02-operation-engine-foundation/index.md) - Backlog P3-WP1 locks/scopes/Operation Engine foundation.
+- [TASK-07.26-0027-bp3-03-deterministic-full-fake-recovery](TASK-07.26-0027-bp3-03-deterministic-full-fake-recovery/index.md) - Backlog P3-WP2 deterministic full fake/journal/recovery.
+- [TASK-07.26-0028-bp3-04-resource-create-slice](TASK-07.26-0028-bp3-04-resource-create-slice/index.md) - Backlog P3-VS1 Resource create/read-back slice.
+- [TASK-07.26-0029-bp3-05-resource-update-slice](TASK-07.26-0029-bp3-05-resource-update-slice/index.md) - Backlog P3-VS2 Resource own-metadata update/read-back slice.
+- [TASK-07.26-0030-p3-stab1-create-update-foundation](TASK-07.26-0030-p3-stab1-create-update-foundation/index.md) - Backlog bounded create/update foundation stabilization before P3-DG2.
 
 ## Файли
 

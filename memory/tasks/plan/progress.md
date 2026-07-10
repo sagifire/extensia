@@ -39,11 +39,20 @@
 
 Activation order: `BP2-01 done -> TASK-07.26-0021 / APP-07.26-0021-001 published -> BP2-01A/TASK-07.26-0022 done -> separately activated BP2-02/BP2-03 -> BP2-04 -> BP2-05 review-ready -> BP2-06 -> human gate Phase 2`.
 
-Статус Phase 2: завершена й прийнята explicit human gate 2026-07-10. Phase 3 не активована.
+Статус Phase 2: завершена й прийнята explicit human gate 2026-07-10. Phase 3 P3-DG1 canonical application published як `APP-07.26-0024-001`; TASK-0024 завершена whole-task human approval, implementation не активована.
 
 ## Фаза 3 — Перший journal-backed Resource write slice
 
-Немає canonical tasks: owner design gates створюються після human gate Phase 2.
+- [x] **[Done]** [BP3-01 / P3-DG1 / TASK-07.26-0023](TASK-07.26-0023-bp3-01-write-journal-recovery-protocol/index.md) - Exact design прийнятий; FIX-001 застосовано owner TASK-0024.
+- [x] **[Done]** [TASK-07.26-0024](TASK-07.26-0024-apply-bp3-01-fix-001/index.md) - `APP-07.26-0024-001` published, repeated post-audit `PASS`, whole-task result прийнятий людиною.
+- [x] **[Done]** [BP3-01A / TASK-07.26-0025](TASK-07.26-0025-bp3-01a-materialize-write-protocol-seams/index.md) - Shared source-only write protocol seams materialized, full gate і repeated independent audit зелені, whole-task result прийнятий людиною.
+- [ ] **[Backlog]** [BP3-02 / P3-WP1 / TASK-07.26-0026](TASK-07.26-0026-bp3-02-operation-engine-foundation/index.md) - Locks/scopes/Operation Engine; depends on done BP3-01A.
+- [ ] **[Backlog]** [BP3-03 / P3-WP2 / TASK-07.26-0027](TASK-07.26-0027-bp3-03-deterministic-full-fake-recovery/index.md) - Deterministic full fake/journal/recovery; depends on done BP3-01A.
+- [ ] **[Backlog]** [BP3-04 / P3-VS1 / TASK-07.26-0028](TASK-07.26-0028-bp3-04-resource-create-slice/index.md) - Resource create/read-back; depends on done BP3-02 and BP3-03.
+- [ ] **[Backlog]** [BP3-05 / P3-VS2 / TASK-07.26-0029](TASK-07.26-0029-bp3-05-resource-update-slice/index.md) - Own-metadata update/read-back; depends on done BP3-04.
+- [ ] **[Backlog]** [P3-STAB1 / TASK-07.26-0030](TASK-07.26-0030-p3-stab1-create-update-foundation/index.md) - Bounded create/update stabilization before P3-DG2; depends on done BP3-05.
+
+Activation order: `Phase 2 gate -> BP3-01 done -> TASK-0024 published artifact -> separately activated BP3-01A -> separately activated BP3-02/BP3-03 -> BP3-04 -> BP3-05 -> P3-STAB1 -> separate P3-DG2`.
 
 ## Фаза 4 — Assets і перший concrete durable Storage Driver
 

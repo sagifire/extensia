@@ -8,7 +8,7 @@ Internal Stage: `v2`
 
 ## Поточний фокус
 
-Phase 1 і Phase 2 завершені та прийняті explicit human gates. Усі canonical Phase 2 tasks `BP2-01`, owner application `TASK-07.26-0021`, `BP2-01A`, `BP2-02`…`BP2-06` мають status `done`; `APP-07.26-0021-001` published. Independent BP2-06 audit отримав repeated meta-review `REVIEW_READY`, recommendation `pass` і whole-task approval. Phase 3 не активована й не має canonical tasks.
+Phase 1 і Phase 2 завершені та прийняті explicit human gates. `BP3-01 / P3-DG1` accepted і canonical applied як `APP-07.26-0024-001`; TASK-0024 завершена як `done` після whole-task human approval. Phase 3 implementation не активована.
 
 ## Поточний стан продукту
 
@@ -28,6 +28,9 @@ Phase 1 і Phase 2 завершені та прийняті explicit human gates
 
 ## Активні задачі
 
+- `BP3-01 / P3-DG1 / TASK-07.26-0023` завершена як `done`; approved FIX-001 застосовується TASK-0024.
+- `TASK-07.26-0024` завершена як `done`: repeated post-audit `PASS`, `APP-07.26-0024-001` published і прийнятий whole-task human review.
+- `BP3-01A / TASK-07.26-0025` завершена як `done`: RUN-001 materialize-ила source-only write protocol seams, full package gate зелений, final repeated independent audit повернув `REVIEW_READY` без відкритих P0-P3, whole-task result прийнятий людиною. `TASK-07.26-0026…0030` лишаються backlog без activation.
 - `BP2-06 / TASK-07.26-0020` завершена як `done`: `RSCH-001` відтворила clean/package/API/architecture evidence, repeated bounded meta-review повернув `REVIEW_READY`, recommendation `pass` прийнята whole-task review, а explicit human gate завершив Phase 2.
 - `BP2-05 / TASK-07.26-0019` завершена як `done`: RUN-001 виконала risk-based Phase 2 stabilization, clean package/reproducibility evidence і memory sync без Phase 3 feature work; initial evidence P2 закрито, repeated audit `REVIEW_READY` без відкритих P0–P3, whole-task review прийнятий людиною.
 - `BP2-04 / TASK-07.26-0018` завершена як `done`: RUN-001 реалізувала root public contract, Extensia Module lifecycle, readonly driver integration та application/package verification; repeated independent audit не має відкритих P0-P3, whole-task review прийнятий людиною.
@@ -40,6 +43,7 @@ Phase 1 і Phase 2 завершені та прийняті explicit human gates
 
 ## Останні рішення
 
+- Користувач 2026-07-10 активував TASK-0024 і дозволив independent subagent review; repeated pre-audit повернув `APPLY`, після чого canonical application виконано до post-audit gate.
 - Цільова release version нової Extensia — `0.1.0`; `v2` є лише внутрішньою назвою етапу redesign.
 - Канонічними design sources є `domain-model-v2.md`, `extension-and-api-model-v2-ioc.md` і `runtime-architecture-v2-ioc.md`.
 - Попередні `extension-and-api-model.md` та `runtime-architecture.md` видалені в RUN-002 і виключені з нормативного контексту.
@@ -97,7 +101,7 @@ Phase 1 і Phase 2 завершені та прийняті explicit human gates
 
 ## Наступні кроки
 
-1. Окремо вирішити, чи готувати owner design gate і canonical task set Phase 3; завершення Phase 2 не активує Phase 3 автоматично.
+1. За окремими рішеннями активувати `BP3-02 / TASK-07.26-0026` та/або `BP3-03 / TASK-07.26-0027`; done BP3-01A не є їх автоматичною activation.
 
 ## Відкриті питання
 

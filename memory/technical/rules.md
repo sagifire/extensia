@@ -34,6 +34,16 @@ Updated: 2026-07-10
 21. External Change Sync застосовує лише committed entries у journal sequence order.
 22. Post-commit hook failure не відкочує committed operation.
 
+### Applied P3-DG1
+
+- Driver transaction є єдиним semantic commit path для staged Resource write-set і рівно одного committed journal entry; resolve = committed, reject = not committed, independent append заборонений.
+- Persistent journal є committed-only; sequence — contiguous positive decimal string від `1`, а gap/duplicate/regression/unknown-ahead-missing cursor є integrity failure.
+- Operation/actor IDs є internal UUID v4. Duplicate operation ID idempotent лише для identical draft і canonical SHA-256 fingerprint повного ordered staged write-set; mismatch є integrity failure, public deduplication deferred.
+- Core reload-ить committed state й готує immutable validated index change під exclusive session до commit; publish дозволений лише після resolve й є synchronous no-fail swap.
+- Full startup не публікує ready до recovery, committed scan, index build і journal-head capture під однією session.
+- Full driver у application config є opaque frozen handle; callable session/transaction доступні тільки experimental driver-author definition/internal adapter.
+- Bounded create створює root Resource з generated defaults; update змінює лише own `title`/`description`. Parent/order/flags/aggregates deferred.
+
 ## Public API та extensions
 
 23. Application integration є facade-first; Core і raw IoC token lookup не експонуються.

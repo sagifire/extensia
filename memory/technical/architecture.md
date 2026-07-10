@@ -85,7 +85,7 @@ Facades представляють capabilities application code. Plugins дод
 
 ### Applied P2-DG1 read boundary
 
-Phase 2 реалізувала exact root-only `createExtensia(config)` boundary: construction side-effect-free, safe descriptor extraction не викликає getters, invalid/accessor config зберігається sentinel і дає `CONFIG_INVALID` до resources; factory capture-ить driver identity у frozen envelope й не reread-ить caller envelope. Module має dedicated nullable `query()`/`storage()` і лише `getResource`/`getResourceTree`. Shared consumer-owned read-port/token seam materialized у BP2-01A, BP2-02 реалізувала provider над greedy Resource index, BP2-03 реалізувала internal Registry/system adapters із freeze, atomic ready publication, intake close-and-drain та readonly rejection proof, а BP2-04 інтегрувала їх в один application-visible lifecycle. Final driver/write protocol лишається наступним design gate; другий read contract не допускається.
+Phase 2 реалізувала exact root-only `createExtensia(config)` boundary: construction side-effect-free, safe descriptor extraction не викликає getters, invalid/accessor config зберігається sentinel і дає `CONFIG_INVALID` до resources; factory capture-ить driver identity у frozen envelope й не reread-ить caller envelope. Module має dedicated nullable `query()`/`storage()` і лише `getResource`/`getResourceTree`. Shared consumer-owned read-port/token seam materialized у BP2-01A, BP2-02 реалізувала provider над greedy Resource index, BP2-03 реалізувала internal Registry/system adapters із freeze, atomic ready publication, intake close-and-drain та readonly rejection proof, а BP2-04 інтегрувала їх в один application-visible lifecycle. P3-DG1 прийняв target [write/journal/recovery contract](write-journal-recovery-contract.md), а BP3-01A materialize-ила його shared source-only seams: driver/session/transaction/journal contracts, consumer-owned default API Core write port, operation identity/clock tokens і prepared greedy-index change. Runtime behavior і public successful writes ще не реалізовані; другий read або write contract не допускається.
 
 ### Composition
 
@@ -148,9 +148,9 @@ public command / Core request
   → run pre-commit filters
   → validate domain invariants
   → prepare staged changes
-  → persist files / metadata
-  → append committed journal entry
-  → update local Hot Metadata Index
+  → stage metadata through driver transaction
+  → outcome-definite semantic commit metadata + exactly one committed journal entry
+  → publish prepared local Hot Metadata Index change
   → emit post-commit hooks
   → release locks/scope
   → return normalized result
@@ -165,12 +165,15 @@ public command / Core request
 - **Isolation through sequence:** process-local Async Lock Queue, storage-level write lock і journal sequence дають sequential write result.
 - **Durability:** success означає stable metadata/files і committed journal entry, достатні для recovery.
 
-`committed` journal entry є publication boundary. Hot Metadata Index оновлюється тільки після durable commit; post-commit hook failure не відкочує operation.
+`committed` journal entry є publication boundary. P3-DG1 уточнює її як driver-owned transaction commit: resolve означає committed, reject — not committed; independent append path заборонений. Core готує immutable index change під recovery-clean exclusive storage session до commit і publish-ить synchronous no-fail swap після resolve. Post-commit local fault не відкочує operation, а повертає committed success із bounded warning та fail-close runtime.
 
 ## Storage, index, journal і synchronization
 
 - Storage Driver є durable source of truth і визначає capability mode `full` або `readonly`.
 - `readonly` driver відхиляє writes до mutation, але підтримує reads.
+- Full-mode ready gate утримує одну recovery-clean exclusive storage session через recovery, committed scan, index build і journal-head capture.
+- Persistent journal містить лише committed entries з contiguous positive-decimal sequence від `1`; Timestamp не задає order.
+- Full application config використовує opaque driver handle; callable transaction/session не входять у Module або facade boundary.
 - Hot Metadata Index є process-local і може бути full у `greedy` mode або partial у `lazy` mode.
 - Поточний runtime забезпечує local read-after-write після index update.
 - Інші processes бачать зміни після External Change Sync або explicit refresh; коротке stale window є допустимим baseline.

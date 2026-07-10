@@ -46,7 +46,7 @@ Allowed parallelism: до завершення `P1-WP1` — лише read-only r
 
 ## Фаза 2 — Read-only Resource slice та API foundation
 
-Стан: Phase 2 завершена й прийнята explicit human gate 2026-07-10. P2-DG1 applied; BP2-01A/BP2-02/BP2-03 завершені; P2-VS1 реалізований у `BP2-04 / RUN-001`; P2-STAB завершений у `BP2-05 / RUN-001`; independent BP2-06 audit отримав repeated meta-review `REVIEW_READY`, а recommendation `pass` прийнята людиною. Phase 3 не активована.
+Стан: Phase 2 завершена й прийнята explicit human gate 2026-07-10. P2-DG1 applied; BP2-01A/BP2-02/BP2-03 завершені; P2-VS1 реалізований у `BP2-04 / RUN-001`; P2-STAB завершений у `BP2-05 / RUN-001`; independent BP2-06 audit отримав repeated meta-review `REVIEW_READY`, а recommendation `pass` прийнята людиною. Phase 3 owner design gate `BP3-01 / P3-DG1` завершений і прийнятий; `APP-07.26-0024-001` published, implementation не активована.
 
 Wave IDs: `P2-DG1` мінімальний read API contract -> `BP2-01A` materialized shared seam -> паралельні `P2-WP2` Core/Index і `P2-WP3` Facade Registry -> `P2-VS1` public Resource read -> `P2-STAB`.
 
@@ -62,9 +62,11 @@ Gate: жодна write-операція не може повернути success
 
 ## Фаза 3 — Перший journal-backed Resource write slice
 
-Стан: planned.
+Стан: `BP3-01 / P3-DG1` accepted і canonical applied; `APP-07.26-0024-001` published, TASK-0024 завершена whole-task human approval. `BP3-01A / TASK-0025` materialize-ила source-only seams і завершена whole-task human approval; наступні bounded implementation tasks лишаються backlog.
 
-Wave IDs: `P3-DG1` write/journal/recovery protocol -> паралельні `P3-WP1` locks/scopes/engine і `P3-WP2` fake driver/journal/recovery -> `P3-VS1/VS2` create/update -> `P3-DG2` order/delete/Mark/KV semantics -> `P3-VS3/VS4` move та Mark/KV -> `P3-VS5` delete/optional restore -> `P3-STAB`.
+Wave IDs: `P3-DG1` write/journal/recovery protocol -> `BP3-01A` shared seam -> паралельні `P3-WP1` locks/scopes/engine і `P3-WP2` fake driver/journal/recovery -> `P3-VS1/VS2` create/update -> bounded `P3-STAB1` create/update foundation -> `P3-DG2` order/delete/Mark/KV semantics -> `P3-VS3/VS4` move та Mark/KV -> `P3-VS5` delete/optional restore -> final `P3-STAB`.
+
+Application gate: [canonical P3 contract](../technical/write-journal-recovery-contract.md), ADR-0008 і `APP-07.26-0024-001` published; `TASK-0025` done. `TASK-0026…0030` є backlog-only і кожна потребує власного activation decision після dependency gates. `P3-STAB1` не замінює final `P3-STAB`.
 
 - Розширити deterministic fake Storage Driver до full capability model для failure-injection tests.
 - Реалізувати Async Lock Queue, operation scopes, Operation Engine, storage-level write lock, мінімальний Operation Journal і recovery path до ready state.
