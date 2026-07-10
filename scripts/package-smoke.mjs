@@ -105,6 +105,14 @@ try {
     "dist/index.d.ts.map",
     "dist/index.js",
     "dist/index.js.map",
+    "dist/operations/async-lock-queue.d.ts",
+    "dist/operations/async-lock-queue.d.ts.map",
+    "dist/operations/async-lock-queue.js",
+    "dist/operations/async-lock-queue.js.map",
+    "dist/operations/operation-engine.d.ts",
+    "dist/operations/operation-engine.d.ts.map",
+    "dist/operations/operation-engine.js",
+    "dist/operations/operation-engine.js.map",
     "dist/operations/resource-operation-contracts.d.ts",
     "dist/operations/resource-operation-contracts.d.ts.map",
     "dist/operations/resource-operation-contracts.js",
@@ -155,11 +163,9 @@ try {
   );
   assert.ok(
     !packageContents.some((file) =>
-      /(?:journal-(?:runtime|service)|operation-engine|write-runtime)/i.test(
-        file,
-      ),
+      /(?:journal-(?:runtime|service)|write-runtime)/i.test(file),
     ),
-    "Package must not contain a write or Journal runtime implementation path.",
+    "Package must not contain a persistence or Journal runtime implementation path.",
   );
   const publicRuntimeSource = readFileSync(
     join(root, "dist", "public", "extensia.js"),

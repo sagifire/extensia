@@ -8,7 +8,7 @@ Internal Stage: `v2`
 
 ## Поточний фокус
 
-Phase 1 і Phase 2 завершені та прийняті explicit human gates. `BP3-01 / P3-DG1` accepted і canonical applied як `APP-07.26-0024-001`; TASK-0024 завершена як `done` після whole-task human approval. Phase 3 implementation не активована.
+Phase 1 і Phase 2 завершені та прийняті explicit human gates. `BP3-01 / P3-DG1` accepted і canonical applied як `APP-07.26-0024-001`; BP3-01A та BP3-02 завершені як `done` після independent audits і whole-task human approvals. BP3-03 та наступні Phase 3 tasks не активовані.
 
 ## Поточний стан продукту
 
@@ -30,7 +30,8 @@ Phase 1 і Phase 2 завершені та прийняті explicit human gates
 
 - `BP3-01 / P3-DG1 / TASK-07.26-0023` завершена як `done`; approved FIX-001 застосовується TASK-0024.
 - `TASK-07.26-0024` завершена як `done`: repeated post-audit `PASS`, `APP-07.26-0024-001` published і прийнятий whole-task human review.
-- `BP3-01A / TASK-07.26-0025` завершена як `done`: RUN-001 materialize-ила source-only write protocol seams, full package gate зелений, final repeated independent audit повернув `REVIEW_READY` без відкритих P0-P3, whole-task result прийнятий людиною. `TASK-07.26-0026…0030` лишаються backlog без activation.
+- `BP3-01A / TASK-07.26-0025` завершена як `done`: RUN-001 materialize-ила source-only write protocol seams, full package gate зелений, final repeated independent audit повернув `REVIEW_READY` без відкритих P0-P3, whole-task result прийнятий людиною.
+- `BP3-02 / P3-WP1 / TASK-07.26-0026` завершена як `done`: RUN-001 реалізувала internal atomic multi-key locks, explicit disposable operation scopes, Operation Engine close-and-drain та committed warning/fail-close foundation; full 126-test package gate зелений, repeated independent audit `REVIEW_READY` без відкритих P0-P3, результат прийнятий whole-task human review. `TASK-07.26-0027…0030` лишаються backlog без activation.
 - `BP2-06 / TASK-07.26-0020` завершена як `done`: `RSCH-001` відтворила clean/package/API/architecture evidence, repeated bounded meta-review повернув `REVIEW_READY`, recommendation `pass` прийнята whole-task review, а explicit human gate завершив Phase 2.
 - `BP2-05 / TASK-07.26-0019` завершена як `done`: RUN-001 виконала risk-based Phase 2 stabilization, clean package/reproducibility evidence і memory sync без Phase 3 feature work; initial evidence P2 закрито, repeated audit `REVIEW_READY` без відкритих P0–P3, whole-task review прийнятий людиною.
 - `BP2-04 / TASK-07.26-0018` завершена як `done`: RUN-001 реалізувала root public contract, Extensia Module lifecycle, readonly driver integration та application/package verification; repeated independent audit не має відкритих P0-P3, whole-task review прийнятий людиною.
@@ -101,7 +102,7 @@ Phase 1 і Phase 2 завершені та прийняті explicit human gates
 
 ## Наступні кроки
 
-1. За окремими рішеннями активувати `BP3-02 / TASK-07.26-0026` та/або `BP3-03 / TASK-07.26-0027`; done BP3-01A не є їх автоматичною activation.
+1. `BP3-03 / TASK-07.26-0027` потребує окремої activation і не активується завершенням BP3-02.
 
 ## Відкриті питання
 

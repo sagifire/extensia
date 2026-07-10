@@ -155,6 +155,8 @@ Update змінює лише own `title`/`description`, reload-ить latest com
 
 Capability check -> descriptor-safe parse -> operation plan/UUID/time -> local locks -> recovery-clean storage session -> latest-state read -> validated next snapshot та prepared index change -> transaction stage -> fingerprint verify -> outcome-definite commit -> index publish -> cleanup -> detached committed result.
 
+BP3-02 materialized internal foundation для normalized atomic local locks, explicit disposable operation scopes, engine intake close-and-drain, pre-staging cancellation та post-commit warning/fail-close result. Resource-specific pipeline handler, storage session/transaction runtime, fingerprint, index publication wiring і public success лишаються наступними bounded tasks.
+
 ## Compatibility і stop conditions
 
 Full driver та successful create/update мають label `experimental-phase-3`; existing `createExtensia` lifecycle/reads не послаблюються. Зміна semantic commit, callable raw transaction через application config, independent journal append, concrete layout, P3-DG2 behavior або index-before-commit потребує окремого design/ADR gate.

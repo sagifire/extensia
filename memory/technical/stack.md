@@ -1,6 +1,6 @@
 # Технологічний stack
 
-Updated: 2026-07-10
+Updated: 2026-07-11
 
 ## Статуси
 
@@ -31,6 +31,7 @@ Updated: 2026-07-10
 | Read-only driver | current-experimental | Public Phase 2 Resource listing contract інтегровано BP2-04; це не final Storage Driver contract і не concrete durable implementation. |
 | Hot Metadata Index | current | Internal Resource-only greedy index BP2-02; lazy mode, wider metadata й durable semantics не реалізовані. |
 | Operation Journal | planned | Append-only persistent journal через Storage Driver. |
+| Operation Engine foundation | current-internal | BP3-02 реалізувала atomic multi-key lock queue, explicit scopes, pipeline state/cancellation boundary, committed warnings і close-and-drain без Resource handlers або persistence wiring. |
 
 Extensia Core не залежить напряму від local filesystem, S3, NFS або packed format. Вибір першого concrete driver є окремим design decision.
 
