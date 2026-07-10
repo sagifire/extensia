@@ -12,6 +12,7 @@ Status: current
 - Domain modules збираються як internal artifacts, але root `src/index.ts` не експортує domain API, а package `exports` не відкриває domain subpaths.
 - `TASK-07.26-0008` реалізувала internal `src/composition/` skeleton на exact `@sagifire/ioc@0.0.2`: namespaced tokens, один fresh Composition Root, fail-fast graph validation, allowlisted capabilities, safe detached inspection/diagnostics, controlled scopes і disposal.
 - `TASK-07.26-0010` реалізувала strict internal `src/runtime/lifecycle.ts`: immutable generic lifecycle contributions, validation safe ID/order до startup, sequential ordering за `(order, id)`, explicit state machine, resolved-start ledger, reverse rollback/stop, safe failure aggregates й at-most-once composed-runtime disposal.
+- `TASK-07.26-0011 / RUN-001` повторно перевірила сукупний Phase 1 baseline: clean install і повний package gate зелені, 7 test files / 75 tests пройдені, 36 emitted `dist/**` artifacts відтворюються byte-identical, а packed allowlist містить 38 ESM/type/package files без accidental public surface.
 - Internal runtime host збирається через чинний fresh Composition Root і synchronous multi contributions; active-resource cleanup належить contribution `stop()`, а graph/provider cleanup — final `composition.dispose()` без duplicate ownership.
 - Storage-shaped readonly fixture існує тільки в integration test і не визначає Storage Driver API, durability або recovery semantics.
 - IoC conformance modules і storage-shaped lifecycle fixture є test-only probes; production subsystem module map поза мінімальним lifecycle capability не реалізовано, raw composer/runtime/tokens не відкриті через root або package subpaths.
@@ -21,7 +22,7 @@ Status: current
 
 ## Поточні гарантії
 
-На internal implementation boundary фактично гарантуються canonical UUID v4 normalization/validation, safe-integer Timestamp у ECMAScript Date range, finite JSON-safe recursive values, deeply readonly type contracts, detached snapshot ownership, executable IoC composition conformance та internal lifecycle `compose -> start -> ready/failed -> stop/dispose`. Lifecycle failures містять тільки Extensia-owned codes, stages і optional validated safe contribution IDs; raw error details, provider values, config і runtime instances не серіалізуються. Root namespace лишається без exports, package не відкриває internal subpaths. Public lifecycle/API та durable guarantees відсутні, бо slice навмисно не визначає Extensia Module, Storage Driver чи operation pipeline. Цільові інваріанти ширших slices описані окремо в `memory/domain/target/model.md` і `memory/domain/rules.md`.
+На internal implementation boundary фактично гарантуються canonical UUID v4 normalization/validation, safe-integer Timestamp у ECMAScript Date range, finite JSON-safe recursive values, deeply readonly type contracts, detached snapshot ownership, executable IoC composition conformance та internal lifecycle `compose -> start -> ready/failed -> stop/dispose`. Lifecycle failures містять тільки Extensia-owned codes, stages і optional validated safe contribution IDs; raw error details, provider values, config і runtime instances не серіалізуються. Stabilization evidence `BP1-05/R1` підтверджує ці guarantees clean suite, targeted domain/composition/lifecycle matrices і packed-consumer proof. Root namespace лишається без exports, package не відкриває internal subpaths. Public lifecycle/API та durable guarantees відсутні, бо slice навмисно не визначає Extensia Module, Storage Driver чи operation pipeline. Цільові інваріанти ширших slices описані окремо в `memory/domain/target/model.md` і `memory/domain/rules.md`.
 
 ## Межа current/target
 
@@ -35,4 +36,5 @@ Resource/Asset/Mark/KV data-contract kernel, IoC composition/conformance skeleto
 - `memory/tasks/plan/TASK-07.26-0007-bp1-02-pure-domain-contract-kernel/runs/RUN-001/result.md`.
 - `memory/tasks/plan/TASK-07.26-0008-bp1-03-ioc-composition-skeleton/runs/RUN-001/result.md`.
 - `memory/tasks/plan/TASK-07.26-0010-bp1-04-lifecycle-controller-slice/runs/RUN-001/result.md`.
+- `memory/tasks/plan/TASK-07.26-0011-bp1-05-phase-1-stabilization/runs/RUN-001/result.md`.
 - Фактична структура репозиторію станом на 2026-07-10.

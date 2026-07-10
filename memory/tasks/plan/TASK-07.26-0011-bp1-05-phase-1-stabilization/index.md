@@ -7,3 +7,8 @@ Canonical task `BP1-05` для стабілізації фактичного Pha
 ## Файли
 
 - [Task](task.md) - Scope, dependencies, correction loop, критерії приймання, verification, architecture pressure й очікувана memory sync для BP1-05.
+- [Closure](closure.md) - Whole-task human approval, прийнятий evidence revision `R1`, залишкові ризики й фінальна перевірка memory sync.
+
+## Папки
+
+- [Прогони](runs/index.md) - Підготовлені та виконані autonomous implementation runs задачі.

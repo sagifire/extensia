@@ -64,9 +64,11 @@ Build є unbundled ESM через `tsc`; Rollup/tsup і dual CJS output у basel
 
 Publishable `src/**` збирається окремим `tsconfig.build.json`; tests type-check окремим no-emit config і не потрапляють у `dist`. Vitest є primary unit/contract/integration/failure runner із V8 coverage; packed built JS додатково перевіряється напряму в Node.js 24.
 
+`BP1-05/R1` повторно підтвердила current baseline на Node.js `v24.17.0` / npm `11.13.0`: clean `npm ci`, повний `npm run check`, 7 test files / 75 tests, 38 packed paths і 36 controlled emitted artifacts із byte-identical SHA-256 після повторного build. Це verification evidence, а не нове dependency або compatibility рішення.
+
 ## Package і source boundaries
 
-- Package manager baseline — npm, exact direct pins і committed `package-lock.json`; BP1-01 має прибрати lockfile з `.gitignore` та використовувати `npm ci` у CI.
+- Package manager baseline — npm, exact direct pins і committed `package-lock.json`; BP1-01 прибрала lockfile з `.gitignore` і зафіксувала відтворення через `npm ci`.
 - Phase 1 експортує тільки package root і `./package.json` через explicit `exports`; wildcard/internal exports, CJS і runtime IoC tokens заборонені.
 - Subpaths `./testkit`, `./driver`, `./plugin` можуть з'явитися тільки після власних contract/compatibility gates.
 - Package gate включає clean typecheck/build/lint/format/test, `npm pack`, `publint`, `attw` і runtime/type consumer встановленого tarball.

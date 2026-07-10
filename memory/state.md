@@ -8,7 +8,7 @@ Internal Stage: `v2`
 
 ## Поточний фокус
 
-`BP1-01`, `BP1-02`, `BP1-03` і `BP1-04` завершені та прийняті людиною. `BP1-04 / RUN-001` закрила strict internal `P1-WP4` з green repeated independent audit без розширення public root API; наступний окремий крок — BP1-05 stabilization.
+`BP1-01`…`BP1-05` завершені та прийняті людиною. `BP1-05 / RUN-001` підготувала complete evidence revision `R1`, закрила initial audit findings і пройшла green repeated independent audit без production code changes. Наступний окремий крок — activation BP1-06.
 
 ## Поточний стан продукту
 
@@ -25,8 +25,9 @@ Internal Stage: `v2`
 
 ## Активні задачі
 
-Немає active або review задач. `BP1-04` (`TASK-07.26-0010`), `TASK-07.26-0013`, `TASK-07.26-0009`, `BP1-01` (`TASK-07.26-0005`), `BP1-02` (`TASK-07.26-0007`) і `BP1-03` (`TASK-07.26-0008`) завершені як `done`.
-- `BP1-05` (`TASK-07.26-0011`) і `BP1-06` (`TASK-07.26-0012`) мають status `backlog` без run/research artifacts.
+Немає active або review задач.
+- `BP1-05` (`TASK-07.26-0011`), `BP1-04` (`TASK-07.26-0010`), `TASK-07.26-0013`, `TASK-07.26-0009`, `BP1-01` (`TASK-07.26-0005`), `BP1-02` (`TASK-07.26-0007`) і `BP1-03` (`TASK-07.26-0008`) завершені як `done`.
+- `BP1-06` (`TASK-07.26-0012`) лишається backlog без research artifact до окремої activation.
 
 ## Останні рішення
 
@@ -51,6 +52,9 @@ Internal Stage: `v2`
 - `TASK-07.26-0013` пройшла whole-task human review і завершена як `done`; її owner-approved boundary застосовано в TASK-0010/RUN-001.
 - Користувач 2026-07-10 явно активував `BP1-04 / TASK-07.26-0010`; RUN-001 реалізовано, initial audit findings закриті, repeated audit повернув `REVIEW_READY` без відкритих P0–P3 findings.
 - Користувач 2026-07-10 виконав whole-task review BP1-04 і явно дозволив завершити TASK-07.26-0010 як `done`.
+- `BP1-05 / RUN-001` повторно підтвердила Phase 1 baseline: clean package gate, 75 tests, 38 packed paths, 36 byte-identical controlled artifacts і zero accidental public surface; production code не змінювався.
+- Initial independent audit BP1-05 повернув 2 P2 evidence findings і 1 P3 memory wording finding; remediation закрито repeated audit verdict `REVIEW_READY` без відкритих P0–P3.
+- Користувач 2026-07-10 виконав whole-task review BP1-05 і явно дозволив завершити TASK-07.26-0011 як `done`.
 - `TASK-07.26-0006` пройшла whole-task human review і завершена як `done`; closure містить фінальну перевірку memory sync.
 - `TASK-07.26-0003` прийнята людиною й завершена як `done`; detailed rolling-wave plan та незалежний audit залишаються довгоживучими reports.
 - Поточний і цільовий domain state зберігаються окремо.
@@ -67,9 +71,8 @@ Internal Stage: `v2`
 
 ## Наступні кроки
 
-1. Окремо активувати BP1-05 для Phase 1 stabilization; задача лишається backlog до явної команди.
-2. Виконати BP1-06 після dependency gate BP1-05.
-3. Не починати Phase 2 read-only Resource slice до audit і human gate Phase 1, який явно приймає deferred public P1-VS1.
+1. Окремо активувати BP1-06 проти accepted evidence revision `R1`.
+2. Не починати Phase 2 read-only Resource slice до BP1-06 і human gate Phase 1, який явно приймає deferred public P1-VS1.
 
 ## Відкриті питання
 

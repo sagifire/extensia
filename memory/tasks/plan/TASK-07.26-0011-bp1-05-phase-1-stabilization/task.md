@@ -1,11 +1,11 @@
 # TASK-07.26-0011: BP1-05 — Стабілізувати Phase 1
 
-Status: backlog
+Status: done
 Type: chore
 Execution Mode: autonomous-implementation
 Created: 2026-07-10
 Owner Role: Product Lead Hat / System Engineer Hat
-Current Run: n/a
+Current Run: RUN-001
 Current Research: n/a
 Current Fixation: n/a
 
@@ -44,15 +44,15 @@ Phase 1 має завершитися не додаванням нових found
 
 ## Критерії приймання
 
-- [ ] Усі acceptance/verification gates BP1-01..04 простежені й зелені з clean evidence.
-- [ ] Known blocker/high/medium defects закриті; за їх наявності task не є review-ready.
-- [ ] Root/package surface не містить accidental/internal exports, raw IoC runtime/tokens або undocumented Phase 2/3 APIs.
-- [ ] Lifecycle rollback, cleanup aggregation, disposal, safe diagnostics і fresh-composition evidence повне.
-- [ ] Diff не містить speculative Phase 2/3 foundations або feature work під виглядом stabilization.
-- [ ] Clean install/build/test/package flow і packed runtime/type consumer відтворені на minimum Node.js 24 baseline.
-- [ ] Reproducibility check відокремлює керовані artifacts від відомих nondeterministic metadata fields.
-- [ ] Current implementation/technical memory відповідає factual code/package state.
-- [ ] `RUN-001` містить versioned evidence revision, independent audit, architecture-pressure review і memory sync.
+- [x] Усі acceptance/verification gates BP1-01..04 простежені й зелені з clean evidence.
+- [x] Known blocker/high/medium defects закриті; за їх наявності task не є review-ready.
+- [x] Root/package surface не містить accidental/internal exports, raw IoC runtime/tokens або undocumented Phase 2/3 APIs.
+- [x] Lifecycle rollback, cleanup aggregation, disposal, safe diagnostics і fresh-composition evidence повне.
+- [x] Diff не містить speculative Phase 2/3 foundations або feature work під виглядом stabilization.
+- [x] Clean install/build/test/package flow і packed runtime/type consumer відтворені на minimum Node.js 24 baseline.
+- [x] Reproducibility check відокремлює керовані artifacts від відомих nondeterministic metadata fields.
+- [x] Current implementation/technical memory відповідає factual code/package state.
+- [x] `RUN-001` містить versioned evidence revision, independent audit, architecture-pressure review і memory sync.
 
 ## Перевірка
 
@@ -90,7 +90,7 @@ Phase 1 має завершитися не додаванням нових found
 
 ## Прогони
 
-Немає. `RUN-001` створюється при окремій activation після accepted BP1-04.
+- [RUN-001](runs/RUN-001/index.md) - review-ready — risk-based stabilization і versioned evidence revision `R1` з green repeated independent audit.
 
 ## Дослідження
 

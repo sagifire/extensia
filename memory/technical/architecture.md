@@ -6,7 +6,7 @@ Updated: 2026-07-10
 
 ## Статус реалізації
 
-Цей документ описує цільову архітектуру зі draft-специфікацій. Фактично реалізовані internal pure domain contract kernel, internal IoC composition/conformance skeleton та strict internal lifecycle host/controller slice з generic synchronous contributions, Extensia-owned async startup/rollback/stop і final composed-runtime disposal. Extensia Module, Core, Storage Driver, production subsystem map та public facades відсутні. Детальний current state зафіксовано в `memory/domain/current/implementation-state.md`. Internal lifecycle names/results не є стабілізованим public contract; концептуальні TypeScript signatures і production module sketches потребують окремих design gates.
+Цей документ описує цільову архітектуру зі draft-специфікацій. Фактично реалізовані internal pure domain contract kernel, internal IoC composition/conformance skeleton та strict internal lifecycle host/controller slice з generic synchronous contributions, Extensia-owned async startup/rollback/stop і final composed-runtime disposal. `BP1-05/R1` повторно підтвердила цей сукупний baseline clean package gate, targeted matrices, controlled artifact reproducibility і packed-consumer boundary без розширення public API. Extensia Module, Core, Storage Driver, production subsystem map та public facades відсутні. Детальний current state зафіксовано в `memory/domain/current/implementation-state.md`. Internal lifecycle names/results не є стабілізованим public contract; концептуальні TypeScript signatures і production module sketches потребують окремих design gates.
 
 ## Архітектурна ідея
 
@@ -197,7 +197,7 @@ Baseline не обіцяє dynamic extensions після startup, high-throughpu
 
 ## Architecture health
 
-Фактичні Phase 1 kernel, composition skeleton і internal lifecycle slice поки не створюють істотного architecture pressure: вони використовують один Composition Root, не розширюють root API, розділяють ownership active-resource cleanup і graph disposal та не реалізують speculative production module map. Ризик design pressure лишається високим через широку цільову surface area. Implementation має йти вертикальними slices з dependency gates з `memory/product/roadmap.md`; спроба реалізувати всі підсистеми одним шаром буде сигналом для окремого architecture/design review.
+Фактичні Phase 1 kernel, composition skeleton і internal lifecycle slice після `BP1-05/R1` не створюють істотного architecture pressure: вони використовують один Composition Root, не розширюють root API, розділяють ownership active-resource cleanup і graph disposal та не реалізують speculative production module map. Ризик design pressure лишається високим через широку цільову surface area. Implementation має йти вертикальними slices з dependency gates з `memory/product/roadmap.md`; спроба реалізувати всі підсистеми одним шаром буде сигналом для окремого architecture/design review.
 
 ## Джерела
 
