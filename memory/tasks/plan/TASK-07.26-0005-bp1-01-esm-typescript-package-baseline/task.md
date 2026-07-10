@@ -1,11 +1,11 @@
 # TASK-07.26-0005: BP1-01 — Налаштувати ESM TypeScript package baseline
 
-Status: backlog
+Status: done
 Type: chore
 Execution Mode: autonomous-implementation
 Created: 2026-07-10
 Owner Role: Product Lead Hat
-Current Run: n/a
+Current Run: RUN-001
 Current Research: n/a
 Current Fixation: n/a
 
@@ -43,13 +43,13 @@ Extensia починає release `0.1.0` без executable runtime, source layout
 
 ## Критерії приймання
 
-- [ ] Manifest зберігає Node.js 24 ESM package identity, використовує точні прийняті direct pins і має committed `package-lock.json`, який більше не ігнорується.
-- [ ] TypeScript build застосовує прийнятий NodeNext/ES2024 strict compiler contract; `dist/` містить тільки publishable ESM `.js`, `.d.ts` і maps, без tests, CJS або непередбачених source files.
-- [ ] Root `src/index.ts`, scripts, ESLint, Prettier і Vitest/V8 coverage формують відтворюваний чистий tooling baseline без runtime feature behavior.
-- [ ] `exports` відкриває тільки root і `./package.json`; internal path, `./testkit`, `./driver` і `./plugin` не імпортуються з packed package.
-- [ ] Чистий suite проходить: install через `npm ci`, typecheck, build, lint, format check, minimal test/coverage smoke, `npm pack --dry-run`, `publint` і `attw`.
-- [ ] Встановлений tarball успішно виконує імпорт root під час виконання і TypeScript consumer typecheck на Node.js 24; import неекспортованого internal subpath завершується очікуваною failure.
-- [ ] `RUN-001` містить evidence команд, package contents, consumer checks, self-review, independent audit findings і memory sync; BP1-02/BP1-03 не активуються до green tooling gate.
+- [x] Manifest зберігає Node.js 24 ESM package identity, використовує точні прийняті direct pins і має committed `package-lock.json`, який більше не ігнорується.
+- [x] TypeScript build застосовує прийнятий NodeNext/ES2024 strict compiler contract; `dist/` містить тільки publishable ESM `.js`, `.d.ts` і maps, без tests, CJS або непередбачених source files.
+- [x] Root `src/index.ts`, scripts, ESLint, Prettier і Vitest/V8 coverage формують відтворюваний чистий tooling baseline без runtime feature behavior.
+- [x] `exports` відкриває тільки root і `./package.json`; internal path, `./testkit`, `./driver` і `./plugin` не імпортуються з packed package.
+- [x] Чистий suite проходить: install через `npm ci`, typecheck, build, lint, format check, minimal test/coverage smoke, `npm pack --dry-run`, `publint` і `attw`.
+- [x] Встановлений tarball успішно виконує імпорт root під час виконання і TypeScript consumer typecheck на Node.js 24; import неекспортованого internal subpath завершується очікуваною failure.
+- [x] `RUN-001` містить evidence команд, package contents, consumer checks, self-review, independent audit findings і memory sync; BP1-02/BP1-03 не активуються до green tooling gate.
 
 ## Пов'язана пам'ять
 
@@ -65,7 +65,7 @@ Extensia починає release `0.1.0` без executable runtime, source layout
 
 ## Прогони
 
-Немає. Разом із переходом задачі у `active` створюються `runs/index.md`, `runs/RUN-001/index.md`, `runs/RUN-001/requirements.md`, `runs/RUN-001/context.md` і `runs/RUN-001/result.md`.
+- [RUN-001](runs/RUN-001/index.md) - Виконаний implementation run; результат готовий до task-level human review.
 
 ## Дослідження
 

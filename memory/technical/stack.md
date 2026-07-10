@@ -16,9 +16,9 @@ Updated: 2026-07-10
 | Node.js | current | `>=24` у `package.json`. |
 | Package | current | `@sagifire/extensia`, version `0.1.0`. |
 | Module system | current | ESM через `type: module`. |
-| TypeScript | accepted-target | Exact compiler baseline `typescript@6.0.3`; source/config ще не реалізовані. |
-| Node types | accepted-target | `@types/node@24.12.0`. |
-| `@sagifire/ioc` | accepted-target | Exact internal runtime dependency `@sagifire/ioc@0.0.2`; package ще не встановлений. |
+| TypeScript | current | Exact compiler baseline `typescript@6.0.3`; NodeNext/ES2024 strict build і no-emit typecheck реалізовані в BP1-01. |
+| Node types | current | Exact direct pin `@types/node@24.12.0` встановлено через committed npm lockfile. |
+| `@sagifire/ioc` | current | Exact internal runtime dependency `@sagifire/ioc@0.0.2` встановлено; composition implementation лишається scope BP1-03. |
 
 Фактичний API `@sagifire/ioc@0.0.2` перевірено за exact package contents. Він підтримує typed tokens, modules, graph validation, adapters, cardinality, scopes, inspection і disposal. Multi contributions є synchronous values/factories; Extensia самостійно володіє async lifecycle, extension graph, startup rollback і stop ordering. Specification sketches не замінюють package types або conformance tests у BP1-03.
 
@@ -51,6 +51,8 @@ Version snapshot прийнятий станом на 2026-07-09 і змінює
 - tests: `vitest@4.1.10`, `vite@8.1.4`, `@vitest/coverage-v8@4.1.10`;
 - lint/format: `eslint@10.6.0`, `@eslint/js@10.0.1`, `typescript-eslint@8.63.0`, `prettier@3.9.5`;
 - package checks: `publint@0.3.21`, `@arethetypeswrong/cli@0.18.4`.
+
+`BP1-01` реалізувала цей baseline: npm lockfile committed, `src/**` збирається unbundled `tsc` у declaration/source-mapped ESM `dist/`, а tests type-check окремо без emit. ESLint flat config, Prettier, Vitest/V8 і package gate перевіряють packed tarball у чистому Node.js 24 consumer. `attw` запускається в `esm-only` профілі, бо CJS compatibility явно не є ціллю package.
 
 Build є unbundled ESM через `tsc`; Rollup/tsup і dual CJS output у baseline не входять. Compiler contract:
 

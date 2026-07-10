@@ -11,8 +11,5 @@ coverage/
 # Environment
 .env
 
-# Lock files are intentionally omitted until dependency policy is defined.
-package-lock.json
-
 # Obsidian
 memory/.obsidian

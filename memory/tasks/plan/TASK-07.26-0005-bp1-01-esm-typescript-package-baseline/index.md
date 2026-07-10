@@ -6,8 +6,9 @@ Canonical task `BP1-01` для реалізації ESM TypeScript tooling/packa
 
 ## Папки
 
-Немає. Папка `runs/` і `RUN-001` створюються тільки під час активації задачі.
+- [Runs](runs/index.md) - Execution artifacts активованої задачі.
 
 ## Файли
 
 - [Task](task.md) - Scope, залежності, критерії приймання, verification і очікувана memory sync для BP1-01.
+- [Closure](closure.md) - Whole-task human approval, підсумок і фінальна перевірка синхронізації пам’яті.

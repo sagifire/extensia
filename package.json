@@ -7,5 +7,48 @@
   "type": "module",
   "engines": {
     "node": ">=24"
+  },
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "clean": "node ./scripts/clean.mjs",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "build": "npm run clean && tsc --project tsconfig.build.json",
+    "lint": "eslint src --max-warnings=0",
+    "format:check": "prettier --check package.json tsconfig.json tsconfig.build.json eslint.config.js vitest.config.ts .prettierrc.json src scripts",
+    "test": "vitest run --coverage",
+    "pack:dry-run": "npm pack --dry-run",
+    "publint": "publint",
+    "attw": "attw --pack --profile esm-only",
+    "test:package": "node ./scripts/package-smoke.mjs",
+    "check": "npm run typecheck && npm run build && npm run lint && npm run format:check && npm run test && npm run pack:dry-run && npm run publint && npm run attw && npm run test:package"
+  },
+  "dependencies": {
+    "@sagifire/ioc": "0.0.2"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "0.18.4",
+    "@eslint/js": "10.0.1",
+    "@types/node": "24.12.0",
+    "@vitest/coverage-v8": "4.1.10",
+    "eslint": "10.6.0",
+    "prettier": "3.9.5",
+    "publint": "0.3.21",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.63.0",
+    "vite": "8.1.4",
+    "vitest": "4.1.10"
   }
 }

@@ -2,6 +2,7 @@
 
 ## Позапланові задачі
 
+- [x] **[Done]** [TASK-07.26-0006-record-phase-0-review-and-prepare-bp1-02-bp1-03](TASK-07.26-0006-record-phase-0-review-and-prepare-bp1-02-bp1-03/index.md) - Зафіксовано phase-level review фази 0 та підготовлено canonical `BP1-02`/`BP1-03`.
 - [x] **[Done]** [TASK-07.26-0004-organize-progress-and-prepare-bp1-01](TASK-07.26-0004-organize-progress-and-prepare-bp1-01/index.md) - Упорядкування фазового task progress і canonical preparation `BP1-01`.
 
 ## Планування
@@ -15,7 +16,9 @@
 
 ## Фаза 1 — Контракти й каркас композиції
 
-- [ ] **[Backlog]** [BP1-01 / TASK-07.26-0005](TASK-07.26-0005-bp1-01-esm-typescript-package-baseline/index.md) - Налаштувати ESM TypeScript package baseline як послідовний P1-WP1 tooling gate.
+- [x] **[Done]** [BP1-01 / TASK-07.26-0005](TASK-07.26-0005-bp1-01-esm-typescript-package-baseline/index.md) - ESM TypeScript tooling/package gate реалізовано, незалежно перевірено та прийнято людиною.
+- [ ] **[Backlog]** [BP1-02 / TASK-07.26-0007](TASK-07.26-0007-bp1-02-pure-domain-contract-kernel/index.md) - Реалізувати pure domain contract kernel після зеленого BP1-01 gate.
+- [ ] **[Backlog]** [BP1-03 / TASK-07.26-0008](TASK-07.26-0008-bp1-03-ioc-composition-skeleton/index.md) - Побудувати internal IoC composition/conformance skeleton після зеленого BP1-01 gate.
 
 ## Фаза 2 — Read-only Resource slice та API foundation
 
