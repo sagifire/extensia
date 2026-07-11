@@ -133,14 +133,14 @@ export function createGreedyResourceIndex(): MutableGreedyResourceIndex {
     getResource(id: IDString): ResourceSnapshot | undefined {
       assertReady();
       const resource = resourcesById.get(id);
-      return resource === undefined
+      return resource === undefined || resource.data.is_deleted
         ? undefined
         : buildResourceSnapshot(resource);
     },
     getResourceTree(id: IDString): ResourceTreeViewSnapshot | undefined {
       assertReady();
       const resource = resourcesById.get(id);
-      if (resource === undefined) return undefined;
+      if (resource === undefined || resource.data.is_deleted) return undefined;
 
       return buildResourceTreeViewSnapshot({
         resource,

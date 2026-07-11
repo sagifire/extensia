@@ -29,6 +29,8 @@ export type {
   ResourceKVSnapshot,
   ResourceMoveError,
   ResourceMoveResult,
+  ResourceDeleteError,
+  ResourceDeleteResult,
   ResourceSnapshot,
   ResourceTreeViewSnapshot,
   ResourceWriteError,

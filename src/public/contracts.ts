@@ -58,7 +58,9 @@ export type ExtensiaErrorCode =
   | "STORAGE_INTEGRITY_FAILED"
   | "RESOURCE_PARENT_NOT_FOUND"
   | "RESOURCE_MOVE_CYCLE"
-  | "RESOURCE_ORDER_OUT_OF_RANGE";
+  | "RESOURCE_ORDER_OUT_OF_RANGE"
+  | "RESOURCE_HAS_CHILDREN"
+  | "RESOURCE_ALREADY_DELETED";
 
 export interface ExtensiaError<
   TCode extends ExtensiaErrorCode = ExtensiaErrorCode,
@@ -166,6 +168,20 @@ export type ResourceMoveResult = ExtensiaResult<
   ResourceWriteSuccess,
   ResourceMoveError
 >;
+export type ResourceDeleteError =
+  | ModuleNotReadyError
+  | StorageReadonlyError
+  | InvalidResourceIDError
+  | ResourceNotFoundError
+  | ExtensiaError<"RESOURCE_HAS_CHILDREN">
+  | ExtensiaError<"RESOURCE_ALREADY_DELETED">
+  | ExtensiaError<"STORAGE_LOCK_FAILED">
+  | ExtensiaError<"STORAGE_WRITE_FAILED">
+  | ExtensiaError<"STORAGE_INTEGRITY_FAILED">;
+export type ResourceDeleteResult = ExtensiaResult<
+  ResourceWriteSuccess,
+  ResourceDeleteError
+>;
 export type ResourceMarksError =
   | ModuleNotReadyError
   | StorageReadonlyError
@@ -222,6 +238,7 @@ export interface StorageFacade {
     id: string,
     input: MoveResourceInput,
   ): Promise<ResourceMoveResult>;
+  deleteResource(id: string): Promise<ResourceDeleteResult>;
   setMarks(
     resourceId: string,
     marks: readonly SetMarkInput[],

@@ -17,6 +17,7 @@ import {
   replaceKV,
 } from "../domain/resource-aggregates.js";
 import {
+  prepareResourceDelete,
   prepareResourceMove,
   validateResourceHierarchy,
 } from "../domain/resource-hierarchy.js";
@@ -88,6 +89,8 @@ type Attempt =
   | { readonly kind: "parent-missing" }
   | { readonly kind: "cycle" }
   | { readonly kind: "range" }
+  | { readonly kind: "already-deleted" }
+  | { readonly kind: "has-children" }
   | { readonly kind: "integrity" }
   | { readonly kind: "lock-failed" }
   | { readonly kind: "write-failed" };
@@ -331,6 +334,91 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
     }
   }
 
+  async function attemptDelete(
+    request: Extract<
+      Parameters<CoreResourceWritePort["write"]>[0],
+      { type: "resource.delete" }
+    >,
+    now: ReturnType<typeof parseTimestamp>,
+    scope: OperationScope<BaseAttempt>,
+    plan: ResourceOperationPlan,
+  ): Promise<BaseAttempt> {
+    let session;
+    try {
+      session = await driver.acquireStorageSession(scope.signal);
+    } catch (error) {
+      if (error instanceof ResourceRuntimeIntegrityError) throw error;
+      return Object.freeze({ kind: "lock-failed" as const });
+    }
+    let transaction: ResourceWriteTransaction | undefined;
+    let committed = false;
+    try {
+      const all: ResourceSnapshot[] = [];
+      for await (const item of session.listResources()) all.push(item);
+      coherentResourceMap(all);
+      const preparation = prepareResourceDelete(all, request.id, now);
+      if (preparation.kind !== "success")
+        return Object.freeze({ kind: preparation.kind });
+      const resources = preparation.resources;
+      const changed = new Map(resources.map((item) => [item.data.id, item]));
+      const coherentNext = all.map((item) => changed.get(item.data.id) ?? item);
+      const prepared = index.prepareBatch(resources, coherentNext);
+      transaction = await session.begin(plan.operation_id);
+      scope.transition("staging");
+      for (const resource of resources)
+        await transaction.stageResource(resource);
+      const resourceIds = Object.freeze(resources.map((item) => item.data.id));
+      const draft: CommittedOperationDraft = Object.freeze({
+        schema_version: 1,
+        operation_id: plan.operation_id,
+        actor_id: plan.actor_id,
+        type: "resource.delete",
+        affected_resources: resourceIds,
+        committed_at: now,
+        write_set_fingerprint: computeResourceWriteSetFingerprint(resources),
+        changes: Object.freeze(
+          resourceIds.map((resource_id) => ({
+            kind: "resource.upsert" as const,
+            resource_id,
+          })),
+        ),
+      });
+      const target = resources.find((item) => item.data.id === request.id)!;
+      const success = Object.freeze({
+        kind: "success" as const,
+        resource: buildResourceSnapshot(target),
+        operationId: plan.operation_id,
+      });
+      scope.transition("committing");
+      try {
+        await transaction.commit(draft);
+      } catch (error) {
+        if (error instanceof ResourceCommittedIntegrityError) {
+          scope.commit(success);
+          committed = true;
+          scope.deferCleanup(async () => {
+            await transaction?.abort();
+            await session.release();
+          });
+        }
+        throw error;
+      }
+      scope.commit(success);
+      committed = true;
+      scope.deferCleanup(async () => {
+        await transaction?.abort();
+        await session.release();
+      });
+      prepared.publish();
+      return success;
+    } finally {
+      if (!committed) {
+        await transaction?.abort();
+        await session.release();
+      }
+    }
+  }
+
   async function attemptUpdate(
     request: Extract<
       Parameters<CoreResourceWritePort["write"]>[0],
@@ -357,7 +445,7 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
       const current = coherentResources.find(
         (item) => item.data.id === request.id,
       );
-      if (current === undefined)
+      if (current === undefined || current.data.is_deleted)
         return Object.freeze({ kind: "missing" as const });
       const title = request.patch.title ?? current.data.title;
       const description =
@@ -549,7 +637,8 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
             request.type === "resource.marks.set" ||
             request.type === "resource.kv.set"
               ? [`resource:${request.id}`]
-              : request.type === "resource.move"
+              : request.type === "resource.move" ||
+                  request.type === "resource.delete"
                 ? ["resource-hierarchy", `resource:${request.id}`]
                 : [],
         },
@@ -558,6 +647,8 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
             return attemptUpdate(request, now, scope, plan);
           if (request.type === "resource.move")
             return attemptMove(request, now, scope, plan);
+          if (request.type === "resource.delete")
+            return attemptDelete(request, now, scope, plan);
           if (
             request.type === "resource.marks.set" ||
             request.type === "resource.kv.set"
@@ -623,6 +714,16 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
         return Object.freeze({
           ok: false,
           error: Object.freeze({ code: "RESOURCE_PARENT_NOT_FOUND" }),
+        });
+      if (attempt.kind === "already-deleted")
+        return Object.freeze({
+          ok: false,
+          error: Object.freeze({ code: "RESOURCE_ALREADY_DELETED" }),
+        });
+      if (attempt.kind === "has-children")
+        return Object.freeze({
+          ok: false,
+          error: Object.freeze({ code: "RESOURCE_HAS_CHILDREN" }),
         });
       if (attempt.kind === "cycle")
         return Object.freeze({

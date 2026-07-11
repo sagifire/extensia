@@ -28,6 +28,7 @@ export interface ResourceOperationPlan {
     | "resource.create"
     | "resource.update"
     | "resource.move"
+    | "resource.delete"
     | "resource.marks.set"
     | "resource.kv.set";
   readonly resource_hints: readonly IDString[];

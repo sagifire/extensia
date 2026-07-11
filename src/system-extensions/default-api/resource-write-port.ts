@@ -38,6 +38,11 @@ export interface MoveResourceWriteRequest {
   readonly order_index: number;
   readonly fail_integrity?: RuntimeIntegrityFailureHandler;
 }
+export interface DeleteResourceWriteRequest {
+  readonly type: "resource.delete";
+  readonly id: IDString;
+  readonly fail_integrity?: RuntimeIntegrityFailureHandler;
+}
 export interface SetMarksWriteRequest {
   readonly type: "resource.marks.set";
   readonly id: IDString;
@@ -56,6 +61,7 @@ export type CoreResourceWriteRequest =
   | CreateResourceWriteRequest
   | UpdateResourceWriteRequest
   | MoveResourceWriteRequest
+  | DeleteResourceWriteRequest
   | SetMarksWriteRequest
   | SetKVWriteRequest;
 export type CoreResourceWriteFailureCode =
@@ -65,6 +71,8 @@ export type CoreResourceWriteFailureCode =
   | "RESOURCE_PARENT_NOT_FOUND"
   | "RESOURCE_MOVE_CYCLE"
   | "RESOURCE_ORDER_OUT_OF_RANGE"
+  | "RESOURCE_HAS_CHILDREN"
+  | "RESOURCE_ALREADY_DELETED"
   | "RESOURCE_ID_GENERATION_FAILED"
   | "STORAGE_LOCK_FAILED"
   | "STORAGE_WRITE_FAILED"

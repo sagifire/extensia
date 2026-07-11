@@ -212,6 +212,8 @@ P3-VS3 materialize-ила applied P3-DG2 shared foundation: dense active order; 
 
 P3-VS4 розширила той самий Core/Operation Engine pipeline operation kinds `resource.marks.set` і `resource.kv.set`: one-Resource lock, coherent latest-state replacement/no-change, one semantic commit/journal entry, exact fingerprint, existing batch index publication і detached read-back. Descriptor-safe facade parsing, canonical Mark/key ordering та resulting KV limits не створюють другого write authority. Delete лишається owner scope P3-VS5; concrete Storage Driver, Mark/KV query/index API та plugin semantics не заявлені.
 
+P3-VS5 розширила той самий Core/Operation Engine pipeline operation kind `resource.delete`: coarse hierarchy lock, coherent leaf eligibility, exact sorted target+sibling prepared set зі спільною timestamp, one semantic commit/journal entry/fingerprint, existing batch index publication і detached tombstone result. Default get/tree приховують tombstone, а update/move/Marks/KV використовують existing not-found semantics; startup/recovery повторно використовують active-parent і dense-order integrity validation. Restore/include-deleted/cascade/purge/retention, concrete Storage Driver, sync та plugins лишаються deferred; другого write authority або pipeline не створено.
+
 ## Джерела
 
 - `memory/references/extensia-v2/runtime-architecture-v2-ioc.md`.

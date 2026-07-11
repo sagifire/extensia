@@ -8,7 +8,7 @@ Internal Stage: `v2`
 
 ## Поточний фокус
 
-Phase 1 і Phase 2 завершені та прийняті explicit human gates. Phase 3 design/application foundation through P3-DG2 published as APP-0032; P3-VS3/TASK-0033 і P3-VS4/TASK-0034 завершені після repeated independent `REVIEW_READY` та whole-task human approval. `TASK-07.26-0037` завершила прийняту міграцію Project Memory до Starter Kit 5.0 / PDADM MVP 0.5; TASK-0035…0036 не активовані.
+Phase 1 і Phase 2 завершені та прийняті explicit human gates. Phase 3 design/application foundation through P3-DG2 published as APP-0032; P3-VS3/TASK-0033, P3-VS4/TASK-0034 і P3-VS5/TASK-0035 завершені після final independent `REVIEW_READY` та whole-task human approval. `TASK-07.26-0037` завершила прийняту міграцію Project Memory до Starter Kit 5.0 / PDADM MVP 0.5; TASK-0036 не активована.
 
 ## Поточний стан продукту
 
@@ -27,6 +27,8 @@ Phase 1 і Phase 2 завершені та прийняті explicit human gates
 - Прийняті UUID v4 `IDString`, numeric epoch-millisecond `Timestamp` і deeply readonly detached JSON-safe DTO реалізовані як internal domain contracts без public root export.
 
 ## Активні задачі
+
+- `P3-VS5 / TASK-07.26-0035` завершена як `done`: RUN-002 реалізувала leaf soft delete/default tombstone invisibility; focused 12/full 202 gates і final independent `REVIEW_READY` зелені, whole-task result прийнятий, required FIX-001 applied. TASK-0036 не активована.
 
 - `TASK-07.26-0037` завершена як `done`: operational cutover, task-format migration `TASK-0034…0036`, automated gates, repeated independent audit і whole-task human approval завершені; open P0-P3 немає.
 - `BP3-01 / P3-DG1 / TASK-07.26-0023` завершена як `done`; approved FIX-001 застосовується TASK-0024.
@@ -127,7 +129,7 @@ Phase 1 і Phase 2 завершені та прийняті explicit human gates
 
 ## Наступні кроки
 
-1. За окремим explicit рішенням активувати P3-VS5/TASK-0035; TASK-0036 залежить від його done gate.
+1. За окремим explicit рішенням активувати P3-STAB/TASK-0036; її dependency gate P3-VS3…VS5 тепер виконаний.
 
 ## Відкриті питання
 

@@ -223,6 +223,7 @@ function validateStoredEntry(candidate: unknown): CommittedOperationEntry {
     (entry.type !== "resource.create" &&
       entry.type !== "resource.update" &&
       entry.type !== "resource.move" &&
+      entry.type !== "resource.delete" &&
       entry.type !== "resource.marks.set" &&
       entry.type !== "resource.kv.set") ||
     !isTimestamp(entry.committed_at) ||

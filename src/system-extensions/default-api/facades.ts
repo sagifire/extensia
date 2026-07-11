@@ -113,6 +113,11 @@ export interface StorageFacade {
   ): Promise<
     DefaultApiResult<DefaultResourceWriteSuccess, MoveResourceFailure>
   >;
+  deleteResource(
+    id: string,
+  ): Promise<
+    DefaultApiResult<DefaultResourceWriteSuccess, DeleteResourceFailure>
+  >;
   setMarks(
     resourceId: string,
     marks: unknown,
@@ -169,6 +174,16 @@ type MoveResourceFailure =
   | DefaultApiFailure<"RESOURCE_MOVE_CYCLE">
   | DefaultApiFailure<"RESOURCE_ORDER_OUT_OF_RANGE">
   | DefaultApiFailure<"RESOURCE_NO_CHANGES">
+  | DefaultApiFailure<"STORAGE_LOCK_FAILED">
+  | DefaultApiFailure<"STORAGE_WRITE_FAILED">
+  | DefaultApiFailure<"STORAGE_INTEGRITY_FAILED">;
+type DeleteResourceFailure =
+  | ModuleNotReadyFailure
+  | InvalidResourceIDFailure
+  | StorageReadonlyFailure
+  | ResourceNotFoundFailure
+  | DefaultApiFailure<"RESOURCE_HAS_CHILDREN">
+  | DefaultApiFailure<"RESOURCE_ALREADY_DELETED">
   | DefaultApiFailure<"STORAGE_LOCK_FAILED">
   | DefaultApiFailure<"STORAGE_WRITE_FAILED">
   | DefaultApiFailure<"STORAGE_INTEGRITY_FAILED">;
@@ -531,6 +546,36 @@ function createStorageFacade(
         lease.release();
       }
     },
+    async deleteResource(
+      rawId: string,
+    ): ReturnType<StorageFacade["deleteResource"]> {
+      const lease = context.operations.acquire();
+      if (lease === null) return notReady();
+      try {
+        if (port === null)
+          return failure(
+            "STORAGE_READONLY",
+            "Resource storage is readonly in this runtime",
+          );
+        let id;
+        try {
+          id = parseIDString(rawId);
+        } catch {
+          return invalidResourceID();
+        }
+        const result = await port.write({
+          type: "resource.delete",
+          id,
+          fail_integrity: ({ code, operation_id }) =>
+            context.failClose(code, operation_id),
+        });
+        return result.ok
+          ? writeSuccess(result, context)
+          : deleteWriteFailure(result.error.code);
+      } finally {
+        lease.release();
+      }
+    },
     async setMarks(
       rawId: string,
       marks: unknown,
@@ -630,6 +675,10 @@ function messageForWriteFailure(code: CoreResourceWriteFailureCode): string {
       return "Resource move would create a cycle";
     case "RESOURCE_ORDER_OUT_OF_RANGE":
       return "Resource order is out of range";
+    case "RESOURCE_HAS_CHILDREN":
+      return "Resource has active children";
+    case "RESOURCE_ALREADY_DELETED":
+      return "Resource is already deleted";
   }
 }
 
@@ -648,6 +697,26 @@ function moveWriteFailure(
     case "STORAGE_INTEGRITY_FAILED":
       return failure(code, messageForWriteFailure(code));
     case "RESOURCE_ID_GENERATION_FAILED":
+    case "RESOURCE_HAS_CHILDREN":
+    case "RESOURCE_ALREADY_DELETED":
+      return failure(
+        "STORAGE_WRITE_FAILED",
+        messageForWriteFailure("STORAGE_WRITE_FAILED"),
+      );
+  }
+}
+function deleteWriteFailure(
+  code: CoreResourceWriteFailureCode,
+): DefaultApiResult<never, DeleteResourceFailure> {
+  switch (code) {
+    case "RESOURCE_NOT_FOUND":
+    case "RESOURCE_HAS_CHILDREN":
+    case "RESOURCE_ALREADY_DELETED":
+    case "STORAGE_LOCK_FAILED":
+    case "STORAGE_WRITE_FAILED":
+    case "STORAGE_INTEGRITY_FAILED":
+      return failure(code, messageForWriteFailure(code));
+    default:
       return failure(
         "STORAGE_WRITE_FAILED",
         messageForWriteFailure("STORAGE_WRITE_FAILED"),
@@ -692,6 +761,8 @@ function createWriteFailure(
     case "RESOURCE_PARENT_NOT_FOUND":
     case "RESOURCE_MOVE_CYCLE":
     case "RESOURCE_ORDER_OUT_OF_RANGE":
+    case "RESOURCE_HAS_CHILDREN":
+    case "RESOURCE_ALREADY_DELETED":
       return failure(
         "STORAGE_WRITE_FAILED",
         messageForWriteFailure("STORAGE_WRITE_FAILED"),
@@ -714,6 +785,8 @@ function updateWriteFailure(
     case "RESOURCE_PARENT_NOT_FOUND":
     case "RESOURCE_MOVE_CYCLE":
     case "RESOURCE_ORDER_OUT_OF_RANGE":
+    case "RESOURCE_HAS_CHILDREN":
+    case "RESOURCE_ALREADY_DELETED":
       return failure(
         "STORAGE_WRITE_FAILED",
         messageForWriteFailure("STORAGE_WRITE_FAILED"),

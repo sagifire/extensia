@@ -1,6 +1,6 @@
 # P3-VS5 / TASK-07.26-0035: М'яке видалення Resource і видимість
 
-Task Status: backlog
+Task Status: done
 Type: feature
 Created: 2026-07-11
 Owner Role: Product Lead Hat
@@ -9,13 +9,13 @@ Current Run: RUN-002
 
 ## Поточний стан
 
-Run Status: prepared
-Progress: Пакет задачі структурно перенесено на PDADM MVP 0.5; реалізацію не активовано.
-Acceptance: 0/13
-Blockers: залежність P3-VS4 / TASK-07.26-0034 має бути `done` до активації
+Run Status: completed
+Progress: Реалізація прийнята whole-task approval; approved FIX-001 applied; final consistency green.
+Acceptance: 13/13
+Blockers: none
 Blocked Phase: n/a
 Pending Decisions: none
-Next Action: Після виконання залежностей і прямого рішення користувача активувати RUN-002.
+Next Action: None. TASK-0036 не активована цим approval.
 
 ## Мета
 
@@ -84,7 +84,7 @@ P3-VS5 завершує життєвий цикл стану Resource у фаз�
 ## Прогони
 
 - [Legacy RUN-001](runs/RUN-001/index.md) - superseded - джерело лише для структурної міграції; підготовлені артефакти збережено без змін, реалізацію не активовано.
-- [RUN-002](RUN-002/index.md) - prepared - поточний прогон MVP 0.5; результат ще не створено.
+- [RUN-002](RUN-002/index.md) - active - поточний implementation run MVP 0.5.
 
 ## Дослідження
 
@@ -92,7 +92,7 @@ P3-VS5 завершує життєвий цикл стану Resource у фаз�
 
 ## Фіксації
 
-- Немає.
+- [FIX-001](FIX-001.md) - required factual current/technical memory sync; proposed, not applied.
 
 ## Запити на рішення
 
@@ -104,18 +104,18 @@ P3-VS5 завершує життєвий цикл стану Resource у фаз�
 
 ## Human Review
 
-Status: not-ready
-Requested: n/a
-Reviewed: pending
-Approval Source: n/a
-Approved Fixations: none
+Status: approved
+Requested: 2026-07-11
+Reviewed: approved 2026-07-11
+Approval Source: explicit user decision `Whole task: approve`
+Approved Fixations: FIX-001
 Rejected Fixations: none
 Follow-up Decisions: none
-Decision Notes: Реалізацію ще не активовано; структурна міграція не є прийняттям результату реалізації.
+Decision Notes: Whole-task result і required FIX-001 окремо схвалені користувачем 2026-07-11; exact proposal переходить у finalization.
 
 ## Фінальний результат
 
-Completed: pending
-Final Run: pending
-Summary: Реалізація очікує залежностей та активації RUN-002.
-Residual Risks: Повний контракт реалізації та перевірки ще не виконано.
+Completed: 2026-07-11
+Final Run: RUN-002
+Summary: Exact leaf soft delete/default tombstone invisibility реалізовано, full/focused gates і final independent audit зелені, whole-task result прийнятий, required FIX-001 applied.
+Residual Risks: Public signatures remain experimental Phase 3 compatibility surface; restore/include-deleted/cascade/purge/retention explicitly deferred.

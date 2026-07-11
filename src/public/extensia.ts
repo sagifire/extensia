@@ -175,6 +175,10 @@ function messageFor(code: ExtensiaErrorCode): string {
       return "Resource move would create a cycle";
     case "RESOURCE_ORDER_OUT_OF_RANGE":
       return "Resource order is out of range";
+    case "RESOURCE_HAS_CHILDREN":
+      return "Resource has active children";
+    case "RESOURCE_ALREADY_DELETED":
+      return "Resource is already deleted";
   }
 }
 

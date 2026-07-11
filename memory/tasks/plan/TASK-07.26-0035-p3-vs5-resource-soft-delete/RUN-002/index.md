@@ -10,4 +10,5 @@
 
 ## Файли
 
-- [Context](context.md) - повний execution contract; result створюється лише під час activation.
+- [Context](context.md) - повний заморожений execution contract.
+- [Result](result.md) - active execution, verification, self-review та audit report.

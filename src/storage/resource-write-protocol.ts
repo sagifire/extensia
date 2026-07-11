@@ -32,6 +32,7 @@ export interface CommittedOperationEntry {
     | "resource.create"
     | "resource.update"
     | "resource.move"
+    | "resource.delete"
     | "resource.marks.set"
     | "resource.kv.set";
   readonly affected_resources: readonly IDString[];

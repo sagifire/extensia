@@ -12,3 +12,4 @@
 ## Файли
 
 - [Task](task.md) - task contract, dashboard і artifact registry.
+- [FIX-001](FIX-001.md) - required factual current/technical memory sync proposal.

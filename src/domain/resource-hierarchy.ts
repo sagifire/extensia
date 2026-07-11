@@ -139,6 +139,7 @@ export function prepareResourceMove(
       }
     });
   };
+
   if (target.data.parent_id !== parentId)
     stageGroup(source, target.data.parent_id);
   stageGroup(destination, parentId);
@@ -149,6 +150,60 @@ export function prepareResourceMove(
     kind: "success",
     resources: Object.freeze(
       [...changed.values()].sort((a, b) => a.data.id.localeCompare(b.data.id)),
+    ),
+  };
+}
+
+export type ResourceDeletePreparation =
+  | { readonly kind: "missing" | "already-deleted" | "has-children" }
+  | {
+      readonly kind: "success";
+      readonly resources: readonly ResourceSnapshot[];
+    };
+
+export function prepareResourceDelete(
+  currentResources: readonly ResourceSnapshot[],
+  targetId: IDString,
+  now: Timestamp,
+): ResourceDeletePreparation {
+  const byId = new Map(currentResources.map((item) => [item.data.id, item]));
+  validateResourceHierarchy(byId);
+  const target = byId.get(targetId);
+  if (target === undefined) return { kind: "missing" };
+  if (target.data.is_deleted) return { kind: "already-deleted" };
+  if (
+    currentResources.some(
+      (item) => !item.data.is_deleted && item.data.parent_id === targetId,
+    )
+  )
+    return { kind: "has-children" };
+  const changed = [
+    buildResourceSnapshot({
+      ...target,
+      data: { ...target.data, is_deleted: true, updated_at: now },
+    }),
+  ];
+  currentResources
+    .filter(
+      (item) =>
+        !item.data.is_deleted &&
+        item.data.parent_id === target.data.parent_id &&
+        item.data.id !== targetId,
+    )
+    .sort((a, b) => a.data.order_index - b.data.order_index)
+    .forEach((item, orderIndex) => {
+      if (item.data.order_index !== orderIndex)
+        changed.push(
+          buildResourceSnapshot({
+            ...item,
+            data: { ...item.data, order_index: orderIndex, updated_at: now },
+          }),
+        );
+    });
+  return {
+    kind: "success",
+    resources: Object.freeze(
+      changed.sort((a, b) => a.data.id.localeCompare(b.data.id)),
     ),
   };
 }
