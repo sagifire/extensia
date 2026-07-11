@@ -1,9 +1,99 @@
 import { describe, expect, it } from "vitest";
 
 import { createExtensia, defineFullResourceDriver } from "../index.js";
-import { createDeterministicFullResourceDriver } from "../storage/deterministic-full-resource-driver.js";
+import {
+  createDeterministicFullDriverBacking,
+  createDeterministicFullResourceDriver,
+} from "../storage/deterministic-full-resource-driver.js";
 
 describe("public Resource create slice", () => {
+  it("publishes the coherent full state after another runtime commits", async () => {
+    const backing = createDeterministicFullDriverBacking();
+    const firstFixture = createDeterministicFullResourceDriver(backing);
+    const secondFixture = createDeterministicFullResourceDriver(backing);
+    const first = createExtensia({
+      storage: { driver: defineFullResourceDriver(firstFixture.adapter) },
+    });
+    const second = createExtensia({
+      storage: { driver: defineFullResourceDriver(secondFixture.adapter) },
+    });
+    await first.start();
+    await second.start();
+    const external = await first
+      .storage()!
+      .createResource({ title: "external" });
+    const local = await second.storage()!.createResource({ title: "local" });
+    if (!external.ok || !local.ok) throw new Error("create failed");
+    expect(local.value.resource.data.order_index).toBe(1);
+    await expect(
+      second.query()!.getResource(external.value.resource.data.id),
+    ).resolves.toMatchObject({
+      ok: true,
+      value: { data: { title: "external" } },
+    });
+    await first.stop();
+    await second.stop();
+  });
+
+  it("classifies a malformed acquired session as integrity and fail-closes", async () => {
+    const fixture = createDeterministicFullResourceDriver();
+    let acquisitions = 0;
+    const driver = defineFullResourceDriver({
+      open: () => fixture.adapter.open(),
+      close: () => fixture.adapter.close(),
+      async acquireStorageSession(signal) {
+        acquisitions += 1;
+        if (acquisitions > 1) return {} as never;
+        return fixture.adapter.acquireStorageSession(signal);
+      },
+    });
+    const extensia = createExtensia({ storage: { driver } });
+    await extensia.start();
+    await expect(
+      extensia.storage()!.createResource({ title: "invalid session" }),
+    ).resolves.toMatchObject({
+      ok: false,
+      error: { code: "STORAGE_INTEGRITY_FAILED" },
+    });
+    expect(extensia.getState()).toBe("failed");
+    await extensia.stop();
+  });
+
+  it("classifies duplicate stored Resource IDs as integrity", async () => {
+    const fixture = createDeterministicFullResourceDriver();
+    let duplicate = false;
+    const driver = defineFullResourceDriver({
+      open: () => fixture.adapter.open(),
+      close: () => fixture.adapter.close(),
+      async acquireStorageSession(signal) {
+        const session = await fixture.adapter.acquireStorageSession(signal);
+        return {
+          ...session,
+          async *listResources() {
+            const resources = [];
+            for await (const resource of session.listResources())
+              resources.push(resource);
+            yield* resources;
+            if (duplicate) yield* resources;
+          },
+        };
+      },
+    });
+    const extensia = createExtensia({ storage: { driver } });
+    await extensia.start();
+    const first = await extensia.storage()!.createResource({ title: "first" });
+    if (!first.ok) throw new Error("create failed");
+    duplicate = true;
+    await expect(
+      extensia.storage()!.createResource({ title: "second" }),
+    ).resolves.toMatchObject({
+      ok: false,
+      error: { code: "STORAGE_INTEGRITY_FAILED" },
+    });
+    expect(extensia.getState()).toBe("failed");
+    await extensia.stop();
+  });
+
   it("commits one root Resource and immediately reads back a detached snapshot", async () => {
     const fixture = createDeterministicFullResourceDriver();
     const driver = defineFullResourceDriver(fixture.adapter);
@@ -146,8 +236,13 @@ describe("public Resource create slice", () => {
     });
   });
 
-  it("rejects a malformed resolved commit instead of declaring success", async () => {
+  it("preserves committed success and fail-closes on a malformed resolved receipt", async () => {
     const fixture = createDeterministicFullResourceDriver();
+    let unblockRelease!: () => void;
+    const releaseGate = new Promise<void>((resolve) => {
+      unblockRelease = resolve;
+    });
+    let delayRelease = false;
     const driver = defineFullResourceDriver({
       open: () => fixture.adapter.open(),
       close: () => fixture.adapter.close(),
@@ -155,12 +250,17 @@ describe("public Resource create slice", () => {
         const session = await fixture.adapter.acquireStorageSession(signal);
         return {
           ...session,
+          async release() {
+            if (delayRelease) await releaseGate;
+            await session.release();
+          },
           async begin(operationId) {
             const transaction = await session.begin(operationId);
             return {
               ...transaction,
               async commit(draft) {
                 await transaction.commit(draft);
+                delayRelease = true;
                 return undefined as never;
               },
             };
@@ -170,12 +270,22 @@ describe("public Resource create slice", () => {
     });
     const extensia = createExtensia({ storage: { driver } });
     await extensia.start();
-    await expect(
-      extensia.storage()!.createResource({ title: "malformed commit" }),
-    ).resolves.toMatchObject({
-      ok: false,
-      error: { code: "STORAGE_WRITE_FAILED" },
+    const pending = extensia
+      .storage()!
+      .createResource({ title: "malformed commit" });
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    expect(extensia.getState()).toBe("failed");
+    unblockRelease();
+    await expect(pending).resolves.toMatchObject({
+      ok: true,
+      value: {
+        committed: true,
+        warnings: [{ code: "LOCAL_INDEX_PUBLICATION_FAILED" }],
+      },
     });
+    expect(fixture.inspect().resources).toHaveLength(1);
+    expect(fixture.inspect().journal).toHaveLength(1);
+    expect(extensia.getState()).toBe("failed");
     await extensia.stop();
   });
 

@@ -102,6 +102,12 @@ export interface StorageFacade {
   ): Promise<
     DefaultApiResult<DefaultResourceWriteSuccess, UpdateResourceFailure>
   >;
+  moveResource(
+    id: string,
+    input: unknown,
+  ): Promise<
+    DefaultApiResult<DefaultResourceWriteSuccess, MoveResourceFailure>
+  >;
 }
 
 interface DefaultResourceWriteSuccess {
@@ -121,7 +127,8 @@ type CreateResourceFailure =
   | DefaultApiFailure<"RESOURCE_INPUT_INVALID">
   | DefaultApiFailure<"RESOURCE_ID_GENERATION_FAILED">
   | DefaultApiFailure<"STORAGE_LOCK_FAILED">
-  | DefaultApiFailure<"STORAGE_WRITE_FAILED">;
+  | DefaultApiFailure<"STORAGE_WRITE_FAILED">
+  | DefaultApiFailure<"STORAGE_INTEGRITY_FAILED">;
 
 type UpdateResourceFailure =
   | ModuleNotReadyFailure
@@ -131,7 +138,22 @@ type UpdateResourceFailure =
   | ResourceNotFoundFailure
   | DefaultApiFailure<"RESOURCE_NO_CHANGES">
   | DefaultApiFailure<"STORAGE_LOCK_FAILED">
-  | DefaultApiFailure<"STORAGE_WRITE_FAILED">;
+  | DefaultApiFailure<"STORAGE_WRITE_FAILED">
+  | DefaultApiFailure<"STORAGE_INTEGRITY_FAILED">;
+
+type MoveResourceFailure =
+  | ModuleNotReadyFailure
+  | InvalidResourceIDFailure
+  | StorageReadonlyFailure
+  | DefaultApiFailure<"RESOURCE_INPUT_INVALID">
+  | ResourceNotFoundFailure
+  | DefaultApiFailure<"RESOURCE_PARENT_NOT_FOUND">
+  | DefaultApiFailure<"RESOURCE_MOVE_CYCLE">
+  | DefaultApiFailure<"RESOURCE_ORDER_OUT_OF_RANGE">
+  | DefaultApiFailure<"RESOURCE_NO_CHANGES">
+  | DefaultApiFailure<"STORAGE_LOCK_FAILED">
+  | DefaultApiFailure<"STORAGE_WRITE_FAILED">
+  | DefaultApiFailure<"STORAGE_INTEGRITY_FAILED">;
 
 export const QUERY_FACADE: ReturnType<typeof facadeHandle<QueryFacade>> =
   facadeHandle<QueryFacade>("query");
@@ -297,6 +319,54 @@ function parseUpdatePatch(
   }
 }
 
+function parseMoveInput(input: unknown):
+  | {
+      readonly parent_id: import("../../domain/scalars.js").IDString | null;
+      readonly order_index: number;
+    }
+  | "invalid-id"
+  | null {
+  try {
+    if (typeof input !== "object" || input === null || Array.isArray(input))
+      return null;
+    const prototype = Object.getPrototypeOf(input);
+    if (prototype !== Object.prototype && prototype !== null) return null;
+    const keys = Reflect.ownKeys(input);
+    if (
+      keys.length !== 2 ||
+      !keys.includes("parent_id") ||
+      !keys.includes("order_index")
+    )
+      return null;
+    const parent = Object.getOwnPropertyDescriptor(input, "parent_id");
+    const order = Object.getOwnPropertyDescriptor(input, "order_index");
+    if (
+      parent === undefined ||
+      order === undefined ||
+      !("value" in parent) ||
+      !("value" in order) ||
+      parent.enumerable !== true ||
+      order.enumerable !== true ||
+      (parent.value !== null && typeof parent.value !== "string") ||
+      typeof order.value !== "number" ||
+      !Number.isSafeInteger(order.value) ||
+      order.value < 0
+    )
+      return null;
+    let parentId = null;
+    if (parent.value !== null) {
+      try {
+        parentId = parseIDString(parent.value as string);
+      } catch {
+        return "invalid-id";
+      }
+    }
+    return Object.freeze({ parent_id: parentId, order_index: order.value });
+  } catch {
+    return null;
+  }
+}
+
 function writeSuccess(
   result: Extract<
     Awaited<ReturnType<CoreResourceWritePort["write"]>>,
@@ -346,8 +416,15 @@ function createStorageFacade(
         const parsed = parseCreateInput(input);
         if (parsed === null)
           return failure("RESOURCE_INPUT_INVALID", "Resource input is invalid");
-        const result = await port.write({ type: "resource.create", ...parsed });
-        if (!result.ok) return createWriteFailure(result.error.code);
+        const result = await port.write({
+          type: "resource.create",
+          ...parsed,
+          fail_integrity: ({ code, operation_id }) =>
+            context.failClose(code, operation_id),
+        });
+        if (!result.ok) {
+          return createWriteFailure(result.error.code);
+        }
         return writeSuccess(result, context);
       } finally {
         lease.release();
@@ -378,8 +455,49 @@ function createStorageFacade(
           type: "resource.update",
           id,
           patch: parsed,
+          fail_integrity: ({ code, operation_id }) =>
+            context.failClose(code, operation_id),
         });
-        if (!result.ok) return updateWriteFailure(result.error.code);
+        if (!result.ok) {
+          return updateWriteFailure(result.error.code);
+        }
+        return writeSuccess(result, context);
+      } finally {
+        lease.release();
+      }
+    },
+    async moveResource(
+      rawId: string,
+      input: unknown,
+    ): ReturnType<StorageFacade["moveResource"]> {
+      const lease = context.operations.acquire();
+      if (lease === null) return notReady();
+      try {
+        if (port === null)
+          return failure(
+            "STORAGE_READONLY",
+            "Resource storage is readonly in this runtime",
+          );
+        let id;
+        try {
+          id = parseIDString(rawId);
+        } catch {
+          return invalidResourceID();
+        }
+        const parsed = parseMoveInput(input);
+        if (parsed === "invalid-id") return invalidResourceID();
+        if (parsed === null)
+          return failure("RESOURCE_INPUT_INVALID", "Resource input is invalid");
+        const result = await port.write({
+          type: "resource.move",
+          id,
+          ...parsed,
+          fail_integrity: ({ code, operation_id }) =>
+            context.failClose(code, operation_id),
+        });
+        if (!result.ok) {
+          return moveWriteFailure(result.error.code);
+        }
         return writeSuccess(result, context);
       } finally {
         lease.release();
@@ -402,6 +520,36 @@ function messageForWriteFailure(code: CoreResourceWriteFailureCode): string {
       return "Resource storage lock failed";
     case "STORAGE_WRITE_FAILED":
       return "Resource storage write failed";
+    case "STORAGE_INTEGRITY_FAILED":
+      return "Resource storage integrity failed";
+    case "RESOURCE_PARENT_NOT_FOUND":
+      return "Resource parent was not found";
+    case "RESOURCE_MOVE_CYCLE":
+      return "Resource move would create a cycle";
+    case "RESOURCE_ORDER_OUT_OF_RANGE":
+      return "Resource order is out of range";
+  }
+}
+
+function moveWriteFailure(
+  code: CoreResourceWriteFailureCode,
+): DefaultApiResult<never, MoveResourceFailure> {
+  switch (code) {
+    case "RESOURCE_INPUT_INVALID":
+    case "RESOURCE_NOT_FOUND":
+    case "RESOURCE_NO_CHANGES":
+    case "RESOURCE_PARENT_NOT_FOUND":
+    case "RESOURCE_MOVE_CYCLE":
+    case "RESOURCE_ORDER_OUT_OF_RANGE":
+    case "STORAGE_LOCK_FAILED":
+    case "STORAGE_WRITE_FAILED":
+    case "STORAGE_INTEGRITY_FAILED":
+      return failure(code, messageForWriteFailure(code));
+    case "RESOURCE_ID_GENERATION_FAILED":
+      return failure(
+        "STORAGE_WRITE_FAILED",
+        messageForWriteFailure("STORAGE_WRITE_FAILED"),
+      );
   }
 }
 
@@ -417,8 +565,13 @@ function createWriteFailure(
       return failure(code, messageForWriteFailure(code));
     case "STORAGE_WRITE_FAILED":
       return failure(code, messageForWriteFailure(code));
+    case "STORAGE_INTEGRITY_FAILED":
+      return failure(code, messageForWriteFailure(code));
     case "RESOURCE_NOT_FOUND":
     case "RESOURCE_NO_CHANGES":
+    case "RESOURCE_PARENT_NOT_FOUND":
+    case "RESOURCE_MOVE_CYCLE":
+    case "RESOURCE_ORDER_OUT_OF_RANGE":
       return failure(
         "STORAGE_WRITE_FAILED",
         messageForWriteFailure("STORAGE_WRITE_FAILED"),
@@ -435,8 +588,12 @@ function updateWriteFailure(
     case "RESOURCE_NO_CHANGES":
     case "STORAGE_LOCK_FAILED":
     case "STORAGE_WRITE_FAILED":
+    case "STORAGE_INTEGRITY_FAILED":
       return failure(code, messageForWriteFailure(code));
     case "RESOURCE_ID_GENERATION_FAILED":
+    case "RESOURCE_PARENT_NOT_FOUND":
+    case "RESOURCE_MOVE_CYCLE":
+    case "RESOURCE_ORDER_OUT_OF_RANGE":
       return failure(
         "STORAGE_WRITE_FAILED",
         messageForWriteFailure("STORAGE_WRITE_FAILED"),

@@ -28,7 +28,7 @@ export interface CommittedOperationEntry {
   readonly sequence: JournalSequence;
   readonly operation_id: IDString;
   readonly actor_id: IDString;
-  readonly type: "resource.create" | "resource.update";
+  readonly type: "resource.create" | "resource.update" | "resource.move";
   readonly affected_resources: readonly IDString[];
   readonly committed_at: Timestamp;
   readonly write_set_fingerprint: WriteSetFingerprint;

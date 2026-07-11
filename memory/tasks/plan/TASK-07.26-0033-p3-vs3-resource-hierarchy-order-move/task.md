@@ -1,11 +1,11 @@
 # P3-VS3 / TASK-07.26-0033: Resource hierarchy, order і move
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-11
 Depends On: published `APP-07.26-0032-001`; done `P3-STAB1 / TASK-07.26-0030`
-Current Run: `runs/RUN-001` (prepared, not activated)
+Current Run: `runs/RUN-001` (completed, accepted)
 
 ## Мета
 

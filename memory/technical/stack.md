@@ -29,12 +29,13 @@ Updated: 2026-07-11
 | Storage Driver contract | current-experimental | Opaque full-driver author boundary і internal Resource session/transaction seams реалізовані для bounded create/update; final wider contract і concrete layout не визначені. |
 | Concrete full driver | unselected | Physical format і driver package ще не визначені. |
 | Read-only driver | current-experimental | Public Phase 2 Resource listing contract інтегровано BP2-04; це не final Storage Driver contract і не concrete durable implementation. |
-| Hot Metadata Index | current | Resource-only greedy index має prepared immutable upsert/publication для BP3-04; lazy mode і wider metadata не реалізовані. |
+| Hot Metadata Index | current | Resource-only greedy index має validated immutable batch preparation та atomic publication для create/update/move; lazy mode і wider metadata не реалізовані. |
 | Operation Journal | current-internal | Deterministic full fake реалізує committed-only contiguous Resource journal та recovery contract; concrete durable journal/layout лишається planned. |
 | Operation Engine foundation | current-internal | BP3-02 реалізувала atomic multi-key lock queue, explicit scopes, pipeline state/cancellation boundary, committed warnings і close-and-drain без Resource handlers або persistence wiring. |
 | Deterministic full driver | current-internal | BP3-03 реалізувала contract-faithful shared-backing fake, committed journal, crash/fresh recovery та same-session startup scan без public write success або concrete durability claim. |
-| Resource create slice | current-experimental | BP3-04 інтегрувала opaque full-driver handle, Core create pipeline, semantic commit, prepared index publication і local read-back; concrete durability лишається deferred. |
+| Resource create slice | current-experimental | BP3-04 інтегрувала opaque full-driver handle й Core create pipeline; P3-VS3 refine-ила root create до active-root append під hierarchy lock. Concrete durability лишається deferred. |
 | Resource update slice | current-experimental | BP3-05 інтегрувала exact own-metadata update через той самий Core pipeline: latest-state serialization, no-change без transaction, semantic commit, prepared index publication і recovery; P3-DG2 та concrete durability deferred. |
+| Resource move slice | current-experimental | P3-VS3 інтегрувала exact root/same/cross-parent insertion move, dense sibling normalization, cycle/parent/range/no-change policy, sorted multi-Resource commit та typed integrity fail-close через той самий Core pipeline. |
 
 Extensia Core не залежить напряму від local filesystem, S3, NFS або packed format. Вибір першого concrete driver є окремим design decision.
 

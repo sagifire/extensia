@@ -12,6 +12,10 @@ import {
   type ResourceTreeViewSnapshot,
 } from "../domain/snapshots.js";
 import {
+  prepareResourceMove,
+  validateResourceHierarchy,
+} from "../domain/resource-hierarchy.js";
+import {
   createOperationEngine,
   type OperationEngine,
   type OperationScope,
@@ -23,8 +27,15 @@ import {
   LIFECYCLE_CONTRIBUTIONS,
   type LifecycleContribution,
 } from "../runtime/lifecycle.js";
-import { computeResourceWriteSetFingerprint } from "../storage/resource-journal-integrity.js";
+import {
+  computeResourceWriteSetFingerprint,
+  ResourceStorageIntegrityError,
+} from "../storage/resource-journal-integrity.js";
 import type { FullResourceDriverAdapter } from "../storage/full-resource-driver-adapter.js";
+import {
+  ResourceCommittedIntegrityError,
+  ResourceRuntimeIntegrityError,
+} from "../storage/resource-runtime-integrity.js";
 import { scanRecoveryCleanResourceState } from "../storage/resource-recovery-coordinator.js";
 import type {
   CommittedOperationDraft,
@@ -68,6 +79,10 @@ type Attempt =
   | { readonly kind: "collision" }
   | { readonly kind: "missing" }
   | { readonly kind: "no-change" }
+  | { readonly kind: "parent-missing" }
+  | { readonly kind: "cycle" }
+  | { readonly kind: "range" }
+  | { readonly kind: "integrity" }
   | { readonly kind: "lock-failed" }
   | { readonly kind: "write-failed" };
 type BaseAttempt =
@@ -111,62 +126,203 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
   });
   const engine: OperationEngine = createOperationEngine(identities);
 
+  function coherentResourceMap(
+    resources: readonly ResourceSnapshot[],
+  ): Map<IDString, ResourceSnapshot> {
+    const result = new Map<IDString, ResourceSnapshot>();
+    for (const resource of resources) {
+      if (result.has(resource.data.id))
+        throw new ResourceStorageIntegrityError(
+          "Storage returned duplicate Resource IDs",
+        );
+      result.set(resource.data.id, resource);
+    }
+    return result;
+  }
+
   async function attemptCreate(
     resource: ResourceSnapshot,
     scope: OperationScope<BaseAttempt>,
     plan: ResourceOperationPlan,
   ): Promise<BaseAttempt> {
-    return scope.withLocks([`resource:${resource.data.id}`], async () => {
-      let session;
-      try {
-        session = await driver.acquireStorageSession(scope.signal);
-      } catch {
-        return Object.freeze({ kind: "lock-failed" as const });
-      }
-      let transaction: ResourceWriteTransaction | undefined;
-      let committed = false;
-      try {
-        if ((await session.readResource(resource.data.id)) !== null) {
-          return Object.freeze({ kind: "collision" as const });
+    return scope.withLocks(
+      ["resource-hierarchy", `resource:${resource.data.id}`],
+      async () => {
+        let session;
+        try {
+          session = await driver.acquireStorageSession(scope.signal);
+        } catch (error) {
+          if (error instanceof ResourceRuntimeIntegrityError) throw error;
+          return Object.freeze({ kind: "lock-failed" as const });
         }
-        const prepared = index.prepareUpsert(resource);
-        transaction = await session.begin(plan.operation_id);
-        scope.transition("staging");
+        let transaction: ResourceWriteTransaction | undefined;
+        let committed = false;
+        try {
+          if ((await session.readResource(resource.data.id)) !== null) {
+            return Object.freeze({ kind: "collision" as const });
+          }
+          const current: ResourceSnapshot[] = [];
+          for await (const item of session.listResources()) current.push(item);
+          validateResourceHierarchy(coherentResourceMap(current));
+          const nextResource = buildResourceSnapshot({
+            ...resource,
+            data: {
+              ...resource.data,
+              order_index: current.filter(
+                (item) => !item.data.is_deleted && item.data.parent_id === null,
+              ).length,
+            },
+          });
+          const prepared = index.prepareBatch(
+            [nextResource],
+            [...current, nextResource],
+          );
+          transaction = await session.begin(plan.operation_id);
+          scope.transition("staging");
+          await transaction.stageResource(nextResource);
+          const draft: CommittedOperationDraft = Object.freeze({
+            schema_version: 1,
+            operation_id: plan.operation_id,
+            actor_id: plan.actor_id,
+            type: "resource.create",
+            affected_resources: Object.freeze([nextResource.data.id]),
+            committed_at: nextResource.data.created_at,
+            write_set_fingerprint: computeResourceWriteSetFingerprint([
+              nextResource,
+            ]),
+            changes: Object.freeze([
+              {
+                kind: "resource.upsert" as const,
+                resource_id: nextResource.data.id,
+              },
+            ]),
+          });
+          const success = Object.freeze({
+            kind: "success" as const,
+            resource: buildResourceSnapshot(nextResource),
+            operationId: plan.operation_id,
+          });
+          scope.transition("committing");
+          try {
+            await transaction.commit(draft);
+          } catch (error) {
+            if (error instanceof ResourceCommittedIntegrityError) {
+              scope.commit(success);
+              committed = true;
+              scope.deferCleanup(async () => {
+                await transaction?.abort();
+                await session.release();
+              });
+            }
+            throw error;
+          }
+          scope.commit(success);
+          committed = true;
+          scope.deferCleanup(async () => {
+            await transaction?.abort();
+            await session.release();
+          });
+          prepared.publish();
+          return success;
+        } finally {
+          if (!committed) {
+            await transaction?.abort();
+            await session.release();
+          }
+        }
+      },
+    );
+  }
+
+  async function attemptMove(
+    request: Extract<
+      Parameters<CoreResourceWritePort["write"]>[0],
+      { type: "resource.move" }
+    >,
+    now: ReturnType<typeof parseTimestamp>,
+    scope: OperationScope<BaseAttempt>,
+    plan: ResourceOperationPlan,
+  ): Promise<BaseAttempt> {
+    let session;
+    try {
+      session = await driver.acquireStorageSession(scope.signal);
+    } catch (error) {
+      if (error instanceof ResourceRuntimeIntegrityError) throw error;
+      return Object.freeze({ kind: "lock-failed" as const });
+    }
+    let transaction: ResourceWriteTransaction | undefined;
+    let committed = false;
+    try {
+      const all: ResourceSnapshot[] = [];
+      for await (const item of session.listResources()) all.push(item);
+      coherentResourceMap(all);
+      const preparation = prepareResourceMove(
+        all,
+        request.id,
+        request.parent_id,
+        request.order_index,
+        now,
+      );
+      if (preparation.kind !== "success")
+        return Object.freeze({ kind: preparation.kind });
+      const resources = preparation.resources;
+      const changed = new Map(resources.map((item) => [item.data.id, item]));
+      const coherentNext = all.map((item) => changed.get(item.data.id) ?? item);
+      const prepared = index.prepareBatch(resources, coherentNext);
+      transaction = await session.begin(plan.operation_id);
+      scope.transition("staging");
+      for (const resource of resources)
         await transaction.stageResource(resource);
-        const draft: CommittedOperationDraft = Object.freeze({
-          schema_version: 1,
-          operation_id: plan.operation_id,
-          actor_id: plan.actor_id,
-          type: "resource.create",
-          affected_resources: Object.freeze([resource.data.id]),
-          committed_at: resource.data.created_at,
-          write_set_fingerprint: computeResourceWriteSetFingerprint([resource]),
-          changes: Object.freeze([
-            { kind: "resource.upsert" as const, resource_id: resource.data.id },
-          ]),
-        });
-        scope.transition("committing");
+      const resourceIds = Object.freeze(resources.map((item) => item.data.id));
+      const draft: CommittedOperationDraft = Object.freeze({
+        schema_version: 1,
+        operation_id: plan.operation_id,
+        actor_id: plan.actor_id,
+        type: "resource.move",
+        affected_resources: resourceIds,
+        committed_at: now,
+        write_set_fingerprint: computeResourceWriteSetFingerprint(resources),
+        changes: Object.freeze(
+          resourceIds.map((resource_id) => ({
+            kind: "resource.upsert" as const,
+            resource_id,
+          })),
+        ),
+      });
+      const target = resources.find((item) => item.data.id === request.id)!;
+      const success = Object.freeze({
+        kind: "success" as const,
+        resource: buildResourceSnapshot(target),
+        operationId: plan.operation_id,
+      });
+      scope.transition("committing");
+      try {
         await transaction.commit(draft);
-        const success = Object.freeze({
-          kind: "success" as const,
-          resource: buildResourceSnapshot(resource),
-          operationId: plan.operation_id,
-        });
-        scope.commit(success);
-        committed = true;
-        scope.deferCleanup(async () => {
-          await transaction?.abort();
-          await session.release();
-        });
-        prepared.publish();
-        return success;
-      } finally {
-        if (!committed) {
-          await transaction?.abort();
-          await session.release();
+      } catch (error) {
+        if (error instanceof ResourceCommittedIntegrityError) {
+          scope.commit(success);
+          committed = true;
+          scope.deferCleanup(async () => {
+            await transaction?.abort();
+            await session.release();
+          });
         }
+        throw error;
       }
-    });
+      scope.commit(success);
+      committed = true;
+      scope.deferCleanup(async () => {
+        await transaction?.abort();
+        await session.release();
+      });
+      prepared.publish();
+      return success;
+    } finally {
+      if (!committed) {
+        await transaction?.abort();
+        await session.release();
+      }
+    }
   }
 
   async function attemptUpdate(
@@ -181,14 +337,22 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
     let session;
     try {
       session = await driver.acquireStorageSession(scope.signal);
-    } catch {
+    } catch (error) {
+      if (error instanceof ResourceRuntimeIntegrityError) throw error;
       return Object.freeze({ kind: "lock-failed" as const });
     }
     let transaction: ResourceWriteTransaction | undefined;
     let committed = false;
     try {
-      const current = await session.readResource(request.id);
-      if (current === null) return Object.freeze({ kind: "missing" as const });
+      const coherentResources: ResourceSnapshot[] = [];
+      for await (const item of session.listResources())
+        coherentResources.push(item);
+      validateResourceHierarchy(coherentResourceMap(coherentResources));
+      const current = coherentResources.find(
+        (item) => item.data.id === request.id,
+      );
+      if (current === undefined)
+        return Object.freeze({ kind: "missing" as const });
       const title = request.patch.title ?? current.data.title;
       const description =
         "description" in request.patch
@@ -203,7 +367,12 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
         ...current,
         data: { ...current.data, title, description, updated_at: now },
       });
-      const prepared = index.prepareUpsert(resource);
+      const prepared = index.prepareBatch(
+        [resource],
+        coherentResources.map((item) =>
+          item.data.id === resource.data.id ? resource : item,
+        ),
+      );
       transaction = await session.begin(plan.operation_id);
       scope.transition("staging");
       await transaction.stageResource(resource);
@@ -219,13 +388,25 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
           { kind: "resource.upsert" as const, resource_id: resource.data.id },
         ]),
       });
-      scope.transition("committing");
-      await transaction.commit(draft);
       const success = Object.freeze({
         kind: "success" as const,
         resource: buildResourceSnapshot(resource),
         operationId: plan.operation_id,
       });
+      scope.transition("committing");
+      try {
+        await transaction.commit(draft);
+      } catch (error) {
+        if (error instanceof ResourceCommittedIntegrityError) {
+          scope.commit(success);
+          committed = true;
+          scope.deferCleanup(async () => {
+            await transaction?.abort();
+            await session.release();
+          });
+        }
+        throw error;
+      }
       scope.commit(success);
       committed = true;
       scope.deferCleanup(async () => {
@@ -251,17 +432,24 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
       const engineResult = await engine.execute<BaseAttempt>(
         {
           type: request.type,
-          affected_resources:
-            request.type === "resource.update" ? [request.id] : [],
+          resource_hints:
+            request.type === "resource.create" ? [] : [request.id],
           identity,
+          ...(request.fail_integrity === undefined
+            ? {}
+            : { fail_integrity: request.fail_integrity }),
           lock_keys:
             request.type === "resource.update"
               ? [`resource:${request.id}`]
-              : [],
+              : request.type === "resource.move"
+                ? ["resource-hierarchy", `resource:${request.id}`]
+                : [],
         },
         async (scope, plan) => {
           if (request.type === "resource.update")
             return attemptUpdate(request, now, scope, plan);
+          if (request.type === "resource.move")
+            return attemptMove(request, now, scope, plan);
           for (let candidate = 0; candidate < 3; candidate += 1) {
             const resource = buildResourceSnapshot({
               data: {
@@ -290,7 +478,12 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
       if (!engineResult.ok)
         return Object.freeze({
           ok: false,
-          error: Object.freeze({ code: "STORAGE_WRITE_FAILED" }),
+          error: Object.freeze({
+            code:
+              engineResult.code === "OPERATION_INTEGRITY_FAILED"
+                ? "STORAGE_INTEGRITY_FAILED"
+                : "STORAGE_WRITE_FAILED",
+          }),
         });
       const attempt = engineResult.value;
       if (attempt.kind === "collision")
@@ -307,6 +500,26 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
         return Object.freeze({
           ok: false,
           error: Object.freeze({ code: "RESOURCE_NO_CHANGES" }),
+        });
+      if (attempt.kind === "parent-missing")
+        return Object.freeze({
+          ok: false,
+          error: Object.freeze({ code: "RESOURCE_PARENT_NOT_FOUND" }),
+        });
+      if (attempt.kind === "cycle")
+        return Object.freeze({
+          ok: false,
+          error: Object.freeze({ code: "RESOURCE_MOVE_CYCLE" }),
+        });
+      if (attempt.kind === "range")
+        return Object.freeze({
+          ok: false,
+          error: Object.freeze({ code: "RESOURCE_ORDER_OUT_OF_RANGE" }),
+        });
+      if (attempt.kind === "integrity")
+        return Object.freeze({
+          ok: false,
+          error: Object.freeze({ code: "STORAGE_INTEGRITY_FAILED" }),
         });
       if (attempt.kind === "lock-failed")
         return Object.freeze({

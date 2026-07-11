@@ -157,16 +157,16 @@ describe("greedy Resource index", () => {
   it("derives one-level children deterministically for every fixture order", async () => {
     const fixtures = [
       resource(ROOT_ID),
-      resource(CHILD_A_ID, { parentId: ROOT_ID, orderIndex: 2 }),
-      resource(CHILD_B_ID, { parentId: ROOT_ID, orderIndex: 2 }),
+      resource(CHILD_A_ID, { parentId: ROOT_ID, orderIndex: 0 }),
+      resource(CHILD_B_ID, { parentId: ROOT_ID, orderIndex: 1 }),
     ];
 
     for (const order of permutations(fixtures)) {
       const index = createGreedyResourceIndex();
       await index.initialize(asyncResources(order));
       expect(index.getResourceTree(ROOT_ID)?.children).toEqual([
-        { id: CHILD_A_ID, order_index: 2 },
-        { id: CHILD_B_ID, order_index: 2 },
+        { id: CHILD_A_ID, order_index: 0 },
+        { id: CHILD_B_ID, order_index: 1 },
       ]);
       expect(index.getResourceTree(CHILD_A_ID)?.children).toEqual([]);
     }
@@ -219,7 +219,7 @@ describe("readonly Core Resource runtime", () => {
     const root = resource(ROOT_ID, { title: "Original" });
     const child = resource(CHILD_A_ID, {
       parentId: ROOT_ID,
-      orderIndex: 1,
+      orderIndex: 0,
     });
     const fixture = driverFixture([child, root]);
     const result = await composeCore(fixture.driver);
@@ -262,7 +262,7 @@ describe("readonly Core Resource runtime", () => {
       }),
     ).resolves.toMatchObject({
       ok: true,
-      value: { children: [{ id: CHILD_A_ID, order_index: 1 }] },
+      value: { children: [{ id: CHILD_A_ID, order_index: 0 }] },
     });
     await expect(
       readResource(result.composition.capabilities.read, MISSING_ID),

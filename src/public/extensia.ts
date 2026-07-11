@@ -167,6 +167,14 @@ function messageFor(code: ExtensiaErrorCode): string {
       return "Resource storage lock failed";
     case "STORAGE_WRITE_FAILED":
       return "Resource storage write failed";
+    case "STORAGE_INTEGRITY_FAILED":
+      return "Resource storage integrity failed";
+    case "RESOURCE_PARENT_NOT_FOUND":
+      return "Resource parent was not found";
+    case "RESOURCE_MOVE_CYCLE":
+      return "Resource move would create a cycle";
+    case "RESOURCE_ORDER_OUT_OF_RANGE":
+      return "Resource order is out of range";
   }
 }
 
@@ -371,7 +379,14 @@ export function createExtensia(config: ExtensiaConfig): ExtensiaModule {
       const facadeInspection = runtime?.facades.inspect();
       const facadeDiagnostics =
         facadeInspection?.diagnostics.map((entry) =>
-          diagnostic(entry.code, "facade", entry.subject),
+          diagnostic(
+            entry.code,
+            entry.code === "RESOURCE_STORAGE_INTEGRITY" ||
+              entry.code === "RESOURCE_INDEX_INTEGRITY"
+              ? "operation"
+              : "facade",
+            entry.subject,
+          ),
         ) ?? [];
       const facades = ready
         ? (facadeInspection?.facades.filter(

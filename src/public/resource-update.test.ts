@@ -21,6 +21,72 @@ async function startedFixture() {
 }
 
 describe("public Resource update slice", () => {
+  it("publishes the coherent full state while updating after external commits", async () => {
+    const backing = createDeterministicFullDriverBacking();
+    const firstFixture = createDeterministicFullResourceDriver(backing);
+    const secondFixture = createDeterministicFullResourceDriver(backing);
+    const first = createExtensia({
+      storage: { driver: defineFullResourceDriver(firstFixture.adapter) },
+    });
+    const second = createExtensia({
+      storage: { driver: defineFullResourceDriver(secondFixture.adapter) },
+    });
+    await first.start();
+    await second.start();
+    const externalA = await first.storage()!.createResource({ title: "a" });
+    const externalB = await first.storage()!.createResource({ title: "b" });
+    if (!externalA.ok || !externalB.ok) throw new Error("create failed");
+    await expect(
+      second
+        .storage()!
+        .updateResource(externalA.value.resource.data.id, { title: "updated" }),
+    ).resolves.toMatchObject({ ok: true });
+    await expect(
+      second.query()!.getResource(externalB.value.resource.data.id),
+    ).resolves.toMatchObject({ ok: true, value: { data: { title: "b" } } });
+    await first.stop();
+    await second.stop();
+  });
+
+  it("classifies a malformed Resource stream as integrity and fail-closes", async () => {
+    const fixture = createDeterministicFullResourceDriver();
+    let malformedRead = false;
+    const driver = defineFullResourceDriver({
+      open: () => fixture.adapter.open(),
+      close: () => fixture.adapter.close(),
+      async acquireStorageSession(signal) {
+        const session = await fixture.adapter.acquireStorageSession(signal);
+        return {
+          ...session,
+          async *listResources() {
+            if (malformedRead) {
+              yield {} as never;
+              return;
+            }
+            yield* session.listResources();
+          },
+        };
+      },
+    });
+    const extensia = createExtensia({ storage: { driver } });
+    await extensia.start();
+    const created = await extensia
+      .storage()!
+      .createResource({ title: "before" });
+    if (!created.ok) throw new Error("create failed");
+    malformedRead = true;
+    await expect(
+      extensia
+        .storage()!
+        .updateResource(created.value.resource.data.id, { title: "after" }),
+    ).resolves.toMatchObject({
+      ok: false,
+      error: { code: "STORAGE_INTEGRITY_FAILED" },
+    });
+    expect(extensia.getState()).toBe("failed");
+    await extensia.stop();
+  });
+
   it("commits one exact own-metadata update and returns detached read-back", async () => {
     const { extensia, fixture, created } = await startedFixture();
     const updated = await extensia

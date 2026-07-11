@@ -8,7 +8,7 @@ Internal Stage: `v2`
 
 ## Поточний фокус
 
-Phase 1 і Phase 2 завершені та прийняті explicit human gates. Phase 3 design/application foundation through P3-DG2 published as APP-0032; TASK-0032 done after final `PASS` and whole-task human approval, downstream TASK-0033…0036 prepared backlog-only. Production implementation beyond create/update unchanged.
+Phase 1 і Phase 2 завершені та прийняті explicit human gates. Phase 3 design/application foundation through P3-DG2 published as APP-0032; P3-VS3/TASK-0033 завершена після repeated independent `REVIEW_READY` і whole-task human approval. TASK-0034…0036 не активовані.
 
 ## Поточний стан продукту
 
@@ -17,7 +17,7 @@ Phase 1 і Phase 2 завершені та прийняті explicit human gates
 - Product/domain/technical design розгорнуто зі source specifications, але самі specifications мають статус draft.
 - Усі 37 product requirements мають статус `accepted`; detailed contracts і open questions все ще проходять окремі stabilization gates.
 - Detailed source specifications зберігаються в `memory/references/extensia-v2/`; obsolete non-IoC documents і root `v2/` видалені.
-- Internal pure domain contract kernel і його tests реалізовані в `BP1-02`; bounded public read API реалізований у BP2-04, а BP3-04/BP3-05 додали experimental Resource create/update через opaque full-driver boundary. Final concrete Storage Driver, wider writes і plugins ще відсутні.
+- Internal pure domain contract kernel і його tests реалізовані в `BP1-02`; bounded public read API реалізований у BP2-04, BP3-04/BP3-05 додали experimental Resource create/update, а P3-VS3 — hierarchy-aware create і move через opaque full-driver boundary. Final concrete Storage Driver, delete/Mark/KV writes і plugins ще відсутні.
 - Internal BP2-02 Core read slice реалізує readonly Resource listing port, greedy by-id/children index, exact shared read-port provider і lifecycle cleanup; це не public/final Storage Driver або facade.
 - Internal BP2-03 slice реалізує єдиний Facade Provider/Registry mechanism, `extensia.default-api` query/storage adapters, trusted reserved provenance, atomic ready publication і intake drain.
 - BP2-04 RUN-001 реалізувала root-only public Extensia Module read slice: exact type/value exports, descriptor-safe config, normalized lifecycle/results, safe inspection, stable ready `query`/`storage` facades і packed consumer verification; результат прийнятий whole-task human review.
@@ -37,7 +37,8 @@ Phase 1 і Phase 2 завершені та прийняті explicit human gates
 - `BP3-05 / P3-VS2 / TASK-07.26-0029` завершена як `done`: exact own-metadata update, latest-state serialization, no-change без transaction, semantic commit, recovery та detached read-back реалізовані; full 171-test gate і repeated independent audit `REVIEW_READY`, результат прийнятий whole-task human review. P3-STAB1 згодом активована окремим рішенням.
 - `P3-STAB1 / TASK-07.26-0030` завершена як `done`: RUN-001 відтворила clean/package/API/architecture, concurrency/failure/recovery та protocol/source boundary evidence для `BP3-01A`…`BP3-05`; create safe-inspection/inherited-input і tracked tarball findings закриті, 172-test full gate та 61-test focused gate зелені, independent audit `REVIEW_READY` без відкритих P0-P3, результат прийнятий whole-task human review. `P3-DG2` згодом окремо активована й завершена.
 - `P3-DG2 / TASK-07.26-0031` завершена як `done`: exact design accepted; approved FIX-001 applied owner TASK-0032 pending artifact publication.
-- `TASK-07.26-0032` отримала final post-audit `PASS`, published `APP-07.26-0032-001` і завершена whole-task human approval як `done`; TASK-0033…0036 лишаються backlog/not-started.
+- `TASK-07.26-0032` отримала final post-audit `PASS`, published `APP-07.26-0032-001` і завершена whole-task human approval як `done`; P3-VS3/TASK-0033 згодом окремо активована й передана в review, TASK-0034…0036 лишаються backlog/not-started.
+- `P3-VS3 / TASK-07.26-0033` завершена як `done`: RUN-001 реалізувала dense hierarchy/order, root append, exact move, coherent full-state batch index і typed integrity fail-close; full 182-test package gate та final repeated independent audit `REVIEW_READY` зелені, результат прийнятий whole-task human review. TASK-0034…0036 не активовані.
 - `BP2-06 / TASK-07.26-0020` завершена як `done`: `RSCH-001` відтворила clean/package/API/architecture evidence, repeated bounded meta-review повернув `REVIEW_READY`, recommendation `pass` прийнята whole-task review, а explicit human gate завершив Phase 2.
 - `BP2-05 / TASK-07.26-0019` завершена як `done`: RUN-001 виконала risk-based Phase 2 stabilization, clean package/reproducibility evidence і memory sync без Phase 3 feature work; initial evidence P2 закрито, repeated audit `REVIEW_READY` без відкритих P0–P3, whole-task review прийнятий людиною.
 - `BP2-04 / TASK-07.26-0018` завершена як `done`: RUN-001 реалізувала root public contract, Extensia Module lifecycle, readonly driver integration та application/package verification; repeated independent audit не має відкритих P0-P3, whole-task review прийнятий людиною.
@@ -50,6 +51,8 @@ Phase 1 і Phase 2 завершені та прийняті explicit human gates
 
 ## Останні рішення
 
+- Користувач 2026-07-11 виконав whole-task review `P3-VS3 / TASK-07.26-0033` і явно дозволив завершити задачу як `done`; це не активує TASK-0034…0036.
+- Користувач 2026-07-11 явно активував `P3-VS3 / TASK-07.26-0033` і дозволив independent subagent review; implementation завершена до review-ready, але це не активує TASK-0034…0036.
 - Користувач 2026-07-11 виконав whole-task review TASK-0032 і явно дозволив завершити її; це не активує TASK-0033…0036.
 - Користувач 2026-07-11 явно активував `TASK-07.26-0032`, дозволив independent subagent review і доручив підготувати повні backlog-only run packages для downstream TASK-0033…0036; це не активує ці задачі.
 - Користувач 2026-07-11 виконав whole-task review P3-DG2, підтвердив усі запропоновані design decisions, approved FIX-001 fixation-only і доручив створити окрему owner application TASK-0032; це не є activation/application.

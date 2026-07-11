@@ -6,7 +6,7 @@ Updated: 2026-07-11
 
 ## Статус реалізації
 
-Цей документ описує цільову архітектуру зі draft-специфікацій. Фактично реалізовані internal pure domain contract kernel, IoC composition/conformance skeleton, strict internal lifecycle host/controller, bounded Core Resource read model, shared Facade Provider/Registry, Operation Engine, deterministic full-driver fake/recovery та experimental public Resource create/update slice. Registry має trusted provenance, dependency-aware build, freeze, atomic ready publication, intake drain і reverse cleanup; root package публікує `createExtensia`, opaque full-driver factory та bounded public contracts. Final concrete Storage Driver і physical durability ще відсутні. Детальний current state зафіксовано в `memory/domain/current/implementation-state.md`. Internal lifecycle/driver/index/facade names не є package API; ширші conceptual signatures і subsystem sketches потребують окремих design gates.
+Цей документ описує цільову архітектуру зі draft-специфікацій. Фактично реалізовані internal pure domain contract kernel, IoC composition/conformance skeleton, strict internal lifecycle host/controller, bounded Core Resource read model, shared Facade Provider/Registry, Operation Engine, deterministic full-driver fake/recovery та experimental public Resource create/update/move slice з dense hierarchy/order і typed integrity fail-close. Registry має trusted provenance, dependency-aware build, freeze, atomic ready publication, intake drain і reverse cleanup; root package публікує `createExtensia`, opaque full-driver factory та bounded public contracts. Final concrete Storage Driver і physical durability ще відсутні. Детальний current state зафіксовано в `memory/domain/current/implementation-state.md`. Internal lifecycle/driver/index/facade names не є package API; ширші conceptual signatures і subsystem sketches потребують окремих design gates.
 
 ## Архітектурна ідея
 
@@ -208,7 +208,7 @@ Baseline не обіцяє dynamic extensions після startup, high-throughpu
 
 P3-STAB1 повторно підтвердила один consumer-owned Core write port, один Operation Engine, driver-owned semantic commit/journal, prepared index publication і opaque experimental full-driver boundary. Stabilization усунула create parser asymmetry на існуючій facade normalization boundary і generated tarball hygiene defect без нового layer/path. Істотного нового architecture pressure не виявлено; `P3-DG2`, concrete durability, hooks і sync лишаються окремими gates.
 
-Applied P3-DG2 target зберігає baseline: dense active order; coarse hierarchy lock до session; exact sorted prepared write-set після coherent load; one semantic commit/journal entry і atomic batch index для move/delete. Typed storage/index integrity synchronously close-ить intake/facades до cleanup. Contract applied, implementation належить backlog P3-VS3…VS5; broad VS3 ownership не split-иться.
+P3-VS3 materialize-ила applied P3-DG2 shared foundation: dense active order; coarse hierarchy lock до session; hierarchy-aware root append; exact sorted prepared write-set після coherent load; one semantic commit/journal entry і atomic batch index для move. Typed storage/index integrity synchronously close-ить intake/facades до cleanup через bounded no-throw fault seam. Delete і Mark/KV лишаються owners P3-VS5/P3-VS4; broad shared VS3 ownership не split-илась.
 
 ## Джерела
 

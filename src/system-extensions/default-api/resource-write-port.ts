@@ -12,7 +12,13 @@ export interface CreateResourceWriteRequest {
   readonly type: "resource.create";
   readonly title: string;
   readonly description?: string | null;
+  readonly fail_integrity?: RuntimeIntegrityFailureHandler;
 }
+
+export type RuntimeIntegrityFailureHandler = (input: {
+  readonly code: "RESOURCE_STORAGE_INTEGRITY" | "RESOURCE_INDEX_INTEGRITY";
+  readonly operation_id: IDString;
+}) => void;
 
 export interface UpdateResourceWriteRequest {
   readonly type: "resource.update";
@@ -21,17 +27,32 @@ export interface UpdateResourceWriteRequest {
     readonly title?: string;
     readonly description?: string | null;
   };
+  readonly fail_integrity?: RuntimeIntegrityFailureHandler;
+}
+
+export interface MoveResourceWriteRequest {
+  readonly type: "resource.move";
+  readonly id: IDString;
+  readonly parent_id: IDString | null;
+  readonly order_index: number;
+  readonly fail_integrity?: RuntimeIntegrityFailureHandler;
 }
 
 export type CoreResourceWriteRequest =
-  CreateResourceWriteRequest | UpdateResourceWriteRequest;
+  | CreateResourceWriteRequest
+  | UpdateResourceWriteRequest
+  | MoveResourceWriteRequest;
 export type CoreResourceWriteFailureCode =
   | "RESOURCE_INPUT_INVALID"
   | "RESOURCE_NOT_FOUND"
   | "RESOURCE_NO_CHANGES"
+  | "RESOURCE_PARENT_NOT_FOUND"
+  | "RESOURCE_MOVE_CYCLE"
+  | "RESOURCE_ORDER_OUT_OF_RANGE"
   | "RESOURCE_ID_GENERATION_FAILED"
   | "STORAGE_LOCK_FAILED"
-  | "STORAGE_WRITE_FAILED";
+  | "STORAGE_WRITE_FAILED"
+  | "STORAGE_INTEGRITY_FAILED";
 
 export interface CoreResourceWriteFailure {
   readonly code: CoreResourceWriteFailureCode;

@@ -54,7 +54,11 @@ export type ExtensiaErrorCode =
   | "RESOURCE_NO_CHANGES"
   | "RESOURCE_ID_GENERATION_FAILED"
   | "STORAGE_LOCK_FAILED"
-  | "STORAGE_WRITE_FAILED";
+  | "STORAGE_WRITE_FAILED"
+  | "STORAGE_INTEGRITY_FAILED"
+  | "RESOURCE_PARENT_NOT_FOUND"
+  | "RESOURCE_MOVE_CYCLE"
+  | "RESOURCE_ORDER_OUT_OF_RANGE";
 
 export interface ExtensiaError<
   TCode extends ExtensiaErrorCode = ExtensiaErrorCode,
@@ -72,7 +76,8 @@ export type ExtensiaResult<
 
 export interface SafeDiagnostic {
   readonly code: string;
-  readonly stage: "config" | "composition" | "start" | "stop" | "facade";
+  readonly stage:
+    "config" | "composition" | "start" | "stop" | "facade" | "operation";
   readonly subject?: string;
 }
 
@@ -106,6 +111,11 @@ export interface UpdateResourceInput {
   readonly description?: string | null;
 }
 
+export interface MoveResourceInput {
+  readonly parent_id: string | null;
+  readonly order_index: number;
+}
+
 export type ResourceWriteWarningCode =
   "LOCAL_INDEX_PUBLICATION_FAILED" | "POST_COMMIT_CLEANUP_FAILED";
 
@@ -130,7 +140,27 @@ export type ResourceWriteError =
   | ExtensiaError<"RESOURCE_NO_CHANGES">
   | ExtensiaError<"RESOURCE_ID_GENERATION_FAILED">
   | ExtensiaError<"STORAGE_LOCK_FAILED">
-  | ExtensiaError<"STORAGE_WRITE_FAILED">;
+  | ExtensiaError<"STORAGE_WRITE_FAILED">
+  | ExtensiaError<"STORAGE_INTEGRITY_FAILED">;
+
+export type ResourceMoveError =
+  | ModuleNotReadyError
+  | StorageReadonlyError
+  | InvalidResourceIDError
+  | ExtensiaError<"RESOURCE_INPUT_INVALID">
+  | ResourceNotFoundError
+  | ExtensiaError<"RESOURCE_PARENT_NOT_FOUND">
+  | ExtensiaError<"RESOURCE_MOVE_CYCLE">
+  | ExtensiaError<"RESOURCE_ORDER_OUT_OF_RANGE">
+  | ExtensiaError<"RESOURCE_NO_CHANGES">
+  | ExtensiaError<"STORAGE_LOCK_FAILED">
+  | ExtensiaError<"STORAGE_WRITE_FAILED">
+  | ExtensiaError<"STORAGE_INTEGRITY_FAILED">;
+
+export type ResourceMoveResult = ExtensiaResult<
+  ResourceWriteSuccess,
+  ResourceMoveError
+>;
 
 type ModuleNotReadyError = ExtensiaError<"MODULE_NOT_READY">;
 type InvalidResourceIDError = ExtensiaError<"INVALID_RESOURCE_ID">;
@@ -164,6 +194,10 @@ export interface StorageFacade {
     id: string,
     patch: UpdateResourceInput,
   ): Promise<ExtensiaResult<ResourceWriteSuccess, ResourceWriteError>>;
+  moveResource(
+    id: string,
+    input: MoveResourceInput,
+  ): Promise<ResourceMoveResult>;
 }
 
 export interface ExtensiaModule {

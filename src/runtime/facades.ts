@@ -37,7 +37,10 @@ export interface FacadeDependencyAccess {
 export interface FacadeFactoryContext {
   readonly dependencies: FacadeDependencyAccess;
   readonly operations: FacadeOperationGate;
-  failClose(): void;
+  failClose(
+    code?: "RESOURCE_STORAGE_INTEGRITY" | "RESOURCE_INDEX_INTEGRITY",
+    operationId?: string,
+  ): void;
 }
 
 export interface FacadeProvider<TFacade = unknown> {
@@ -62,6 +65,8 @@ export type FacadeRegistryDiagnosticCode =
   | "FACADE_CREATE_FAILED"
   | "FACADE_DISPOSE_FAILED"
   | "FACADE_RUNTIME_FAILED"
+  | "RESOURCE_STORAGE_INTEGRITY"
+  | "RESOURCE_INDEX_INTEGRITY"
   | "FACADE_PHASE_INVALID";
 
 export interface FacadeRegistryDiagnostic {
@@ -399,10 +404,13 @@ export function createFacadeRuntime(
               },
             }),
             operations: gate,
-            failClose(): void {
+            failClose(
+              code?: "RESOURCE_STORAGE_INTEGRITY" | "RESOURCE_INDEX_INTEGRITY",
+              operationId?: string,
+            ): void {
               gate.close();
               publishedSurface = null;
-              record(diagnostic("FACADE_RUNTIME_FAILED"));
+              record(diagnostic(code ?? "FACADE_RUNTIME_FAILED", operationId));
             },
           });
 

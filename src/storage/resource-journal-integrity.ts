@@ -10,12 +10,13 @@ import type {
   JournalSequence,
   WriteSetFingerprint,
 } from "./resource-write-protocol.js";
+import { ResourceRuntimeIntegrityError } from "./resource-runtime-integrity.js";
 
-export class ResourceStorageIntegrityError extends Error {
-  readonly code = "RESOURCE_STORAGE_INTEGRITY";
+export class ResourceStorageIntegrityError extends ResourceRuntimeIntegrityError {
+  override readonly code = "RESOURCE_STORAGE_INTEGRITY";
 
   constructor(message: string) {
-    super(message);
+    super("RESOURCE_STORAGE_INTEGRITY", message);
     this.name = "ResourceStorageIntegrityError";
   }
 }

@@ -6,6 +6,8 @@ import {
   type ResourceTreeViewSnapshot,
 } from "../domain/snapshots.js";
 import type { IDString } from "../domain/scalars.js";
+import { validateResourceHierarchy } from "../domain/resource-hierarchy.js";
+import { ResourceRuntimeIntegrityError } from "../storage/resource-runtime-integrity.js";
 import type {
   MutableGreedyResourceIndex,
   PreparedResourceIndexChange,
@@ -33,6 +35,7 @@ function compareChildren(
 function validateTree(
   resources: ReadonlyMap<IDString, ResourceSnapshot>,
 ): void {
+  validateResourceHierarchy(resources);
   for (const resource of resources.values()) {
     const parentId = resource.data.parent_id;
     if (parentId !== null && !resources.has(parentId)) {
@@ -92,6 +95,7 @@ export function createGreedyResourceIndex(): MutableGreedyResourceIndex {
 
       const mutableChildren = new Map<IDString, ResourceChildRefSnapshot[]>();
       for (const resource of nextResources.values()) {
+        if (resource.data.is_deleted) continue;
         const parentId = resource.data.parent_id;
         if (parentId === null) continue;
 
@@ -143,15 +147,31 @@ export function createGreedyResourceIndex(): MutableGreedyResourceIndex {
         children: childrenByParent.get(id) ?? [],
       });
     },
-    prepareUpsert(candidate: ResourceSnapshot): PreparedResourceIndexChange {
+    prepareBatch(
+      candidates: readonly ResourceSnapshot[],
+      coherentResources: readonly ResourceSnapshot[] = [
+        ...resourcesById.values(),
+      ],
+    ): PreparedResourceIndexChange {
       assertReady();
-      const resource = buildResourceSnapshot(candidate);
-      const nextResources = new Map(resourcesById);
-      nextResources.set(resource.data.id, resource);
+      const resources = candidates.map(buildResourceSnapshot);
+      const nextResources = new Map<IDString, ResourceSnapshot>();
+      for (const item of coherentResources) {
+        const resource = buildResourceSnapshot(item);
+        if (nextResources.has(resource.data.id))
+          throw new ResourceRuntimeIntegrityError(
+            "RESOURCE_INDEX_INTEGRITY",
+            "Coherent Resource index state contains duplicate IDs",
+          );
+        nextResources.set(resource.data.id, resource);
+      }
+      for (const resource of resources)
+        nextResources.set(resource.data.id, resource);
       validateTree(nextResources);
 
       const mutableChildren = new Map<IDString, ResourceChildRefSnapshot[]>();
       for (const item of nextResources.values()) {
+        if (item.data.is_deleted) continue;
         const parentId = item.data.parent_id;
         if (parentId === null) continue;
         const children = mutableChildren.get(parentId) ?? [];
@@ -171,7 +191,45 @@ export function createGreedyResourceIndex(): MutableGreedyResourceIndex {
 
       let published = false;
       return Object.freeze({
-        resource: buildResourceSnapshot(resource),
+        resources: Object.freeze(resources.map(buildResourceSnapshot)),
+        publish(): void {
+          if (published)
+            throw new Error(
+              "Prepared Resource index change was already published",
+            );
+          published = true;
+          resourcesById = nextResources;
+          childrenByParent = nextChildren;
+        },
+      });
+    },
+    prepareUpsert(candidate: ResourceSnapshot): PreparedResourceIndexChange {
+      assertReady();
+      const resource = buildResourceSnapshot(candidate);
+      const nextResources = new Map(resourcesById);
+      nextResources.set(resource.data.id, resource);
+      validateTree(nextResources);
+      const mutableChildren = new Map<IDString, ResourceChildRefSnapshot[]>();
+      for (const item of nextResources.values()) {
+        if (item.data.is_deleted) continue;
+        const parentId = item.data.parent_id;
+        if (parentId === null) continue;
+        const children = mutableChildren.get(parentId) ?? [];
+        children.push({ id: item.data.id, order_index: item.data.order_index });
+        mutableChildren.set(parentId, children);
+      }
+      const nextChildren = new Map<
+        IDString,
+        readonly ResourceChildRefSnapshot[]
+      >();
+      for (const [parentId, children] of mutableChildren)
+        nextChildren.set(
+          parentId,
+          Object.freeze([...children].sort(compareChildren)),
+        );
+      let published = false;
+      return Object.freeze({
+        resources: Object.freeze([buildResourceSnapshot(resource)]),
         publish(): void {
           if (published)
             throw new Error(

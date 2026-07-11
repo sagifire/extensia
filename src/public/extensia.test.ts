@@ -82,9 +82,9 @@ function driverFixture(
 describe("public Extensia Resource read slice", () => {
   it("runs the exact application lifecycle and publishes stable facades", async () => {
     const fixture = driverFixture([
-      resource(CHILD_B_ID, { parentId: ROOT_ID, orderIndex: 2 }),
+      resource(CHILD_B_ID, { parentId: ROOT_ID, orderIndex: 1 }),
       resource(ROOT_ID, { title: "Root" }),
-      resource(CHILD_A_ID, { parentId: ROOT_ID, orderIndex: 2 }),
+      resource(CHILD_A_ID, { parentId: ROOT_ID, orderIndex: 0 }),
     ]);
     const extensia = createExtensia({ storage: { driver: fixture.driver } });
 
@@ -124,8 +124,8 @@ describe("public Extensia Resource read slice", () => {
       value: {
         resource: resource(ROOT_ID, { title: "Root" }),
         children: [
-          { id: CHILD_A_ID, order_index: 2 },
-          { id: CHILD_B_ID, order_index: 2 },
+          { id: CHILD_A_ID, order_index: 0 },
+          { id: CHILD_B_ID, order_index: 1 },
         ],
       },
     });

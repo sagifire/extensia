@@ -53,7 +53,7 @@ Activation order: `BP2-01 done -> TASK-07.26-0021 / APP-07.26-0021-001 published
 - [x] **[Done]** [P3-STAB1 / TASK-07.26-0030](TASK-07.26-0030-p3-stab1-create-update-foundation/index.md) - RUN-001 закрила findings, full/focused gates, independent audit `REVIEW_READY` і прийнята whole-task human review; P3-DG2 згодом окремо активована й завершена.
 - [x] **[Done]** [P3-DG2 / TASK-07.26-0031](TASK-07.26-0031-p3-dg2-order-delete-mark-kv-semantics/index.md) - Exact design accepted; FIX-001 applied by active TASK-0032 pending post-audit/artifact publication.
 - [x] **[Done]** [TASK-07.26-0032](TASK-07.26-0032-apply-p3-dg2-fix-001/index.md) - APP-0032 published, final audit `PASS` and whole-task human approval accepted; downstream tasks not activated.
-- [ ] **[Backlog]** [P3-VS3 / TASK-07.26-0033](TASK-07.26-0033-p3-vs3-resource-hierarchy-order-move/index.md) - Hierarchy/order/move/integrity foundation; RUN-001 prepared, not activated.
+- [x] **[Done]** [P3-VS3 / TASK-07.26-0033](TASK-07.26-0033-p3-vs3-resource-hierarchy-order-move/index.md) - RUN-001 реалізувала hierarchy/order/move, coherent batch index і typed integrity fail-close; 182-test package gate та repeated independent audit `REVIEW_READY` зелені, результат прийнятий whole-task human review. TASK-0034 не активована.
 - [ ] **[Backlog]** [P3-VS4 / TASK-07.26-0034](TASK-07.26-0034-p3-vs4-mark-kv-writes/index.md) - Mark/KV replacement; depends on done VS3; not activated.
 - [ ] **[Backlog]** [P3-VS5 / TASK-07.26-0035](TASK-07.26-0035-p3-vs5-resource-soft-delete/index.md) - Leaf soft delete; depends on done VS3/VS4; not activated.
 - [ ] **[Backlog]** [P3-STAB / TASK-07.26-0036](TASK-07.26-0036-p3-stab-final-phase-3/index.md) - Final Phase 3 stabilization; depends on done VS3…VS5; not activated.

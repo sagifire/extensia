@@ -1,10 +1,13 @@
 import type { FullResourceDriverAdapter } from "../storage/full-resource-driver-adapter.js";
 import { isIDString, isTimestamp } from "../domain/scalars.js";
+import { buildResourceSnapshot } from "../domain/snapshots.js";
 import {
   cloneCommittedOperationEntry,
   equalCommittedOperationDrafts,
   parseJournalSequence,
 } from "../storage/resource-journal-integrity.js";
+import { ResourceStorageIntegrityError } from "../storage/resource-journal-integrity.js";
+import { ResourceCommittedIntegrityError } from "../storage/resource-runtime-integrity.js";
 import type {
   CommittedOperationDraft,
   CommittedOperationEntry,
@@ -59,7 +62,9 @@ function inheritedDataMethod(
 function dataValue(value: object, key: PropertyKey): unknown {
   const descriptor = Object.getOwnPropertyDescriptor(value, key);
   if (descriptor === undefined || !("value" in descriptor)) {
-    throw new TypeError("Full Resource driver runtime shape is invalid");
+    throw new ResourceStorageIntegrityError(
+      "Full Resource driver runtime shape is invalid",
+    );
   }
   return descriptor.value;
 }
@@ -67,7 +72,9 @@ function dataValue(value: object, key: PropertyKey): unknown {
 function captureMethod(value: object, key: PropertyKey) {
   const method = inheritedDataMethod(value, key);
   if (method === null)
-    throw new TypeError("Full Resource driver runtime shape is invalid");
+    throw new ResourceStorageIntegrityError(
+      "Full Resource driver runtime shape is invalid",
+    );
   return (...args: unknown[]) => Reflect.apply(method, value, args);
 }
 
@@ -77,7 +84,9 @@ async function validateSession(candidate: unknown) {
     candidate === null ||
     Array.isArray(candidate)
   ) {
-    throw new TypeError("Full Resource driver session is invalid");
+    throw new ResourceStorageIntegrityError(
+      "Full Resource driver session is invalid",
+    );
   }
   const recovery = dataValue(candidate, "recovery");
   if (
@@ -85,7 +94,9 @@ async function validateSession(candidate: unknown) {
     recovery === null ||
     Array.isArray(recovery)
   ) {
-    throw new TypeError("Full Resource driver recovery report is invalid");
+    throw new ResourceStorageIntegrityError(
+      "Full Resource driver recovery report is invalid",
+    );
   }
   const status = dataValue(recovery, "status");
   const rolledBack = dataValue(recovery, "rolled_back_operations");
@@ -97,7 +108,9 @@ async function validateSession(candidate: unknown) {
     !Number.isSafeInteger(completed) ||
     (completed as number) < 0
   ) {
-    throw new TypeError("Full Resource driver recovery report is invalid");
+    throw new ResourceStorageIntegrityError(
+      "Full Resource driver recovery report is invalid",
+    );
   }
   const listResources = captureMethod(candidate, "listResources");
   const readResource = captureMethod(candidate, "readResource");
@@ -113,14 +126,29 @@ async function validateSession(candidate: unknown) {
       rolled_back_operations: rolledBack as number,
       completed_operations: completed as number,
     },
-    listResources: () =>
-      listResources() as ReturnType<
-        import("../storage/resource-write-protocol.js").ResourceStorageSession["listResources"]
-      >,
-    readResource: (id: import("../domain/scalars.js").IDString) =>
-      readResource(id) as ReturnType<
-        import("../storage/resource-write-protocol.js").ResourceStorageSession["readResource"]
-      >,
+    async *listResources() {
+      const stream = listResources() as AsyncIterable<unknown>;
+      for await (const resource of stream) {
+        try {
+          yield buildResourceSnapshot(resource as never);
+        } catch {
+          throw new ResourceStorageIntegrityError(
+            "Full Resource driver returned an invalid Resource",
+          );
+        }
+      }
+    },
+    async readResource(id: import("../domain/scalars.js").IDString) {
+      const resource = await readResource(id);
+      if (resource === null) return null;
+      try {
+        return buildResourceSnapshot(resource as never);
+      } catch {
+        throw new ResourceStorageIntegrityError(
+          "Full Resource driver returned an invalid Resource",
+        );
+      }
+    },
     async begin(id: import("../domain/scalars.js").IDString) {
       const transaction = await begin(id);
       if (
@@ -128,7 +156,9 @@ async function validateSession(candidate: unknown) {
         transaction === null ||
         Array.isArray(transaction)
       )
-        throw new TypeError("Full Resource driver transaction is invalid");
+        throw new ResourceStorageIntegrityError(
+          "Full Resource driver transaction is invalid",
+        );
       const stageResource = captureMethod(transaction, "stageResource");
       const commit = captureMethod(transaction, "commit");
       const abort = captureMethod(transaction, "abort");
@@ -142,13 +172,15 @@ async function validateSession(candidate: unknown) {
         abort: () => abort() as Promise<void>,
       };
     },
-    readCommittedOperationsAfter: (
+    async *readCommittedOperationsAfter(
       cursor:
         import("../storage/resource-write-protocol.js").JournalSequence | null,
-    ) =>
-      readCommittedOperationsAfter(cursor) as ReturnType<
-        import("../storage/resource-write-protocol.js").ResourceStorageSession["readCommittedOperationsAfter"]
-      >,
+    ) {
+      const stream = readCommittedOperationsAfter(
+        cursor,
+      ) as AsyncIterable<unknown>;
+      for await (const entry of stream) yield validateStoredEntry(entry);
+    },
     release: () => release() as Promise<void>,
   } satisfies import("../storage/resource-write-protocol.js").ResourceStorageSession;
 }
@@ -157,19 +189,40 @@ function validateCommittedEntry(
   candidate: unknown,
   draft: CommittedOperationDraft,
 ): CommittedOperationEntry {
+  let detached: CommittedOperationEntry;
+  try {
+    detached = validateStoredEntry(candidate);
+  } catch {
+    throw new ResourceCommittedIntegrityError(
+      "Full Resource driver committed entry is invalid",
+    );
+  }
+  if (!equalCommittedOperationDrafts(detached, draft)) {
+    throw new ResourceCommittedIntegrityError(
+      "Full Resource driver committed entry does not match its draft",
+    );
+  }
+  return detached;
+}
+
+function validateStoredEntry(candidate: unknown): CommittedOperationEntry {
   if (
     typeof candidate !== "object" ||
     candidate === null ||
     Array.isArray(candidate)
   ) {
-    throw new TypeError("Full Resource driver committed entry is invalid");
+    throw new ResourceStorageIntegrityError(
+      "Full Resource driver committed entry is invalid",
+    );
   }
   const entry = candidate as Partial<CommittedOperationEntry>;
   if (
     entry.schema_version !== 1 ||
     !isIDString(entry.operation_id) ||
     !isIDString(entry.actor_id) ||
-    (entry.type !== "resource.create" && entry.type !== "resource.update") ||
+    (entry.type !== "resource.create" &&
+      entry.type !== "resource.update" &&
+      entry.type !== "resource.move") ||
     !isTimestamp(entry.committed_at) ||
     typeof entry.sequence !== "string" ||
     parseJournalSequence(entry.sequence as never) < 1n ||
@@ -186,16 +239,13 @@ function validateCommittedEntry(
         isIDString(change.resource_id),
     )
   ) {
-    throw new TypeError("Full Resource driver committed entry is invalid");
+    throw new ResourceStorageIntegrityError(
+      "Full Resource driver committed entry is invalid",
+    );
   }
   const detached = cloneCommittedOperationEntry(
     entry as CommittedOperationEntry,
   );
-  if (!equalCommittedOperationDrafts(detached, draft)) {
-    throw new TypeError(
-      "Full Resource driver committed entry does not match its draft",
-    );
-  }
   return detached;
 }
 

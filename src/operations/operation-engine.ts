@@ -8,6 +8,7 @@ import {
   LockAcquireCanceledError,
   type AsyncLockLease,
 } from "./async-lock-queue.js";
+import { ResourceRuntimeIntegrityError } from "../storage/resource-runtime-integrity.js";
 
 export type OperationPipelineState =
   | "admitted"
@@ -23,8 +24,8 @@ export type OperationPipelineState =
 export interface ResourceOperationPlan {
   readonly operation_id: IDString;
   readonly actor_id: IDString;
-  readonly type: "resource.create" | "resource.update";
-  readonly affected_resources: readonly IDString[];
+  readonly type: "resource.create" | "resource.update" | "resource.move";
+  readonly resource_hints: readonly IDString[];
   readonly lock_keys: readonly string[];
 }
 
@@ -56,16 +57,26 @@ export type OperationEngineResult<TValue> =
   | {
       readonly ok: false;
       readonly code:
-        "ENGINE_CLOSED" | "OPERATION_CANCELED" | "OPERATION_FAILED";
+        | "ENGINE_CLOSED"
+        | "OPERATION_CANCELED"
+        | "OPERATION_FAILED"
+        | "OPERATION_INTEGRITY_FAILED";
       readonly committed: false;
+      readonly fail_closed?: true;
     };
 
 export interface OperationRequest {
   readonly type: ResourceOperationPlan["type"];
-  readonly affected_resources: readonly IDString[];
+  readonly resource_hints?: readonly IDString[];
+  /** @deprecated Use resource_hints. */
+  readonly affected_resources?: readonly IDString[];
   readonly lock_keys: readonly string[];
   readonly signal?: AbortSignal;
   readonly identity?: ResourceOperationIdentity;
+  readonly fail_integrity?: (input: {
+    readonly code: "RESOURCE_STORAGE_INTEGRITY" | "RESOURCE_INDEX_INTEGRITY";
+    readonly operation_id: IDString;
+  }) => void;
 }
 
 export interface OperationEngine {
@@ -138,6 +149,7 @@ export function createOperationEngine(
       const warnings: OperationPostCommitWarning[] = [];
       let lease: AsyncLockLease | undefined;
       let committedValue: TValue | undefined;
+      let activeIdentity: ResourceOperationIdentity | undefined;
       let hasCommittedValue = false;
       let value: TValue | undefined;
       let failure: "OPERATION_CANCELED" | "OPERATION_FAILED" | undefined;
@@ -156,10 +168,13 @@ export function createOperationEngine(
 
       try {
         const identity = Object.freeze(request.identity ?? identities.create());
+        activeIdentity = identity;
         const plan: ResourceOperationPlan = Object.freeze({
           ...identity,
           type: request.type,
-          affected_resources: Object.freeze([...request.affected_resources]),
+          resource_hints: Object.freeze([
+            ...(request.resource_hints ?? request.affected_resources ?? []),
+          ]),
           lock_keys: Object.freeze(
             [...new Set(request.lock_keys.map((key) => key.trim()))].sort(),
           ),
@@ -232,17 +247,48 @@ export function createOperationEngine(
         if (hasCommittedValue) {
           warnings.push("LOCAL_INDEX_PUBLICATION_FAILED");
           closeIntake();
+          if (error instanceof ResourceRuntimeIntegrityError) {
+            try {
+              request.fail_integrity?.({
+                code: error.code,
+                operation_id:
+                  activeIdentity?.operation_id ??
+                  request.identity!.operation_id,
+              });
+            } catch {
+              /* Runtime fault propagation is deliberately no-throw. */
+            }
+          }
           if (lifecycle.state === "committed") move("failed");
         } else {
-          const canceled =
-            (lifecycle.state === "waiting-for-locks" ||
-              lifecycle.state === "preparing" ||
-              lifecycle.state === "canceled") &&
-            (error instanceof LockAcquireCanceledError || requestAborted());
-          if (lifecycle.state !== "canceled" && lifecycle.state !== "failed") {
-            move(canceled ? "canceled" : "failed");
+          if (error instanceof ResourceRuntimeIntegrityError) {
+            closeIntake();
+            try {
+              request.fail_integrity?.({
+                code: error.code,
+                operation_id:
+                  activeIdentity?.operation_id ??
+                  request.identity!.operation_id,
+              });
+            } catch {
+              /* Runtime fault propagation is deliberately no-throw. */
+            }
+            lifecycle.state = "failed";
+            failure = "OPERATION_FAILED";
+          } else {
+            const canceled =
+              (lifecycle.state === "waiting-for-locks" ||
+                lifecycle.state === "preparing" ||
+                lifecycle.state === "canceled") &&
+              (error instanceof LockAcquireCanceledError || requestAborted());
+            if (
+              lifecycle.state !== "canceled" &&
+              lifecycle.state !== "failed"
+            ) {
+              move(canceled ? "canceled" : "failed");
+            }
+            failure = canceled ? "OPERATION_CANCELED" : "OPERATION_FAILED";
           }
-          failure = canceled ? "OPERATION_CANCELED" : "OPERATION_FAILED";
         }
       } finally {
         lifecycle.disposed = true;
@@ -281,6 +327,14 @@ export function createOperationEngine(
         });
       }
       if (failure !== undefined) {
+        if (!open && lifecycle.state === "failed") {
+          return Object.freeze({
+            ok: false,
+            code: "OPERATION_INTEGRITY_FAILED",
+            committed: false,
+            fail_closed: true,
+          });
+        }
         return Object.freeze({ ok: false, code: failure, committed: false });
       }
       return Object.freeze({
