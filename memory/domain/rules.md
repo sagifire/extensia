@@ -69,6 +69,10 @@ Detailed Source: `memory/references/extensia-v2/domain-model-v2.md`
 5. Bounded P3 create приймає лише non-empty-after-trim string `title` і optional string-or-null `description`, не нормалізує значення та створює лише root Resource з canonical generated defaults.
 6. Bounded P3 update приймає exact own `title`/`description` patch, потребує хоча б одну effective change й змінює own `updated_at`; Hot Index не є write authority.
 7. Caller не може передати create ID/timestamps/parent/order/flags/aggregates, а update не може змінювати parent/order/flags/aggregates до P3-DG2.
+8. Accepted target root create append-иться; parent/order змінює лише exact `moveResource`.
+9. Active sibling order dense `0..n-1`; move/delete normalization atomic і має common timestamp.
+10. Tombstones hidden default reads; active parent must exist/active; restore/cascade/purge deferred.
+11. `setMarks` full-replaces max 256 exact unique canonical Marks; `setKV` replaces/deletes one namespace з exact limits та order-insensitive equality.
 
 ## Правило невизначеності
 

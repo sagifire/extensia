@@ -62,15 +62,15 @@ Gate: жодна write-операція не може повернути success
 
 ## Фаза 3 — Перший journal-backed Resource write slice
 
-Стан: `BP3-01 / P3-DG1` accepted і canonical applied; `APP-07.26-0024-001` published, TASK-0024 завершена whole-task human approval. `BP3-01A / TASK-0025` materialize-ила source-only seams і завершена whole-task human approval; наступні bounded implementation tasks лишаються backlog.
+Стан: P3-DG1/create/update/P3-STAB1 done; P3-DG2 canonical package published as `APP-07.26-0032-001`, TASK-0032 review-ready. Backlog P3-VS3/TASK-0033 → P3-VS4/TASK-0034 → P3-VS5/TASK-0035 → final P3-STAB/TASK-0036 prepared with pending runs, not activated.
 
-Wave IDs: `P3-DG1` write/journal/recovery protocol -> `BP3-01A` shared seam -> паралельні `P3-WP1` locks/scopes/engine і `P3-WP2` fake driver/journal/recovery -> `P3-VS1/VS2` create/update -> bounded `P3-STAB1` create/update foundation -> `P3-DG2` order/delete/Mark/KV semantics -> `P3-VS3/VS4` move та Mark/KV -> `P3-VS5` delete/optional restore -> final `P3-STAB`.
+Wave IDs: `P3-DG1` -> `BP3-01A` -> parallel `P3-WP1/P3-WP2` -> `P3-VS1` -> `P3-VS2` -> `P3-STAB1` -> `P3-DG2` -> sequential `P3-VS3` move/foundation -> `P3-VS4` Mark/KV -> `P3-VS5` leaf delete -> final `P3-STAB`. Restore deferred.
 
-Application gate: [canonical P3 contract](../technical/write-journal-recovery-contract.md), ADR-0008 і `APP-07.26-0024-001` published; `TASK-0025…0029` done. `P3-STAB1 / TASK-0030` done після bounded RUN-001, independent audit і whole-task human approval; `P3-DG2` лишається окремим неактивованим gate. `P3-STAB1` не замінює final `P3-STAB`.
+Application gate: write contract/ADR-0008/APP-0024 and order-delete-Mark-KV contract/ADR-0009/APP-0032 published. Next possible activation is P3-VS3 only, then sequential gates VS4, VS5 and final stabilization.
 
 - Розширити deterministic fake Storage Driver до full capability model для failure-injection tests.
 - Реалізувати Async Lock Queue, operation scopes, Operation Engine, storage-level write lock, мінімальний Operation Journal і recovery path до ready state.
-- Реалізувати create/update/move/delete Resource, optional restore лише якщо його погодить P3-DG2, і Mark/KV writes через `storage` facade та read-back через `query` facade, використовуючи вже спільний Facade Provider/Registry mechanism.
+- Реалізувати accepted root append/move foundation, exact Mark/KV replacement і leaf soft delete через спільний facade/Core pipeline; restore/include-deleted/cascade/purge не входять у Phase 3.
 - Публікувати кожну successful operation тільки після committed journal entry й оновлювати Hot Metadata Index тільки після commit.
 
 Gate: кожний Resource write journal-backed; committed entry є publication boundary; local index оновлюється post-commit; lock/recovery/readonly/failure paths покриті tests; ручного підключення facades немає.

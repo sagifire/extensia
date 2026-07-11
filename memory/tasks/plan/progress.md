@@ -50,10 +50,15 @@ Activation order: `BP2-01 done -> TASK-07.26-0021 / APP-07.26-0021-001 published
 - [x] **[Done]** [BP3-03 / P3-WP2 / TASK-07.26-0027](TASK-07.26-0027-bp3-03-deterministic-full-fake-recovery/index.md) - Deterministic full fake/journal/recovery реалізовано, independently reviewed і прийнято whole-task human review; BP3-04 не активована.
 - [x] **[Done]** [BP3-04 / P3-VS1 / TASK-07.26-0028](TASK-07.26-0028-bp3-04-resource-create-slice/index.md) - Resource create/read-back реалізовано, independently reviewed і прийнято whole-task human review; BP3-05 не активована.
 - [x] **[Done]** [BP3-05 / P3-VS2 / TASK-07.26-0029](TASK-07.26-0029-bp3-05-resource-update-slice/index.md) - Own-metadata update/read-back реалізовано, independently reviewed і прийнято whole-task human review; P3-STAB1 згодом окремо активована й завершена.
-- [x] **[Done]** [P3-STAB1 / TASK-07.26-0030](TASK-07.26-0030-p3-stab1-create-update-foundation/index.md) - RUN-001 закрила findings, full/focused gates, independent audit `REVIEW_READY` і прийнята whole-task human review; P3-DG2 не активована.
-- [ ] **[Backlog]** [P3-DG2 / TASK-07.26-0031](TASK-07.26-0031-p3-dg2-order-delete-mark-kv-semantics/index.md) - Canonical design task і research run `RSCH-001` підготовлені; activation, execution та independent audit потребують окремого рішення.
+- [x] **[Done]** [P3-STAB1 / TASK-07.26-0030](TASK-07.26-0030-p3-stab1-create-update-foundation/index.md) - RUN-001 закрила findings, full/focused gates, independent audit `REVIEW_READY` і прийнята whole-task human review; P3-DG2 згодом окремо активована й завершена.
+- [x] **[Done]** [P3-DG2 / TASK-07.26-0031](TASK-07.26-0031-p3-dg2-order-delete-mark-kv-semantics/index.md) - Exact design accepted; FIX-001 applied by active TASK-0032 pending post-audit/artifact publication.
+- [x] **[Done]** [TASK-07.26-0032](TASK-07.26-0032-apply-p3-dg2-fix-001/index.md) - APP-0032 published, final audit `PASS` and whole-task human approval accepted; downstream tasks not activated.
+- [ ] **[Backlog]** [P3-VS3 / TASK-07.26-0033](TASK-07.26-0033-p3-vs3-resource-hierarchy-order-move/index.md) - Hierarchy/order/move/integrity foundation; RUN-001 prepared, not activated.
+- [ ] **[Backlog]** [P3-VS4 / TASK-07.26-0034](TASK-07.26-0034-p3-vs4-mark-kv-writes/index.md) - Mark/KV replacement; depends on done VS3; not activated.
+- [ ] **[Backlog]** [P3-VS5 / TASK-07.26-0035](TASK-07.26-0035-p3-vs5-resource-soft-delete/index.md) - Leaf soft delete; depends on done VS3/VS4; not activated.
+- [ ] **[Backlog]** [P3-STAB / TASK-07.26-0036](TASK-07.26-0036-p3-stab-final-phase-3/index.md) - Final Phase 3 stabilization; depends on done VS3…VS5; not activated.
 
-Activation order: `Phase 2 gate -> BP3-01 done -> TASK-0024 published artifact -> separately activated BP3-01A -> separately activated BP3-02/BP3-03 -> BP3-04 -> BP3-05 -> P3-STAB1 -> separate P3-DG2`.
+Activation order: `Phase 2 gate -> BP3-01 done -> TASK-0024 published artifact -> separately activated BP3-01A -> separately activated BP3-02/BP3-03 -> BP3-04 -> BP3-05 -> P3-STAB1 -> P3-DG2 done -> separate TASK-0032 application gate -> future P3-VS3`.
 
 ## Фаза 4 — Assets і перший concrete durable Storage Driver
 

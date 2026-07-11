@@ -6,11 +6,10 @@ Updated: 2026-07-10
 
 ## Resource
 
-- Як `updated_at` змінюється для Asset, Mark, KV і tree relations? Bounded P3 own `title`/`description` update вже змінює own `updated_at` validated operation clock.
-- Яка семантика `is_deleted`: soft-delete лише для Resource, propagation на children/assets, visibility у queries та можливість restore?
+- Як `updated_at` змінюється для Asset? Для accepted Phase 3 move/delete/Mark/KV усі effective staged Resources мають common operation timestamp; parent не bump-иться лише через derived children projection.
+- Яка майбутня restore/include-deleted/cascade/purge semantics? Phase 3 already fixes leaf-only Resource tombstone і default invisibility.
 - Які integrations або plugins першими визначатимуть behavior `locked` і `hidden`, і чи потрібні reserved hook names для них?
-- Які validation rules діють для `parent_id` та `order_index`, включно з numeric range? Для bounded P3 title/description вже прийнято exact structural contract: title string із `trim().length > 0` без normalization, description string або null.
-- Як нормалізується `order_index` під час insert, move і delete в sibling group?
+- Які future cross-storage/migration rules потрібні hierarchy? Phase 3 already fixes existing active parent, cycle-free graph, safe-integer dense order і exact insertion range.
 
 ## Asset
 
@@ -22,9 +21,14 @@ Updated: 2026-07-10
 
 ## Mark і KV
 
-- Чи можуть `Mark.type`, `Mark.name`, KV namespace або key бути empty strings, і чи потрібна case normalization?
-- Чи потрібні size limits для Mark names, KV keys і KV values?
-- Чи `setMarks` / `setKV` замінюють повний набір або підтримують partial patch contracts?
+- Чи потрібні future Mark query/stats/index contracts поверх accepted exact case-sensitive nonblank identity та limits?
+- Чи потрібні future KV schema/versioning або patch APIs поверх accepted namespace replacement/delete та exact limits?
+
+## Закритий P3-DG2 baseline
+
+- Active siblings мають dense order; root create append, move uses insertion index, delete densely closes source group.
+- Delete leaf-only, tombstone default-hidden; flags/aggregates preserved; restore deferred.
+- Marks full-replace canonical unique set; KV replaces/deletes one namespace; validation/limits/no-change exact.
 
 ## Закритий Phase 1 baseline
 

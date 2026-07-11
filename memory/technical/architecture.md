@@ -208,6 +208,8 @@ Baseline не обіцяє dynamic extensions після startup, high-throughpu
 
 P3-STAB1 повторно підтвердила один consumer-owned Core write port, один Operation Engine, driver-owned semantic commit/journal, prepared index publication і opaque experimental full-driver boundary. Stabilization усунула create parser asymmetry на існуючій facade normalization boundary і generated tarball hygiene defect без нового layer/path. Істотного нового architecture pressure не виявлено; `P3-DG2`, concrete durability, hooks і sync лишаються окремими gates.
 
+Applied P3-DG2 target зберігає baseline: dense active order; coarse hierarchy lock до session; exact sorted prepared write-set після coherent load; one semantic commit/journal entry і atomic batch index для move/delete. Typed storage/index integrity synchronously close-ить intake/facades до cleanup. Contract applied, implementation належить backlog P3-VS3…VS5; broad VS3 ownership не split-иться.
+
 ## Джерела
 
 - `memory/references/extensia-v2/runtime-architecture-v2-ioc.md`.

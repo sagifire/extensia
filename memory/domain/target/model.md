@@ -115,3 +115,5 @@ Runtime повертає detached snapshots без shared mutable references і�
 ### Bounded Phase 3 write boundary
 
 Accepted [write/journal/recovery contract](../../technical/write-journal-recovery-contract.md) додає лише два experimental writes. Create генерує root Resource з UUID v4, спільним operation Timestamp для `created_at`/`updated_at`, `parent_id = null`, `order_index = 0`, false flags та empty aggregates; caller задає exact own `title` і optional `description`. Update змінює лише own `title`/`description` та own `updated_at`. Hierarchy/order, flags, Asset/Mark/KV і delete/restore лишаються owner gates P3-DG2/P4.
+
+Applied [order/delete/Mark/KV contract](../../technical/order-delete-mark-kv-contract.md) уточнює target: root create append; dense active siblings; exact insertion move; leaf tombstone/default invisibility; full-replace Marks; namespace-replace/delete KV; common timestamp for effective snapshots. Це target, не current implementation claim до P3-VS3…VS5.

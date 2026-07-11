@@ -69,4 +69,13 @@ Updated: 2026-07-10
 
 ## Architecture health check
 
+## Applied P3-DG2 rules
+
+- Active sibling order є dense `0..n-1`; root create append, move uses exact insertion index, leaf delete reindexes source atomically.
+- Pre-session `resource_hints` не є authority; immutable sorted `PreparedResourceWriteSet` після coherent load визначає staging, fingerprint і journal changes.
+- Move/delete не можуть мати partial sibling commit або partial index publication; hierarchy locks не acquire/replan-яться під storage session.
+- `setMarks` full-replaces canonical unique Marks; `setKV` replaces/deletes one namespace з exact limits.
+- Typed storage/index integrity failure synchronously close-ить intake/facades до awaited cleanup і мапиться в `STORAGE_INTEGRITY_FAILED`; ordinary I/O лишається write/lock failure.
+- Restore/include-deleted/cascade/purge, Mark patch/query, concrete layout, sync і hooks не входять у P3-VS3…VS5.
+
 Під час implementation, research і design треба перевіряти: чи не дублюються module graphs, чи не просочується storage layout у Core/API, чи не перетворюється IoC на service locator, чи не з'являється другий write path, чи не стають tests залежними від patching frozen runtime. Істотне відхилення вимагає architecture audit або окремої design/refactor task.

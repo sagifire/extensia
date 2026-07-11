@@ -46,3 +46,9 @@ Updated: 2026-07-10
 - Journal sequence є positive decimal string від `1`, contiguous/gap-free; cursor/gap integrity semantics прийняті, physical encoding і retention deferred.
 - Operation/actor identity, full write-set fingerprint idempotency, lock/cancellation baseline, recovery-before-ready і coherent startup scan прийняті.
 - Deterministic full fake має відтворювати transaction, cut-point, crash/fresh-composition, sequence/idempotency/integrity й recovery contracts; concrete durability proof лишається P4 gate.
+
+## Закритий P3-DG2 baseline
+
+- Dense order/root append/insertion move/coarse hierarchy lock/atomic prepared set accepted.
+- Leaf soft delete/default invisibility accepted; restore/include-deleted/cascade/purge deferred.
+- Full-replace Marks, namespace-replace/delete KV, batch index і typed integrity fail-close accepted.

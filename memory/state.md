@@ -8,7 +8,7 @@ Internal Stage: `v2`
 
 ## Поточний фокус
 
-Phase 1 і Phase 2 завершені та прийняті explicit human gates. BP3-01A, BP3-02, BP3-03, BP3-04, BP3-05 і P3-STAB1 завершені як `done` після independent audits і whole-task human approvals. `P3-DG2 / TASK-07.26-0031` підготовлена в `backlog` із research run `RSCH-001`, але не активована.
+Phase 1 і Phase 2 завершені та прийняті explicit human gates. Phase 3 design/application foundation through P3-DG2 published as APP-0032; TASK-0032 done after final `PASS` and whole-task human approval, downstream TASK-0033…0036 prepared backlog-only. Production implementation beyond create/update unchanged.
 
 ## Поточний стан продукту
 
@@ -35,8 +35,9 @@ Phase 1 і Phase 2 завершені та прийняті explicit human gates
 - `BP3-03 / P3-WP2 / TASK-07.26-0027` завершена як `done`: RUN-001 реалізувала deterministic full fake, committed-only journal, exclusive recovery-clean sessions, canonical sequence/cursor/fingerprint integrity, crash/fresh recovery і coherent startup scan; full 143-test package gate зелений, repeated independent audit `REVIEW_READY` без відкритих P0-P3, результат прийнятий whole-task human review. BP3-04 не активована.
 - `BP3-04 / P3-VS1 / TASK-07.26-0028` завершена як `done`: opaque full-driver integration, exact public Resource create, one-scope three-candidate policy, semantic commit, prepared index publication, detached read-back і committed fail-close warnings реалізовані; full 158-test gate та repeated audit зелені, результат прийнятий whole-task human review. BP3-05 не активована.
 - `BP3-05 / P3-VS2 / TASK-07.26-0029` завершена як `done`: exact own-metadata update, latest-state serialization, no-change без transaction, semantic commit, recovery та detached read-back реалізовані; full 171-test gate і repeated independent audit `REVIEW_READY`, результат прийнятий whole-task human review. P3-STAB1 згодом активована окремим рішенням.
-- `P3-STAB1 / TASK-07.26-0030` завершена як `done`: RUN-001 відтворила clean/package/API/architecture, concurrency/failure/recovery та protocol/source boundary evidence для `BP3-01A`…`BP3-05`; create safe-inspection/inherited-input і tracked tarball findings закриті, 172-test full gate та 61-test focused gate зелені, independent audit `REVIEW_READY` без відкритих P0-P3, результат прийнятий whole-task human review. `P3-DG2` не активована.
-- `P3-DG2 / TASK-07.26-0031` підготовлена як canonical backlog design task у режимі `autonomous-research`; `RSCH-001` містить execution contract для order/delete/optional restore та Mark/KV semantics. Задача не активована, design result/report/fixation ще не створені.
+- `P3-STAB1 / TASK-07.26-0030` завершена як `done`: RUN-001 відтворила clean/package/API/architecture, concurrency/failure/recovery та protocol/source boundary evidence для `BP3-01A`…`BP3-05`; create safe-inspection/inherited-input і tracked tarball findings закриті, 172-test full gate та 61-test focused gate зелені, independent audit `REVIEW_READY` без відкритих P0-P3, результат прийнятий whole-task human review. `P3-DG2` згодом окремо активована й завершена.
+- `P3-DG2 / TASK-07.26-0031` завершена як `done`: exact design accepted; approved FIX-001 applied owner TASK-0032 pending artifact publication.
+- `TASK-07.26-0032` отримала final post-audit `PASS`, published `APP-07.26-0032-001` і завершена whole-task human approval як `done`; TASK-0033…0036 лишаються backlog/not-started.
 - `BP2-06 / TASK-07.26-0020` завершена як `done`: `RSCH-001` відтворила clean/package/API/architecture evidence, repeated bounded meta-review повернув `REVIEW_READY`, recommendation `pass` прийнята whole-task review, а explicit human gate завершив Phase 2.
 - `BP2-05 / TASK-07.26-0019` завершена як `done`: RUN-001 виконала risk-based Phase 2 stabilization, clean package/reproducibility evidence і memory sync без Phase 3 feature work; initial evidence P2 закрито, repeated audit `REVIEW_READY` без відкритих P0–P3, whole-task review прийнятий людиною.
 - `BP2-04 / TASK-07.26-0018` завершена як `done`: RUN-001 реалізувала root public contract, Extensia Module lifecycle, readonly driver integration та application/package verification; repeated independent audit не має відкритих P0-P3, whole-task review прийнятий людиною.
@@ -49,6 +50,11 @@ Phase 1 і Phase 2 завершені та прийняті explicit human gates
 
 ## Останні рішення
 
+- Користувач 2026-07-11 виконав whole-task review TASK-0032 і явно дозволив завершити її; це не активує TASK-0033…0036.
+- Користувач 2026-07-11 явно активував `TASK-07.26-0032`, дозволив independent subagent review і доручив підготувати повні backlog-only run packages для downstream TASK-0033…0036; це не активує ці задачі.
+- Користувач 2026-07-11 виконав whole-task review P3-DG2, підтвердив усі запропоновані design decisions, approved FIX-001 fixation-only і доручив створити окрему owner application TASK-0032; це не є activation/application.
+- P3-DG2 final repeated independent audit 2026-07-11 повернув `REVIEW_READY` без open P0-P3 після remediation public error/integrity/write-set/cleanup-race findings; після цього whole-task result і FIX-001 fixation-only окремо approved людиною.
+- Користувач 2026-07-11 явно активував `P3-DG2 / TASK-07.26-0031` і дозволив незалежних субагентів для рев'ю; downstream implementation tasks не активовані.
 - Користувач 2026-07-11 доручив підготувати canonical `P3-DG2` включно з execution artifacts; це створює backlog task і prepared `RSCH-001`, але не є activation або дозволом на independent subagent delegation.
 - Користувач 2026-07-11 виконав whole-task review `P3-STAB1 / TASK-07.26-0030` і дозволив завершити задачу як `done`; це не активує `P3-DG2`.
 - Користувач 2026-07-11 явно активував `P3-STAB1 / TASK-07.26-0030` і дозволив незалежних субагентів для рев'ю; це не активує `P3-DG2`.
@@ -113,7 +119,7 @@ Phase 1 і Phase 2 завершені та прийняті explicit human gates
 
 ## Наступні кроки
 
-1. За окремим рішенням активувати `P3-DG2 / TASK-07.26-0031` і дозволити незалежного субагента для audit; виконати prepared `RSCH-001` без activation downstream implementation tasks.
+1. За окремим explicit рішенням активувати P3-VS3/TASK-0033; її prepared RUN-001 не стартував, а TASK-0034…0036 залежать від послідовних done gates.
 
 ## Відкриті питання
 

@@ -1,13 +1,13 @@
 # TASK-07.26-0031: P3-DG2 — Спроектувати order, delete, Mark і KV semantics
 
-Status: backlog
+Status: done
 Type: design
 Execution Mode: autonomous-research
 Created: 2026-07-11
 Owner Role: Product Lead Hat / System Engineer Hat
 Current Run: n/a
-Current Research: RSCH-001 (prepared, not activated)
-Current Fixation: n/a
+Current Research: RSCH-001 (accepted)
+Current Fixation: FIX-001 (approved fixation-only, not applied)
 
 ## Мета
 
@@ -56,16 +56,16 @@ Current Fixation: n/a
 
 ## Критерії приймання
 
-- [ ] Move/order semantics однозначно зберігають tree invariants і deterministic sibling order у success, no-change, concurrency та recovery paths.
-- [ ] Delete semantics однозначно визначають children, visibility, repeated operation, flags/timestamps і committed read-back; restore має explicit include/defer decision.
-- [ ] Mark identity, validation, limits, replace/patch contract, ordering і no-change semantics точні.
-- [ ] KV namespace/key/value validation, limits, replace/patch/delete contract, serialization і no-change semantics точні.
-- [ ] Кожна operation проходить через чинні Core write port, Operation Engine і driver-owned semantic commit; другого write/journal path немає.
-- [ ] Lock/write-set/fingerprint/journal/index contracts покривають multi-resource hierarchy mutations і aggregate updates без facade-direct driver access.
-- [ ] Public method/input/result/error contracts сумісні з чинним root-only experimental API та не розкривають internal capability handles.
-- [ ] `P3-VS3`, `P3-VS4`, `P3-VS5` і final `P3-STAB` мають task-ready boundary, dependencies, acceptance та verification без activation.
-- [ ] Upward consistency, source policy, language gate й architecture-pressure review виконані; proposals ізольовані від canonical application.
-- [ ] Independent audit не має відкритих P0-P3 findings; research передано на task-level human review.
+- [x] Move/order semantics однозначно зберігають tree invariants і deterministic sibling order у success, no-change, concurrency та recovery paths.
+- [x] Delete semantics однозначно визначають children, visibility, repeated operation, flags/timestamps і committed read-back; restore має explicit include/defer decision.
+- [x] Mark identity, validation, limits, replace/patch contract, ordering і no-change semantics точні.
+- [x] KV namespace/key/value validation, limits, replace/patch/delete contract, serialization і no-change semantics точні.
+- [x] Кожна operation проходить через чинні Core write port, Operation Engine і driver-owned semantic commit; другого write/journal path немає.
+- [x] Lock/write-set/fingerprint/journal/index contracts покривають multi-resource hierarchy mutations і aggregate updates без facade-direct driver access.
+- [x] Public method/input/result/error contracts сумісні з чинним root-only experimental API та не розкривають internal capability handles.
+- [x] `P3-VS3`, `P3-VS4`, `P3-VS5` і final `P3-STAB` мають task-ready boundary, dependencies, acceptance та verification без activation.
+- [x] Upward consistency, source policy, language gate й architecture-pressure review виконані; proposals ізольовані від canonical application.
+- [x] Independent audit не має відкритих P0-P3 findings; research передано на task-level human review.
 
 ## Перевірка
 
@@ -82,3 +82,13 @@ Task/research/report/index/state/progress — `updated`; canonical product/domai
 ## Додатковий контекст
 
 Planning ID `P3-DG2`; owner gate після bounded `P3-STAB1`. Ризик високий через одночасний вплив на domain invariants, multi-key concurrency, journal fingerprint/write-set, public API та downstream slicing; рекомендовані виконавець і незалежний аудитор рівня `екстремальний`.
+
+## Перевірка людиною
+
+Status: approved
+Reviewed: 2026-07-11
+Reviewer Role: Product Lead Hat / System Engineer Hat / Agent Operator Hat
+Approval Scope: whole-task-review
+Approval Source: явне повідомлення користувача «Я зробив ревю, можеш завершувати задачу. Також я підтверджую всі запропоновані рішення дизайну.»
+
+Research/design result прийнятий; task завершена як `done`. FIX-001 окремо approved fixation-only, але не applied; TASK-0032 prepared у backlog без activation.

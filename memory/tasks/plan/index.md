@@ -30,13 +30,18 @@
 - [TASK-07.26-0022-bp2-01a-materialize-read-port](TASK-07.26-0022-bp2-01a-materialize-read-port/index.md) - Done chore: один internal shared read-port/token source artifact materialized після application gate.
 - [TASK-07.26-0023-bp3-01-write-journal-recovery-protocol](TASK-07.26-0023-bp3-01-write-journal-recovery-protocol/index.md) - Done canonical design task `BP3-01 / P3-DG1`; approved FIX-001 applied owner TASK-0024.
 - [TASK-07.26-0024-apply-bp3-01-fix-001](TASK-07.26-0024-apply-bp3-01-fix-001/index.md) - Done owner application task; `APP-07.26-0024-001` published і прийнятий whole-task human review.
-- [TASK-07.26-0025-bp3-01a-materialize-write-protocol-seams](TASK-07.26-0025-bp3-01a-materialize-write-protocol-seams/index.md) - Backlog BP3-01A source-only shared write protocol seams.
-- [TASK-07.26-0026-bp3-02-operation-engine-foundation](TASK-07.26-0026-bp3-02-operation-engine-foundation/index.md) - Backlog P3-WP1 locks/scopes/Operation Engine foundation.
-- [TASK-07.26-0027-bp3-03-deterministic-full-fake-recovery](TASK-07.26-0027-bp3-03-deterministic-full-fake-recovery/index.md) - Backlog P3-WP2 deterministic full fake/journal/recovery.
-- [TASK-07.26-0028-bp3-04-resource-create-slice](TASK-07.26-0028-bp3-04-resource-create-slice/index.md) - Backlog P3-VS1 Resource create/read-back slice.
-- [TASK-07.26-0029-bp3-05-resource-update-slice](TASK-07.26-0029-bp3-05-resource-update-slice/index.md) - Backlog P3-VS2 Resource own-metadata update/read-back slice.
-- [TASK-07.26-0030-p3-stab1-create-update-foundation](TASK-07.26-0030-p3-stab1-create-update-foundation/index.md) - Backlog bounded create/update foundation stabilization before P3-DG2.
-- [TASK-07.26-0031-p3-dg2-order-delete-mark-kv-semantics](TASK-07.26-0031-p3-dg2-order-delete-mark-kv-semantics/index.md) - Backlog canonical design gate P3-DG2 для Resource order/delete/optional restore та Mark/KV semantics.
+- [TASK-07.26-0025-bp3-01a-materialize-write-protocol-seams](TASK-07.26-0025-bp3-01a-materialize-write-protocol-seams/index.md) - Done BP3-01A shared write protocol seams.
+- [TASK-07.26-0026-bp3-02-operation-engine-foundation](TASK-07.26-0026-bp3-02-operation-engine-foundation/index.md) - Done P3-WP1 Operation Engine foundation.
+- [TASK-07.26-0027-bp3-03-deterministic-full-fake-recovery](TASK-07.26-0027-bp3-03-deterministic-full-fake-recovery/index.md) - Done P3-WP2 deterministic full fake/recovery.
+- [TASK-07.26-0028-bp3-04-resource-create-slice](TASK-07.26-0028-bp3-04-resource-create-slice/index.md) - Done P3-VS1 Resource create/read-back.
+- [TASK-07.26-0029-bp3-05-resource-update-slice](TASK-07.26-0029-bp3-05-resource-update-slice/index.md) - Done P3-VS2 Resource own-metadata update/read-back.
+- [TASK-07.26-0030-p3-stab1-create-update-foundation](TASK-07.26-0030-p3-stab1-create-update-foundation/index.md) - Done bounded create/update foundation stabilization.
+- [TASK-07.26-0031-p3-dg2-order-delete-mark-kv-semantics](TASK-07.26-0031-p3-dg2-order-delete-mark-kv-semantics/index.md) - Done canonical P3-DG2 design; FIX-001 applied by TASK-0032 pending artifact publication.
+- [TASK-07.26-0032-apply-p3-dg2-fix-001](TASK-07.26-0032-apply-p3-dg2-fix-001/index.md) - Done owner application task; APP-0032 published and whole-task review accepted.
+- [TASK-07.26-0033-p3-vs3-resource-hierarchy-order-move](TASK-07.26-0033-p3-vs3-resource-hierarchy-order-move/index.md) - Backlog P3-VS3 with prepared RUN-001.
+- [TASK-07.26-0034-p3-vs4-mark-kv-writes](TASK-07.26-0034-p3-vs4-mark-kv-writes/index.md) - Backlog P3-VS4 with prepared RUN-001.
+- [TASK-07.26-0035-p3-vs5-resource-soft-delete](TASK-07.26-0035-p3-vs5-resource-soft-delete/index.md) - Backlog P3-VS5 with prepared RUN-001.
+- [TASK-07.26-0036-p3-stab-final-phase-3](TASK-07.26-0036-p3-stab-final-phase-3/index.md) - Backlog final P3-STAB with prepared RUN-001.
 
 ## Файли
 
