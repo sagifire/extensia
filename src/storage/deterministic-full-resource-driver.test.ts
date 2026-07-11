@@ -398,12 +398,11 @@ describe("deterministic full Resource driver", () => {
         await transaction.stageResource(snapshot);
         await transaction.commit(draft(snapshot, operationId));
       }
-      const iterator =
+      const stream =
         kind === "resources"
-          ? staleSession.listResources()[Symbol.asyncIterator]()
-          : staleSession
-              .readCommittedOperationsAfter(null)
-              [Symbol.asyncIterator]();
+          ? staleSession.listResources()
+          : staleSession.readCommittedOperationsAfter(null);
+      const iterator = stream[Symbol.asyncIterator]();
       expect((await iterator.next()).done).toBe(false);
       crashed.crashNext("resource.read");
       await expect(

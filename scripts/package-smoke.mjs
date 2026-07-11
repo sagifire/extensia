@@ -89,6 +89,10 @@ try {
     "dist/core/resource-read-runtime.d.ts.map",
     "dist/core/resource-read-runtime.js",
     "dist/core/resource-read-runtime.js.map",
+    "dist/core/resource-write-runtime.d.ts",
+    "dist/core/resource-write-runtime.d.ts.map",
+    "dist/core/resource-write-runtime.js",
+    "dist/core/resource-write-runtime.js.map",
     "dist/domain/json.d.ts",
     "dist/domain/json.d.ts.map",
     "dist/domain/json.js",
@@ -125,6 +129,10 @@ try {
     "dist/public/extensia.d.ts.map",
     "dist/public/extensia.js",
     "dist/public/extensia.js.map",
+    "dist/public/full-resource-driver.d.ts",
+    "dist/public/full-resource-driver.d.ts.map",
+    "dist/public/full-resource-driver.js",
+    "dist/public/full-resource-driver.js.map",
     "dist/runtime/facades.d.ts",
     "dist/runtime/facades.d.ts.map",
     "dist/runtime/facades.js",
@@ -174,9 +182,7 @@ try {
     "Packed package must not contain CommonJS output.",
   );
   assert.ok(
-    !packageContents.some((file) =>
-      /(?:journal-(?:runtime|service)|write-runtime)/i.test(file),
-    ),
+    !packageContents.some((file) => /journal-(?:runtime|service)/i.test(file)),
     "Package must not contain a persistence or Journal runtime implementation path.",
   );
   const publicRuntimeSource = readFileSync(
@@ -184,10 +190,8 @@ try {
     "utf8",
   );
   assert.ok(
-    !/(?:journal|operation-engine|write-runtime|write-port)/i.test(
-      publicRuntimeSource,
-    ),
-    "Public integration must not depend on a write or Journal runtime path.",
+    !/(?:journal-runtime|journal-service)/i.test(publicRuntimeSource),
+    "Public integration must not depend on an independent Journal runtime path.",
   );
 
   consumer = mkdtempSync(join(tmpdir(), "extensia-package-consumer-"));
@@ -201,7 +205,7 @@ try {
   );
   writeFileSync(
     join(consumer, "consumer.ts"),
-    `import { createExtensia } from "@sagifire/extensia";
+    `import { createExtensia, defineFullResourceDriver } from "@sagifire/extensia";
 import type {
   AssetSnapshot,
   ExtensiaConfig,
@@ -211,6 +215,9 @@ import type {
   ExtensiaModule,
   ExtensiaModuleState,
   ExtensiaResult,
+  CreateResourceInput,
+  FullResourceDriver,
+  FullResourceDriverDefinition,
   IDString,
   JSONArray,
   JSONObject,
@@ -224,6 +231,10 @@ import type {
   ResourceKVSnapshot,
   ResourceSnapshot,
   ResourceTreeViewSnapshot,
+  ResourceWriteError,
+  ResourceWriteSuccess,
+  ResourceWriteWarning,
+  ResourceWriteWarningCode,
   SafeDiagnostic,
   StorageFacade,
   Timestamp,
@@ -263,7 +274,15 @@ type PublicContract = readonly [
   SafeDiagnostic,
   StorageFacade,
   Timestamp,
+  CreateResourceInput,
+  FullResourceDriver,
+  FullResourceDriverDefinition,
+  ResourceWriteError,
+  ResourceWriteSuccess,
+  ResourceWriteWarning,
+  ResourceWriteWarningCode,
 ];
+void defineFullResourceDriver;
 void state;
 void classDriverModule;
 export type { PublicContract };
@@ -290,8 +309,9 @@ export type { PublicContract };
     const listeners = process.eventNames().map((name) => [name, process.listenerCount(name)]);
     const namespace = await import("@sagifire/extensia");
 
-    assert.deepEqual(Object.keys(namespace), ["createExtensia"]);
+    assert.deepEqual(Object.keys(namespace), ["createExtensia", "defineFullResourceDriver"]);
     assert.equal(typeof namespace.createExtensia, "function");
+    assert.equal(typeof namespace.defineFullResourceDriver, "function");
     assert.deepEqual(Reflect.ownKeys(globalThis), globalKeys);
     assert.deepEqual({ ...process.env }, environment);
     assert.deepEqual(

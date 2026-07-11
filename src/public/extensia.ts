@@ -7,6 +7,10 @@ import {
   READONLY_RESOURCE_CORE_MODULE,
   READONLY_RESOURCE_DRIVER,
 } from "../core/resource-read-runtime.js";
+import {
+  FULL_RESOURCE_CORE_MODULE,
+  FULL_RESOURCE_DRIVER,
+} from "../core/resource-write-runtime.js";
 import type { FacadeRegistryAccess } from "../runtime/facades.js";
 import {
   createRuntimeLifecycleHost,
@@ -17,9 +21,11 @@ import {
 import {
   DEFAULT_API_FACADE_REGISTRY_MODULE,
   DEFAULT_API_SYSTEM_EXTENSION_MODULE,
+  FULL_DEFAULT_API_SYSTEM_EXTENSION_MODULE,
   QUERY_FACADE,
   STORAGE_FACADE,
 } from "../system-extensions/default-api/facades.js";
+import { resolveFullResourceDriver } from "./full-resource-driver.js";
 import { FACADE_REGISTRY_ACCESS } from "../runtime/facades.js";
 import type {
   ExtensiaConfig,
@@ -29,6 +35,7 @@ import type {
   ExtensiaModule,
   ExtensiaModuleState,
   ExtensiaResult,
+  FullResourceDriver,
   QueryFacade,
   ReadonlyResourceDriver,
   SafeDiagnostic,
@@ -39,7 +46,7 @@ const INVALID_CONFIG = Symbol("invalid Extensia config");
 
 interface NormalizedConfig {
   readonly storage: {
-    readonly driver: ReadonlyResourceDriver;
+    readonly driver: ReadonlyResourceDriver | FullResourceDriver;
   };
 }
 
@@ -100,7 +107,8 @@ function normalizeConfig(
 
     return Object.freeze({
       storage: Object.freeze({
-        driver: driverProperty.value as ReadonlyResourceDriver,
+        driver: driverProperty.value as
+          ReadonlyResourceDriver | FullResourceDriver,
       }),
     });
   } catch {
@@ -108,7 +116,7 @@ function normalizeConfig(
   }
 }
 
-function hasValidDriverShape(driver: ReadonlyResourceDriver): boolean {
+function hasValidReadonlyDriverShape(driver: ReadonlyResourceDriver): boolean {
   try {
     const mode = dataValue(driver, "mode");
     const open = dataValue(driver, "open");
@@ -149,6 +157,16 @@ function messageFor(code: ExtensiaErrorCode): string {
       return "Resource was not found";
     case "STORAGE_READONLY":
       return "Resource storage is readonly in this runtime";
+    case "RESOURCE_INPUT_INVALID":
+      return "Resource input is invalid";
+    case "RESOURCE_NO_CHANGES":
+      return "Resource update has no changes";
+    case "RESOURCE_ID_GENERATION_FAILED":
+      return "Resource ID generation failed";
+    case "STORAGE_LOCK_FAILED":
+      return "Resource storage lock failed";
+    case "STORAGE_WRITE_FAILED":
+      return "Resource storage write failed";
   }
 }
 
@@ -195,9 +213,20 @@ async function composePublicRuntime(
 > {
   const result = await composeExtensia({
     register(registry) {
-      registry.bindValue(READONLY_RESOURCE_DRIVER, config.storage.driver);
-      registry.use(READONLY_RESOURCE_CORE_MODULE);
-      registry.use(DEFAULT_API_SYSTEM_EXTENSION_MODULE);
+      const driver = config.storage.driver;
+      const full = resolveFullResourceDriver(driver as FullResourceDriver);
+      if (full !== null) {
+        registry.bindValue(FULL_RESOURCE_DRIVER, full);
+        registry.use(FULL_RESOURCE_CORE_MODULE);
+        registry.use(FULL_DEFAULT_API_SYSTEM_EXTENSION_MODULE);
+      } else {
+        registry.bindValue(
+          READONLY_RESOURCE_DRIVER,
+          driver as ReadonlyResourceDriver,
+        );
+        registry.use(READONLY_RESOURCE_CORE_MODULE);
+        registry.use(DEFAULT_API_SYSTEM_EXTENSION_MODULE);
+      }
       registry.use(DEFAULT_API_FACADE_REGISTRY_MODULE);
       return undefined;
     },
@@ -251,7 +280,18 @@ export function createExtensia(config: ExtensiaConfig): ExtensiaModule {
       state = "failed";
       return failure("CONFIG_INVALID");
     }
-    if (!hasValidDriverShape(normalizedConfig.storage.driver)) {
+    const driver = normalizedConfig.storage.driver;
+    const validDriver = (() => {
+      try {
+        return (
+          resolveFullResourceDriver(driver as FullResourceDriver) !== null ||
+          hasValidReadonlyDriverShape(driver as ReadonlyResourceDriver)
+        );
+      } catch {
+        return false;
+      }
+    })();
+    if (!validDriver) {
       moduleDiagnostics.push(diagnostic("CONFIG_INVALID", "config"));
       state = "failed";
       return failure("CONFIG_INVALID");
@@ -310,17 +350,21 @@ export function createExtensia(config: ExtensiaConfig): ExtensiaModule {
 
   return Object.freeze({
     getState(): ExtensiaModuleState {
+      reconcileRuntimeFault();
       return state;
     },
     start,
     stop,
     query(): QueryFacade | null {
+      reconcileRuntimeFault();
       return state === "started" ? readyQuery : null;
     },
     storage(): StorageFacade | null {
+      reconcileRuntimeFault();
       return state === "started" ? readyStorage : null;
     },
     inspect(): ExtensiaInspection {
+      reconcileRuntimeFault();
       const ready = state === "started";
       const lifecycleDiagnostics =
         runtime?.host.inspect().diagnostics.map(lifecycleDiagnostic) ?? [];
@@ -348,4 +392,12 @@ export function createExtensia(config: ExtensiaConfig): ExtensiaModule {
       });
     },
   });
+
+  function reconcileRuntimeFault(): void {
+    if (state === "started" && runtime?.facades.inspect().ready === false) {
+      readyQuery = null;
+      readyStorage = null;
+      state = "failed";
+    }
+  }
 }

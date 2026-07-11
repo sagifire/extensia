@@ -37,6 +37,7 @@ export interface FacadeDependencyAccess {
 export interface FacadeFactoryContext {
   readonly dependencies: FacadeDependencyAccess;
   readonly operations: FacadeOperationGate;
+  failClose(): void;
 }
 
 export interface FacadeProvider<TFacade = unknown> {
@@ -60,6 +61,7 @@ export type FacadeRegistryDiagnosticCode =
   | "FACADE_DEPENDENCY_CYCLE"
   | "FACADE_CREATE_FAILED"
   | "FACADE_DISPOSE_FAILED"
+  | "FACADE_RUNTIME_FAILED"
   | "FACADE_PHASE_INVALID";
 
 export interface FacadeRegistryDiagnostic {
@@ -397,6 +399,11 @@ export function createFacadeRuntime(
               },
             }),
             operations: gate,
+            failClose(): void {
+              gate.close();
+              publishedSurface = null;
+              record(diagnostic("FACADE_RUNTIME_FAILED"));
+            },
           });
 
           let value: unknown;

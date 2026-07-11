@@ -28,6 +28,11 @@ import {
   CORE_RESOURCE_READ_PORT,
   type CoreResourceReadPort,
 } from "./resource-read-port.js";
+import {
+  CORE_RESOURCE_WRITE_PORT,
+  type CoreResourceWritePort,
+  type CoreResourceWriteFailureCode,
+} from "./resource-write-port.js";
 
 const defaultApiFacadeTokens = createExtensiaInternalNamespace(
   "system-extensions.default-api.facades",
@@ -44,7 +49,8 @@ export type DefaultApiFailureCode =
   | "MODULE_NOT_READY"
   | "INVALID_RESOURCE_ID"
   | "RESOURCE_NOT_FOUND"
-  | "STORAGE_READONLY";
+  | "STORAGE_READONLY"
+  | CoreResourceWriteFailureCode;
 
 export interface DefaultApiFailure<
   TCode extends DefaultApiFailureCode = DefaultApiFailureCode,
@@ -88,9 +94,28 @@ export interface StorageFacade {
   createResource(
     input: unknown,
   ): Promise<
-    DefaultApiResult<never, ModuleNotReadyFailure | StorageReadonlyFailure>
+    DefaultApiResult<DefaultResourceWriteSuccess, CreateResourceFailure>
   >;
 }
+
+interface DefaultResourceWriteSuccess {
+  readonly committed: true;
+  readonly operation_id: import("../../domain/scalars.js").IDString;
+  readonly resource: ResourceSnapshot;
+  readonly warnings: readonly {
+    readonly code:
+      "LOCAL_INDEX_PUBLICATION_FAILED" | "POST_COMMIT_CLEANUP_FAILED";
+    readonly message: string;
+  }[];
+}
+
+type CreateResourceFailure =
+  | ModuleNotReadyFailure
+  | StorageReadonlyFailure
+  | DefaultApiFailure<"RESOURCE_INPUT_INVALID">
+  | DefaultApiFailure<"RESOURCE_ID_GENERATION_FAILED">
+  | DefaultApiFailure<"STORAGE_LOCK_FAILED">
+  | DefaultApiFailure<"STORAGE_WRITE_FAILED">;
 
 export const QUERY_FACADE: ReturnType<typeof facadeHandle<QueryFacade>> =
   facadeHandle<QueryFacade>("query");
@@ -171,22 +196,127 @@ function createQueryFacade(
   return Object.freeze({ getResource, getResourceTree });
 }
 
-function createStorageFacade(context: FacadeFactoryContext): StorageFacade {
+function parseCreateInput(
+  input: unknown,
+): { title: string; description?: string | null } | null {
+  if (typeof input !== "object" || input === null || Array.isArray(input))
+    return null;
+  const keys = Reflect.ownKeys(input);
+  if (
+    keys.some(
+      (key) =>
+        typeof key !== "string" || (key !== "title" && key !== "description"),
+    )
+  )
+    return null;
+  const title = Object.getOwnPropertyDescriptor(input, "title");
+  if (
+    title === undefined ||
+    !("value" in title) ||
+    typeof title.value !== "string" ||
+    title.value.trim().length === 0
+  )
+    return null;
+  const description = Object.getOwnPropertyDescriptor(input, "description");
+  if (
+    description !== undefined &&
+    (!("value" in description) ||
+      (description.value !== null && typeof description.value !== "string"))
+  )
+    return null;
   return Object.freeze({
-    async createResource(): ReturnType<StorageFacade["createResource"]> {
+    title: title.value,
+    ...(description === undefined
+      ? {}
+      : { description: description.value as string | null }),
+  });
+}
+
+function createStorageFacade(
+  context: FacadeFactoryContext,
+  port: CoreResourceWritePort | null,
+): StorageFacade {
+  return Object.freeze({
+    async createResource(
+      input: unknown,
+    ): ReturnType<StorageFacade["createResource"]> {
       const lease = context.operations.acquire();
       if (lease === null) return notReady();
 
       try {
-        return failure(
-          "STORAGE_READONLY",
-          "Resource storage is readonly in this runtime",
-        );
+        if (port === null)
+          return failure(
+            "STORAGE_READONLY",
+            "Resource storage is readonly in this runtime",
+          );
+        const parsed = parseCreateInput(input);
+        if (parsed === null)
+          return failure("RESOURCE_INPUT_INVALID", "Resource input is invalid");
+        const result = await port.write({ type: "resource.create", ...parsed });
+        if (!result.ok) return createWriteFailure(result.error.code);
+        if (result.value.warnings.length > 0) context.failClose();
+        return Object.freeze({
+          ok: true,
+          value: Object.freeze({
+            committed: true,
+            operation_id: result.value.operation_id,
+            resource: result.value.resource,
+            warnings: Object.freeze(
+              result.value.warnings.map((code) =>
+                Object.freeze({
+                  code,
+                  message:
+                    code === "LOCAL_INDEX_PUBLICATION_FAILED"
+                      ? "Committed Resource could not be published to the local index"
+                      : "Committed Resource cleanup failed",
+                }),
+              ),
+            ),
+          }),
+        });
       } finally {
         lease.release();
       }
     },
   });
+}
+
+function messageForWriteFailure(code: CoreResourceWriteFailureCode): string {
+  switch (code) {
+    case "RESOURCE_INPUT_INVALID":
+      return "Resource input is invalid";
+    case "RESOURCE_NOT_FOUND":
+      return "Resource was not found";
+    case "RESOURCE_NO_CHANGES":
+      return "Resource update has no changes";
+    case "RESOURCE_ID_GENERATION_FAILED":
+      return "Resource ID generation failed";
+    case "STORAGE_LOCK_FAILED":
+      return "Resource storage lock failed";
+    case "STORAGE_WRITE_FAILED":
+      return "Resource storage write failed";
+  }
+}
+
+function createWriteFailure(
+  code: CoreResourceWriteFailureCode,
+): DefaultApiResult<never, CreateResourceFailure> {
+  switch (code) {
+    case "RESOURCE_INPUT_INVALID":
+      return failure(code, messageForWriteFailure(code));
+    case "RESOURCE_ID_GENERATION_FAILED":
+      return failure(code, messageForWriteFailure(code));
+    case "STORAGE_LOCK_FAILED":
+      return failure(code, messageForWriteFailure(code));
+    case "STORAGE_WRITE_FAILED":
+      return failure(code, messageForWriteFailure(code));
+    case "RESOURCE_NOT_FOUND":
+    case "RESOURCE_NO_CHANGES":
+      return failure(
+        "STORAGE_WRITE_FAILED",
+        messageForWriteFailure("STORAGE_WRITE_FAILED"),
+      );
+  }
 }
 
 function queryProvider(
@@ -202,14 +332,18 @@ function queryProvider(
   });
 }
 
-const storageProvider: FacadeProvider<StorageFacade> = facadeProvider({
-  handle: STORAGE_FACADE,
-  owner: "extensia.default-api",
-  dependencies: [],
-  create(context): StorageFacade {
-    return createStorageFacade(context);
-  },
-});
+function storageProvider(
+  port: CoreResourceWritePort | null,
+): FacadeProvider<StorageFacade> {
+  return facadeProvider({
+    handle: STORAGE_FACADE,
+    owner: "extensia.default-api",
+    dependencies: [],
+    create(context): StorageFacade {
+      return createStorageFacade(context, port);
+    },
+  });
+}
 
 export const DEFAULT_API_SYSTEM_EXTENSION_MODULE: ReturnType<
   typeof defineModule
@@ -228,7 +362,36 @@ export const DEFAULT_API_SYSTEM_EXTENSION_MODULE: ReturnType<
       .add(SYSTEM_FACADE_PROVIDER_CONTRIBUTIONS)
       .toFactory(({ get }) => queryProvider(get(CORE_RESOURCE_READ_PORT)))
       .singleton();
-    context.add(SYSTEM_FACADE_PROVIDER_CONTRIBUTIONS).toValue(storageProvider);
+    context
+      .add(SYSTEM_FACADE_PROVIDER_CONTRIBUTIONS)
+      .toValue(storageProvider(null));
+  },
+});
+
+export const FULL_DEFAULT_API_SYSTEM_EXTENSION_MODULE: ReturnType<
+  typeof defineModule
+> = defineModule({
+  id: "extensia.default-api.full",
+  requires: [
+    { token: CORE_RESOURCE_READ_PORT },
+    { token: CORE_RESOURCE_WRITE_PORT },
+  ],
+  provides: [
+    {
+      token: SYSTEM_FACADE_PROVIDER_CONTRIBUTIONS,
+      kind: "admin-contribution",
+      cardinality: "multi",
+    },
+  ],
+  setup(context) {
+    context
+      .add(SYSTEM_FACADE_PROVIDER_CONTRIBUTIONS)
+      .toFactory(({ get }) => queryProvider(get(CORE_RESOURCE_READ_PORT)))
+      .singleton();
+    context
+      .add(SYSTEM_FACADE_PROVIDER_CONTRIBUTIONS)
+      .toFactory(({ get }) => storageProvider(get(CORE_RESOURCE_WRITE_PORT)))
+      .singleton();
   },
 });
 

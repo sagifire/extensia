@@ -1,6 +1,6 @@
 # Стан проекту
 
-Updated: 2026-07-10
+Updated: 2026-07-11
 Starter Kit Version: 4.0
 PDADM MVP Version: 0.4
 Target Release: `0.1.0`
@@ -8,7 +8,7 @@ Internal Stage: `v2`
 
 ## Поточний фокус
 
-Phase 1 і Phase 2 завершені та прийняті explicit human gates. `BP3-01 / P3-DG1` accepted і canonical applied як `APP-07.26-0024-001`; BP3-01A, BP3-02 і BP3-03 завершені як `done` після independent audits і whole-task human approvals. Наступні Phase 3 tasks не активовані.
+Phase 1 і Phase 2 завершені та прийняті explicit human gates. BP3-01A, BP3-02, BP3-03 і BP3-04 завершені як `done` після independent audits і whole-task human approvals. BP3-05 не активована.
 
 ## Поточний стан продукту
 
@@ -33,6 +33,7 @@ Phase 1 і Phase 2 завершені та прийняті explicit human gates
 - `BP3-01A / TASK-07.26-0025` завершена як `done`: RUN-001 materialize-ила source-only write protocol seams, full package gate зелений, final repeated independent audit повернув `REVIEW_READY` без відкритих P0-P3, whole-task result прийнятий людиною.
 - `BP3-02 / P3-WP1 / TASK-07.26-0026` завершена як `done`: RUN-001 реалізувала internal atomic multi-key locks, explicit disposable operation scopes, Operation Engine close-and-drain та committed warning/fail-close foundation; full 126-test package gate зелений, repeated independent audit `REVIEW_READY` без відкритих P0-P3, результат прийнятий whole-task human review. `TASK-07.26-0027…0030` лишаються backlog без activation.
 - `BP3-03 / P3-WP2 / TASK-07.26-0027` завершена як `done`: RUN-001 реалізувала deterministic full fake, committed-only journal, exclusive recovery-clean sessions, canonical sequence/cursor/fingerprint integrity, crash/fresh recovery і coherent startup scan; full 143-test package gate зелений, repeated independent audit `REVIEW_READY` без відкритих P0-P3, результат прийнятий whole-task human review. BP3-04 не активована.
+- `BP3-04 / P3-VS1 / TASK-07.26-0028` завершена як `done`: opaque full-driver integration, exact public Resource create, one-scope three-candidate policy, semantic commit, prepared index publication, detached read-back і committed fail-close warnings реалізовані; full 158-test gate та repeated audit зелені, результат прийнятий whole-task human review. BP3-05 не активована.
 - `BP2-06 / TASK-07.26-0020` завершена як `done`: `RSCH-001` відтворила clean/package/API/architecture evidence, repeated bounded meta-review повернув `REVIEW_READY`, recommendation `pass` прийнята whole-task review, а explicit human gate завершив Phase 2.
 - `BP2-05 / TASK-07.26-0019` завершена як `done`: RUN-001 виконала risk-based Phase 2 stabilization, clean package/reproducibility evidence і memory sync без Phase 3 feature work; initial evidence P2 закрито, repeated audit `REVIEW_READY` без відкритих P0–P3, whole-task review прийнятий людиною.
 - `BP2-04 / TASK-07.26-0018` завершена як `done`: RUN-001 реалізувала root public contract, Extensia Module lifecycle, readonly driver integration та application/package verification; repeated independent audit не має відкритих P0-P3, whole-task review прийнятий людиною.
@@ -45,6 +46,7 @@ Phase 1 і Phase 2 завершені та прийняті explicit human gates
 
 ## Останні рішення
 
+- Користувач 2026-07-11 виконав whole-task review `BP3-04 / TASK-07.26-0028` і дозволив завершити задачу як `done`; це не активує BP3-05.
 - Користувач 2026-07-10 активував TASK-0024 і дозволив independent subagent review; repeated pre-audit повернув `APPLY`, після чого canonical application виконано до post-audit gate.
 - Цільова release version нової Extensia — `0.1.0`; `v2` є лише внутрішньою назвою етапу redesign.
 - Канонічними design sources є `domain-model-v2.md`, `extension-and-api-model-v2-ioc.md` і `runtime-architecture-v2-ioc.md`.
@@ -103,7 +105,7 @@ Phase 1 і Phase 2 завершені та прийняті explicit human gates
 
 ## Наступні кроки
 
-1. `BP3-04 / TASK-07.26-0028` потребує окремої activation; завершення BP3-03 її не активує.
+1. `BP3-05 / TASK-07.26-0029` потребує окремої activation; завершення BP3-04 її не активує.
 
 ## Відкриті питання
 

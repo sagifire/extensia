@@ -1,4 +1,9 @@
 export { createExtensia } from "./public/extensia.js";
+export { defineFullResourceDriver } from "./public/full-resource-driver.js";
+export type {
+  FullResourceDriver,
+  FullResourceDriverDefinition,
+} from "./public/full-resource-driver.js";
 export type {
   AssetSnapshot,
   ExtensiaConfig,
@@ -8,6 +13,7 @@ export type {
   ExtensiaModule,
   ExtensiaModuleState,
   ExtensiaResult,
+  CreateResourceInput,
   IDString,
   JSONArray,
   JSONObject,
@@ -21,6 +27,10 @@ export type {
   ResourceKVSnapshot,
   ResourceSnapshot,
   ResourceTreeViewSnapshot,
+  ResourceWriteError,
+  ResourceWriteSuccess,
+  ResourceWriteWarning,
+  ResourceWriteWarningCode,
   SafeDiagnostic,
   StorageFacade,
   Timestamp,

@@ -1,6 +1,6 @@
 # Поточний стан доменної реалізації
 
-As Of: 2026-07-10
+As Of: 2026-07-11
 Status: current
 
 ## Фактичний стан
@@ -27,7 +27,8 @@ Status: current
 - Public Module створює один fresh production composition із accepted BP2-02/BP2-03 modules; facade publication лишається Registry-owned, stale calls використовують existing readiness gate, а cleanup/disposal лишаються Runtime Lifecycle Host-owned.
 - Root public query надає лише exact Resource-by-id і one-level tree reads; public storage command є readonly proof із `never` success та не інспектує input. Packed Node.js 24 consumer доводить runtime/type surface й відсутність internal subpath exports.
 - `TASK-07.26-0019 / RUN-001` повторно перевірила сукупний Phase 2 baseline: clean install, 10 test files / 112 tests, focused Core/Registry/public/lifecycle matrices, exact root runtime/type surface, packed Node.js 24 consumer і controlled build/pack reproducibility зелені; production code або dependencies не змінювалися, repeated independent audit `REVIEW_READY`, результат прийнятий whole-task human review.
-- Plugins/custom facade API, writes/operation pipeline, persistence, journal, locks, sync і recovery ще відсутні.
+- `TASK-07.26-0028 / RUN-001` реалізувала bounded root Resource create: exact title/description input, generated root defaults, максимум три ID candidates в одному operation scope, driver-owned Resource+journal semantic commit, prepared local index publication, detached success/read-back і committed post-fault fail-close warnings.
+- Public opaque full-driver handle є experimental; deterministic fake доводить protocol/recovery behavior, але не concrete physical durability. Update, P3-DG2 semantics, plugins, sync і concrete driver ще відсутні.
 - Durable storage format і міграція даних попередньої версії не підтримуються; legacy memory/data не переносились.
 - Три documents у `memory/references/extensia-v2/` є draft source specifications майбутнього стану, а не доказом реалізованої поведінки.
 
@@ -53,4 +54,5 @@ Resource/Asset/Mark/KV data-contract kernel, IoC composition/conformance skeleto
 - `memory/tasks/plan/TASK-07.26-0017-bp2-03-facade-registry-system-facades/runs/RUN-001/result.md`.
 - `memory/tasks/plan/TASK-07.26-0018-bp2-04-public-resource-read-slice/runs/RUN-001/result.md`.
 - `memory/tasks/plan/TASK-07.26-0019-bp2-05-phase-2-stabilization/runs/RUN-001/result.md`.
+- `memory/tasks/plan/TASK-07.26-0028-bp3-04-resource-create-slice/runs/RUN-001/result.md`.
 - Фактична структура репозиторію станом на 2026-07-10.

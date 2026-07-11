@@ -6,6 +6,10 @@ import {
   type ResourceTreeViewSnapshot,
 } from "../domain/snapshots.js";
 import type { IDString } from "../domain/scalars.js";
+import type {
+  MutableGreedyResourceIndex,
+  PreparedResourceIndexChange,
+} from "./resource-index-write-contracts.js";
 
 export interface GreedyResourceIndex {
   readonly ready: boolean;
@@ -50,7 +54,7 @@ function validateTree(
   }
 }
 
-export function createGreedyResourceIndex(): GreedyResourceIndex {
+export function createGreedyResourceIndex(): MutableGreedyResourceIndex {
   let ready = false;
   let resourcesById = new Map<IDString, ResourceSnapshot>();
   let childrenByParent = new Map<
@@ -137,6 +141,46 @@ export function createGreedyResourceIndex(): GreedyResourceIndex {
       return buildResourceTreeViewSnapshot({
         resource,
         children: childrenByParent.get(id) ?? [],
+      });
+    },
+    prepareUpsert(candidate: ResourceSnapshot): PreparedResourceIndexChange {
+      assertReady();
+      const resource = buildResourceSnapshot(candidate);
+      const nextResources = new Map(resourcesById);
+      nextResources.set(resource.data.id, resource);
+      validateTree(nextResources);
+
+      const mutableChildren = new Map<IDString, ResourceChildRefSnapshot[]>();
+      for (const item of nextResources.values()) {
+        const parentId = item.data.parent_id;
+        if (parentId === null) continue;
+        const children = mutableChildren.get(parentId) ?? [];
+        children.push({ id: item.data.id, order_index: item.data.order_index });
+        mutableChildren.set(parentId, children);
+      }
+      const nextChildren = new Map<
+        IDString,
+        readonly ResourceChildRefSnapshot[]
+      >();
+      for (const [parentId, children] of mutableChildren) {
+        nextChildren.set(
+          parentId,
+          Object.freeze([...children].sort(compareChildren)),
+        );
+      }
+
+      let published = false;
+      return Object.freeze({
+        resource: buildResourceSnapshot(resource),
+        publish(): void {
+          if (published)
+            throw new Error(
+              "Prepared Resource index change was already published",
+            );
+          published = true;
+          resourcesById = nextResources;
+          childrenByParent = nextChildren;
+        },
       });
     },
   });

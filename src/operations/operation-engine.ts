@@ -39,6 +39,10 @@ export interface OperationScope<TValue> {
   transition(next: "staging" | "committing"): void;
   commit(value: TValue): void;
   deferCleanup(cleanup: OperationCleanup): void;
+  withLocks<TResult>(
+    keys: readonly string[],
+    callback: () => TResult | Promise<TResult>,
+  ): Promise<TResult>;
 }
 
 export type OperationEngineResult<TValue> =
@@ -61,6 +65,7 @@ export interface OperationRequest {
   readonly affected_resources: readonly IDString[];
   readonly lock_keys: readonly string[];
   readonly signal?: AbortSignal;
+  readonly identity?: ResourceOperationIdentity;
 }
 
 export interface OperationEngine {
@@ -150,7 +155,7 @@ export function createOperationEngine(
       const requestAborted = (): boolean => request.signal?.aborted === true;
 
       try {
-        const identity = Object.freeze(identities.create());
+        const identity = Object.freeze(request.identity ?? identities.create());
         const plan: ResourceOperationPlan = Object.freeze({
           ...identity,
           type: request.type,
@@ -190,10 +195,24 @@ export function createOperationEngine(
             }
             cleanups.push(cleanup);
           },
+          async withLocks<TResult>(
+            keys: readonly string[],
+            callback: () => TResult | Promise<TResult>,
+          ): Promise<TResult> {
+            assertLive();
+            const dynamicLease = await locks.acquire(keys, request.signal);
+            try {
+              return await callback();
+            } finally {
+              dynamicLease.release();
+            }
+          },
         });
 
         move("waiting-for-locks");
-        lease = await locks.acquire(plan.lock_keys, request.signal);
+        if (plan.lock_keys.length > 0) {
+          lease = await locks.acquire(plan.lock_keys, request.signal);
+        }
         move("preparing");
         if (requestAborted()) {
           throw new LockAcquireCanceledError();

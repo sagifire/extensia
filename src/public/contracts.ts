@@ -14,6 +14,10 @@ import type {
   ResourceSnapshot,
   ResourceTreeViewSnapshot,
 } from "../domain/snapshots.js";
+import type {
+  FullResourceDriver,
+  FullResourceDriverDefinition,
+} from "./full-resource-driver.js";
 
 export type {
   AssetSnapshot,
@@ -29,6 +33,8 @@ export type {
   ResourceSnapshot,
   ResourceTreeViewSnapshot,
   Timestamp,
+  FullResourceDriver,
+  FullResourceDriverDefinition,
 };
 
 export type ExtensiaModuleState =
@@ -43,7 +49,12 @@ export type ExtensiaErrorCode =
   | "STOP_FAILED"
   | "INVALID_RESOURCE_ID"
   | "RESOURCE_NOT_FOUND"
-  | "STORAGE_READONLY";
+  | "STORAGE_READONLY"
+  | "RESOURCE_INPUT_INVALID"
+  | "RESOURCE_NO_CHANGES"
+  | "RESOURCE_ID_GENERATION_FAILED"
+  | "STORAGE_LOCK_FAILED"
+  | "STORAGE_WRITE_FAILED";
 
 export interface ExtensiaError<
   TCode extends ExtensiaErrorCode = ExtensiaErrorCode,
@@ -81,9 +92,37 @@ export interface ReadonlyResourceDriver {
 
 export interface ExtensiaConfig {
   readonly storage: {
-    readonly driver: ReadonlyResourceDriver;
+    readonly driver: ReadonlyResourceDriver | FullResourceDriver;
   };
 }
+
+export interface CreateResourceInput {
+  readonly title: string;
+  readonly description?: string | null;
+}
+
+export type ResourceWriteWarningCode =
+  "LOCAL_INDEX_PUBLICATION_FAILED" | "POST_COMMIT_CLEANUP_FAILED";
+
+export interface ResourceWriteWarning {
+  readonly code: ResourceWriteWarningCode;
+  readonly message: string;
+}
+
+export interface ResourceWriteSuccess {
+  readonly committed: true;
+  readonly operation_id: IDString;
+  readonly resource: ResourceSnapshot;
+  readonly warnings: readonly ResourceWriteWarning[];
+}
+
+export type ResourceWriteError =
+  | ModuleNotReadyError
+  | StorageReadonlyError
+  | ExtensiaError<"RESOURCE_INPUT_INVALID">
+  | ExtensiaError<"RESOURCE_ID_GENERATION_FAILED">
+  | ExtensiaError<"STORAGE_LOCK_FAILED">
+  | ExtensiaError<"STORAGE_WRITE_FAILED">;
 
 type ModuleNotReadyError = ExtensiaError<"MODULE_NOT_READY">;
 type InvalidResourceIDError = ExtensiaError<"INVALID_RESOURCE_ID">;
@@ -111,8 +150,8 @@ export interface QueryFacade {
 
 export interface StorageFacade {
   createResource(
-    input: unknown,
-  ): Promise<ExtensiaResult<never, ModuleNotReadyError | StorageReadonlyError>>;
+    input: CreateResourceInput,
+  ): Promise<ExtensiaResult<ResourceWriteSuccess, ResourceWriteError>>;
 }
 
 export interface ExtensiaModule {

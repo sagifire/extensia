@@ -40,6 +40,9 @@ export interface CoreResourceWriteFailure {
 export interface CoreResourceWriteSuccess {
   readonly operation_id: IDString;
   readonly resource: ResourceSnapshot;
+  readonly warnings: readonly (
+    "LOCAL_INDEX_PUBLICATION_FAILED" | "POST_COMMIT_CLEANUP_FAILED"
+  )[];
 }
 
 export type CoreResourceWriteResult =

@@ -29,10 +29,11 @@ Updated: 2026-07-11
 | Storage Driver contract | planned | Абстракція для metadata, asset files, staging, journal, write lock і recovery. |
 | Concrete full driver | unselected | Physical format і driver package ще не визначені. |
 | Read-only driver | current-experimental | Public Phase 2 Resource listing contract інтегровано BP2-04; це не final Storage Driver contract і не concrete durable implementation. |
-| Hot Metadata Index | current | Internal Resource-only greedy index BP2-02; lazy mode, wider metadata й durable semantics не реалізовані. |
+| Hot Metadata Index | current | Resource-only greedy index має prepared immutable upsert/publication для BP3-04; lazy mode і wider metadata не реалізовані. |
 | Operation Journal | planned | Append-only persistent journal через Storage Driver. |
 | Operation Engine foundation | current-internal | BP3-02 реалізувала atomic multi-key lock queue, explicit scopes, pipeline state/cancellation boundary, committed warnings і close-and-drain без Resource handlers або persistence wiring. |
 | Deterministic full driver | current-internal | BP3-03 реалізувала contract-faithful shared-backing fake, committed journal, crash/fresh recovery та same-session startup scan без public write success або concrete durability claim. |
+| Resource create slice | current-experimental | BP3-04 інтегрувала opaque full-driver handle, Core create pipeline, semantic commit, prepared index publication і local read-back; concrete durability лишається deferred. |
 
 Extensia Core не залежить напряму від local filesystem, S3, NFS або packed format. Вибір першого concrete driver є окремим design decision.
 
@@ -40,7 +41,7 @@ Extensia Core не залежить напряму від local filesystem, S3, 
 
 | Елемент | Статус | Рішення |
 |---|---|---|
-| Extensia Module | current-bounded | Root `createExtensia`, six-state lifecycle, safe inspection і nullable facade access реалізовані BP2-04 для read-only Phase 2 slice. |
+| Extensia Module | current-bounded | Root `createExtensia` підтримує readonly і opaque experimental full driver; BP3-04 додала bounded Resource create та post-commit fail-close без update/P3-DG2 semantics. |
 | Facades | current-bounded | Shared Registry і system `storage`/`query` adapters реалізовані BP2-03 та опубліковані через BP2-04 Module; custom/plugin API ще не реалізований. |
 | Plugins/hooks | planned | Trusted in-process механізм розширень. |
 | Advanced IoC extension modules | unselected | Optional/experimental surface; не входить у normal plugin API без окремого рішення. |
