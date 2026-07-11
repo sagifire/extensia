@@ -42,7 +42,7 @@ Status: current
 
 ## Межа current/target
 
-Resource/Asset/Mark/KV data-contract kernel, IoC composition/conformance skeleton, generic internal lifecycle host, bounded Core Resource index, shared internal Facade Registry, default system facade adapters, public Extensia Module reads та experimental Resource create/own-metadata update/move є current implementation. Це не означає наявність delete, Mark/KV writes, final Storage Driver semantics, concrete physical durability, plugin/custom facade API або public concurrency/retry policy. Решта applied P3-DG2 semantics і plugin API не можна позначати як current implementation до відповідних vertical slices та review. Після кожного implementation run цей документ треба синхронізувати з фактичним кодом і tests.
+Resource/Asset/Mark/KV data-contract kernel, IoC composition/conformance skeleton, generic internal lifecycle host, bounded Core Resource index, shared internal Facade Registry, default system facade adapters, public Extensia Module reads та experimental Resource create/own-metadata update/move, full-replace Mark writes і namespace-replace/delete KV writes є current implementation. Mark/KV command boundary реалізує descriptor-safe exact parsing, canonical ordering/equality та accepted limits. Це не означає наявність delete, final Storage Driver semantics, concrete physical durability, plugin/custom facade API або public concurrency/retry policy. Решта applied P3-DG2 semantics і plugin API не можна позначати як current implementation до відповідних vertical slices та review. Після кожного implementation run цей документ треба синхронізувати з фактичним кодом і tests.
 
 ## Джерела
 

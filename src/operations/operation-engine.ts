@@ -24,7 +24,12 @@ export type OperationPipelineState =
 export interface ResourceOperationPlan {
   readonly operation_id: IDString;
   readonly actor_id: IDString;
-  readonly type: "resource.create" | "resource.update" | "resource.move";
+  readonly type:
+    | "resource.create"
+    | "resource.update"
+    | "resource.move"
+    | "resource.marks.set"
+    | "resource.kv.set";
   readonly resource_hints: readonly IDString[];
   readonly lock_keys: readonly string[];
 }

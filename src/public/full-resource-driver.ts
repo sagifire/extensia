@@ -222,7 +222,9 @@ function validateStoredEntry(candidate: unknown): CommittedOperationEntry {
     !isIDString(entry.actor_id) ||
     (entry.type !== "resource.create" &&
       entry.type !== "resource.update" &&
-      entry.type !== "resource.move") ||
+      entry.type !== "resource.move" &&
+      entry.type !== "resource.marks.set" &&
+      entry.type !== "resource.kv.set") ||
     !isTimestamp(entry.committed_at) ||
     typeof entry.sequence !== "string" ||
     parseJournalSequence(entry.sequence as never) < 1n ||

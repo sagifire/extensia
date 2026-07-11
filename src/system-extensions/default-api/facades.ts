@@ -9,6 +9,11 @@ import {
   synchronousContributionToken,
 } from "../../composition/tokens.js";
 import { parseIDString } from "../../domain/scalars.js";
+import {
+  parseKVNamespace,
+  parseMarks,
+  validKVNamespace,
+} from "../../domain/resource-aggregates.js";
 import type {
   ResourceSnapshot,
   ResourceTreeViewSnapshot,
@@ -108,6 +113,19 @@ export interface StorageFacade {
   ): Promise<
     DefaultApiResult<DefaultResourceWriteSuccess, MoveResourceFailure>
   >;
+  setMarks(
+    resourceId: string,
+    marks: unknown,
+  ): Promise<
+    DefaultApiResult<DefaultResourceWriteSuccess, AggregateResourceFailure>
+  >;
+  setKV(
+    resourceId: string,
+    namespace: unknown,
+    values: unknown,
+  ): Promise<
+    DefaultApiResult<DefaultResourceWriteSuccess, AggregateResourceFailure>
+  >;
 }
 
 interface DefaultResourceWriteSuccess {
@@ -150,6 +168,16 @@ type MoveResourceFailure =
   | DefaultApiFailure<"RESOURCE_PARENT_NOT_FOUND">
   | DefaultApiFailure<"RESOURCE_MOVE_CYCLE">
   | DefaultApiFailure<"RESOURCE_ORDER_OUT_OF_RANGE">
+  | DefaultApiFailure<"RESOURCE_NO_CHANGES">
+  | DefaultApiFailure<"STORAGE_LOCK_FAILED">
+  | DefaultApiFailure<"STORAGE_WRITE_FAILED">
+  | DefaultApiFailure<"STORAGE_INTEGRITY_FAILED">;
+type AggregateResourceFailure =
+  | ModuleNotReadyFailure
+  | InvalidResourceIDFailure
+  | StorageReadonlyFailure
+  | DefaultApiFailure<"RESOURCE_INPUT_INVALID">
+  | ResourceNotFoundFailure
   | DefaultApiFailure<"RESOURCE_NO_CHANGES">
   | DefaultApiFailure<"STORAGE_LOCK_FAILED">
   | DefaultApiFailure<"STORAGE_WRITE_FAILED">
@@ -503,6 +531,80 @@ function createStorageFacade(
         lease.release();
       }
     },
+    async setMarks(
+      rawId: string,
+      marks: unknown,
+    ): ReturnType<StorageFacade["setMarks"]> {
+      const lease = context.operations.acquire();
+      if (lease === null) return notReady();
+      try {
+        if (port === null)
+          return failure(
+            "STORAGE_READONLY",
+            "Resource storage is readonly in this runtime",
+          );
+        let id;
+        try {
+          id = parseIDString(rawId);
+        } catch {
+          return invalidResourceID();
+        }
+        const parsed = parseMarks(marks);
+        if (parsed === null)
+          return failure("RESOURCE_INPUT_INVALID", "Resource input is invalid");
+        const result = await port.write({
+          type: "resource.marks.set",
+          id,
+          marks: parsed,
+          fail_integrity: ({ code, operation_id }) =>
+            context.failClose(code, operation_id),
+        });
+        return result.ok
+          ? writeSuccess(result, context)
+          : aggregateWriteFailure(result.error.code);
+      } finally {
+        lease.release();
+      }
+    },
+    async setKV(
+      rawId: string,
+      namespace: unknown,
+      values: unknown,
+    ): ReturnType<StorageFacade["setKV"]> {
+      const lease = context.operations.acquire();
+      if (lease === null) return notReady();
+      try {
+        if (port === null)
+          return failure(
+            "STORAGE_READONLY",
+            "Resource storage is readonly in this runtime",
+          );
+        let id;
+        try {
+          id = parseIDString(rawId);
+        } catch {
+          return invalidResourceID();
+        }
+        if (!validKVNamespace(namespace))
+          return failure("RESOURCE_INPUT_INVALID", "Resource input is invalid");
+        const parsed = parseKVNamespace(values);
+        if (parsed === null)
+          return failure("RESOURCE_INPUT_INVALID", "Resource input is invalid");
+        const result = await port.write({
+          type: "resource.kv.set",
+          id,
+          namespace,
+          values: parsed,
+          fail_integrity: ({ code, operation_id }) =>
+            context.failClose(code, operation_id),
+        });
+        return result.ok
+          ? writeSuccess(result, context)
+          : aggregateWriteFailure(result.error.code);
+      } finally {
+        lease.release();
+      }
+    },
   });
 }
 
@@ -546,6 +648,24 @@ function moveWriteFailure(
     case "STORAGE_INTEGRITY_FAILED":
       return failure(code, messageForWriteFailure(code));
     case "RESOURCE_ID_GENERATION_FAILED":
+      return failure(
+        "STORAGE_WRITE_FAILED",
+        messageForWriteFailure("STORAGE_WRITE_FAILED"),
+      );
+  }
+}
+function aggregateWriteFailure(
+  code: CoreResourceWriteFailureCode,
+): DefaultApiResult<never, AggregateResourceFailure> {
+  switch (code) {
+    case "RESOURCE_INPUT_INVALID":
+    case "RESOURCE_NOT_FOUND":
+    case "RESOURCE_NO_CHANGES":
+    case "STORAGE_LOCK_FAILED":
+    case "STORAGE_WRITE_FAILED":
+    case "STORAGE_INTEGRITY_FAILED":
+      return failure(code, messageForWriteFailure(code));
+    default:
       return failure(
         "STORAGE_WRITE_FAILED",
         messageForWriteFailure("STORAGE_WRITE_FAILED"),

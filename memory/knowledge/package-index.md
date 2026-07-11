@@ -2,7 +2,7 @@
 
 ## Пакети
 
-- [PDADM MVP Reglament](packages/pdadm-mvp-reglament/index.md) - draft / 4.0 / process - Коли потрібно уточнити PDADM MVP 0.4, виконати memory migration або змінити workflow, шаблони чи правила пам'яті.
+- [PDADM MVP Reglament](packages/pdadm-mvp-reglament/index.md) - draft / 5.0 / process - Current PDADM MVP 0.5 reference і direct migration guide з MVP 0.4.
 
 ## Правило читання
 

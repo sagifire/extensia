@@ -115,6 +115,11 @@ export interface MoveResourceInput {
   readonly parent_id: string | null;
   readonly order_index: number;
 }
+export interface SetMarkInput {
+  readonly type: string;
+  readonly name: string;
+  readonly value: number | null;
+}
 
 export type ResourceWriteWarningCode =
   "LOCAL_INDEX_PUBLICATION_FAILED" | "POST_COMMIT_CLEANUP_FAILED";
@@ -161,6 +166,25 @@ export type ResourceMoveResult = ExtensiaResult<
   ResourceWriteSuccess,
   ResourceMoveError
 >;
+export type ResourceMarksError =
+  | ModuleNotReadyError
+  | StorageReadonlyError
+  | InvalidResourceIDError
+  | ExtensiaError<"RESOURCE_INPUT_INVALID">
+  | ResourceNotFoundError
+  | ExtensiaError<"RESOURCE_NO_CHANGES">
+  | ExtensiaError<"STORAGE_LOCK_FAILED">
+  | ExtensiaError<"STORAGE_WRITE_FAILED">
+  | ExtensiaError<"STORAGE_INTEGRITY_FAILED">;
+export type ResourceKVError = ResourceMarksError;
+export type ResourceMarksResult = ExtensiaResult<
+  ResourceWriteSuccess,
+  ResourceMarksError
+>;
+export type ResourceKVResult = ExtensiaResult<
+  ResourceWriteSuccess,
+  ResourceKVError
+>;
 
 type ModuleNotReadyError = ExtensiaError<"MODULE_NOT_READY">;
 type InvalidResourceIDError = ExtensiaError<"INVALID_RESOURCE_ID">;
@@ -198,6 +222,15 @@ export interface StorageFacade {
     id: string,
     input: MoveResourceInput,
   ): Promise<ResourceMoveResult>;
+  setMarks(
+    resourceId: string,
+    marks: readonly SetMarkInput[],
+  ): Promise<ResourceMarksResult>;
+  setKV(
+    resourceId: string,
+    namespace: string,
+    values: Readonly<Record<string, string>>,
+  ): Promise<ResourceKVResult>;
 }
 
 export interface ExtensiaModule {

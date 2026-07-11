@@ -12,6 +12,11 @@ import {
   type ResourceTreeViewSnapshot,
 } from "../domain/snapshots.js";
 import {
+  kvNamespaceEqual,
+  marksEqual,
+  replaceKV,
+} from "../domain/resource-aggregates.js";
+import {
   prepareResourceMove,
   validateResourceHierarchy,
 } from "../domain/resource-hierarchy.js";
@@ -79,6 +84,7 @@ type Attempt =
   | { readonly kind: "collision" }
   | { readonly kind: "missing" }
   | { readonly kind: "no-change" }
+  | { readonly kind: "input-invalid" }
   | { readonly kind: "parent-missing" }
   | { readonly kind: "cycle" }
   | { readonly kind: "range" }
@@ -423,6 +429,106 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
     }
   }
 
+  async function attemptAggregate(
+    request: Extract<
+      Parameters<CoreResourceWritePort["write"]>[0],
+      { type: "resource.marks.set" | "resource.kv.set" }
+    >,
+    now: ReturnType<typeof parseTimestamp>,
+    scope: OperationScope<BaseAttempt>,
+    plan: ResourceOperationPlan,
+  ): Promise<BaseAttempt> {
+    let session;
+    try {
+      session = await driver.acquireStorageSession(scope.signal);
+    } catch (error) {
+      if (error instanceof ResourceRuntimeIntegrityError) throw error;
+      return Object.freeze({ kind: "lock-failed" as const });
+    }
+    let transaction: ResourceWriteTransaction | undefined;
+    let committed = false;
+    try {
+      const all: ResourceSnapshot[] = [];
+      for await (const item of session.listResources()) all.push(item);
+      validateResourceHierarchy(coherentResourceMap(all));
+      const current = all.find((item) => item.data.id === request.id);
+      if (current === undefined || current.data.is_deleted)
+        return Object.freeze({ kind: "missing" as const });
+      let resource: ResourceSnapshot;
+      if (request.type === "resource.marks.set") {
+        if (marksEqual(current.marks, request.marks))
+          return Object.freeze({ kind: "no-change" as const });
+        resource = buildResourceSnapshot({
+          ...current,
+          marks: request.marks,
+          data: { ...current.data, updated_at: now },
+        });
+      } else {
+        if (kvNamespaceEqual(current.kv[request.namespace], request.values))
+          return Object.freeze({ kind: "no-change" as const });
+        const kv = replaceKV(current.kv, request.namespace, request.values);
+        if (kv === null)
+          return Object.freeze({ kind: "input-invalid" as const });
+        resource = buildResourceSnapshot({
+          ...current,
+          kv,
+          data: { ...current.data, updated_at: now },
+        });
+      }
+      const prepared = index.prepareBatch(
+        [resource],
+        all.map((item) => (item.data.id === request.id ? resource : item)),
+      );
+      transaction = await session.begin(plan.operation_id);
+      scope.transition("staging");
+      await transaction.stageResource(resource);
+      const draft: CommittedOperationDraft = Object.freeze({
+        schema_version: 1,
+        operation_id: plan.operation_id,
+        actor_id: plan.actor_id,
+        type: request.type,
+        affected_resources: Object.freeze([request.id]),
+        committed_at: now,
+        write_set_fingerprint: computeResourceWriteSetFingerprint([resource]),
+        changes: Object.freeze([
+          { kind: "resource.upsert" as const, resource_id: request.id },
+        ]),
+      });
+      const success = Object.freeze({
+        kind: "success" as const,
+        resource: buildResourceSnapshot(resource),
+        operationId: plan.operation_id,
+      });
+      scope.transition("committing");
+      try {
+        await transaction.commit(draft);
+      } catch (error) {
+        if (error instanceof ResourceCommittedIntegrityError) {
+          scope.commit(success);
+          committed = true;
+          scope.deferCleanup(async () => {
+            await transaction?.abort();
+            await session.release();
+          });
+        }
+        throw error;
+      }
+      scope.commit(success);
+      committed = true;
+      scope.deferCleanup(async () => {
+        await transaction?.abort();
+        await session.release();
+      });
+      prepared.publish();
+      return success;
+    } finally {
+      if (!committed) {
+        await transaction?.abort();
+        await session.release();
+      }
+    }
+  }
+
   const writePort: CoreResourceWritePort = Object.freeze({
     async write(
       request: Parameters<CoreResourceWritePort["write"]>[0],
@@ -439,7 +545,9 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
             ? {}
             : { fail_integrity: request.fail_integrity }),
           lock_keys:
-            request.type === "resource.update"
+            request.type === "resource.update" ||
+            request.type === "resource.marks.set" ||
+            request.type === "resource.kv.set"
               ? [`resource:${request.id}`]
               : request.type === "resource.move"
                 ? ["resource-hierarchy", `resource:${request.id}`]
@@ -450,6 +558,11 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
             return attemptUpdate(request, now, scope, plan);
           if (request.type === "resource.move")
             return attemptMove(request, now, scope, plan);
+          if (
+            request.type === "resource.marks.set" ||
+            request.type === "resource.kv.set"
+          )
+            return attemptAggregate(request, now, scope, plan);
           for (let candidate = 0; candidate < 3; candidate += 1) {
             const resource = buildResourceSnapshot({
               data: {
@@ -500,6 +613,11 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
         return Object.freeze({
           ok: false,
           error: Object.freeze({ code: "RESOURCE_NO_CHANGES" }),
+        });
+      if (attempt.kind === "input-invalid")
+        return Object.freeze({
+          ok: false,
+          error: Object.freeze({ code: "RESOURCE_INPUT_INVALID" }),
         });
       if (attempt.kind === "parent-missing")
         return Object.freeze({

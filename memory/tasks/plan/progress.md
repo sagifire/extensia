@@ -54,11 +54,15 @@ Activation order: `BP2-01 done -> TASK-07.26-0021 / APP-07.26-0021-001 published
 - [x] **[Done]** [P3-DG2 / TASK-07.26-0031](TASK-07.26-0031-p3-dg2-order-delete-mark-kv-semantics/index.md) - Exact design accepted; FIX-001 applied by active TASK-0032 pending post-audit/artifact publication.
 - [x] **[Done]** [TASK-07.26-0032](TASK-07.26-0032-apply-p3-dg2-fix-001/index.md) - APP-0032 published, final audit `PASS` and whole-task human approval accepted; downstream tasks not activated.
 - [x] **[Done]** [P3-VS3 / TASK-07.26-0033](TASK-07.26-0033-p3-vs3-resource-hierarchy-order-move/index.md) - RUN-001 реалізувала hierarchy/order/move, coherent batch index і typed integrity fail-close; 182-test package gate та repeated independent audit `REVIEW_READY` зелені, результат прийнятий whole-task human review. TASK-0034 не активована.
-- [ ] **[Backlog]** [P3-VS4 / TASK-07.26-0034](TASK-07.26-0034-p3-vs4-mark-kv-writes/index.md) - Mark/KV replacement; depends on done VS3; not activated.
+- [x] **[Done]** [P3-VS4 / TASK-07.26-0034](TASK-07.26-0034-p3-vs4-mark-kv-writes/index.md) - Exact Mark/KV replacement прийнято whole-task approval; required FIX-001 applied після repeated independent `REVIEW_READY`.
 - [ ] **[Backlog]** [P3-VS5 / TASK-07.26-0035](TASK-07.26-0035-p3-vs5-resource-soft-delete/index.md) - Leaf soft delete; depends on done VS3/VS4; not activated.
 - [ ] **[Backlog]** [P3-STAB / TASK-07.26-0036](TASK-07.26-0036-p3-stab-final-phase-3/index.md) - Final Phase 3 stabilization; depends on done VS3…VS5; not activated.
 
-Activation order: `Phase 2 gate -> BP3-01 done -> TASK-0024 published artifact -> separately activated BP3-01A -> separately activated BP3-02/BP3-03 -> BP3-04 -> BP3-05 -> P3-STAB1 -> P3-DG2 done -> separate TASK-0032 application gate -> future P3-VS3`.
+Activation order: `Phase 2 gate -> BP3-01 done -> TASK-0024 published artifact -> BP3-01A -> BP3-02 -> BP3-03 -> BP3-04 -> BP3-05 -> P3-STAB1 -> P3-DG2 -> TASK-0032 -> P3-VS3 done -> future P3-VS4`.
+
+## Обслуговування Project Memory
+
+- [x] **[Done]** [TASK-07.26-0037](TASK-07.26-0037-migrate-project-memory-to-mvp-0.5/index.md) - Міграція до Starter Kit 5.0 / PDADM MVP 0.5 завершена, repeated independent audit `REVIEW_READY` і whole-task human approval прийняті.
 
 ## Фаза 4 — Assets і перший concrete durable Storage Driver
 

@@ -2,7 +2,9 @@
 
 ## Призначення
 
-Деталізовані довгоживучі звіти для autonomous research, planning і design задач; task-local research artifacts залишаються в папках відповідних задач.
+Detailed reports для formal research, planning і design усередині task runs.
+
+Кожен новий report посилається на task-local `RSCH-*`, task і related run. Невеликі допоміжні перевірки лишаються в `result.md` і не створюють зайвого report. Legacy reports з MVP 0.4 зберігають історичні task-local links.
 
 ## Папки
 

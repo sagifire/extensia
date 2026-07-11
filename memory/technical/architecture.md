@@ -210,6 +210,8 @@ P3-STAB1 повторно підтвердила один consumer-owned Core wr
 
 P3-VS3 materialize-ила applied P3-DG2 shared foundation: dense active order; coarse hierarchy lock до session; hierarchy-aware root append; exact sorted prepared write-set після coherent load; one semantic commit/journal entry і atomic batch index для move. Typed storage/index integrity synchronously close-ить intake/facades до cleanup через bounded no-throw fault seam. Delete і Mark/KV лишаються owners P3-VS5/P3-VS4; broad shared VS3 ownership не split-илась.
 
+P3-VS4 розширила той самий Core/Operation Engine pipeline operation kinds `resource.marks.set` і `resource.kv.set`: one-Resource lock, coherent latest-state replacement/no-change, one semantic commit/journal entry, exact fingerprint, existing batch index publication і detached read-back. Descriptor-safe facade parsing, canonical Mark/key ordering та resulting KV limits не створюють другого write authority. Delete лишається owner scope P3-VS5; concrete Storage Driver, Mark/KV query/index API та plugin semantics не заявлені.
+
 ## Джерела
 
 - `memory/references/extensia-v2/runtime-architecture-v2-ioc.md`.

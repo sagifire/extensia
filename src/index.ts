@@ -36,6 +36,11 @@ export type {
   ResourceWriteWarning,
   ResourceWriteWarningCode,
   SafeDiagnostic,
+  SetMarkInput,
+  ResourceMarksError,
+  ResourceMarksResult,
+  ResourceKVError,
+  ResourceKVResult,
   StorageFacade,
   Timestamp,
 } from "./public/contracts.js";

@@ -1,7 +1,7 @@
 # Project Memory Extensia
 
-Starter Kit Version: 4.0
-PDADM MVP Version: 0.4
+Starter Kit Version: 5.0
+PDADM MVP Version: 0.5
 Target Release: `0.1.0`
 Internal Stage: `v2`
 
@@ -38,17 +38,23 @@ Source specifications мають статус draft. Project Memory розділ
 
 ## Як почати агенту
 
-1. Почати з `agent-start.md` і відповідного boot packet.
-2. Відновити task-level `Execution Mode` з `task.md`.
-3. Не змінювати code або canonical memory поза task boundary.
-4. Для product/domain/technical work дотримуватися source policy та current/target separation.
-5. Оновлювати direct `index.md`, task progress і документи загального рівня при зміні структури або статусу.
-6. Перед передачею в review виконувати memory sync, language gate, architecture pressure check і незалежний audit, якщо subagent доступний.
+1. Почати з `agent-start.md`.
+2. Прочитати operational rules у `reglament/` і project-specific adaptations за маршрутами `agent-start.md`.
+3. Якщо виконується задача, прочитати `task.md` і current root-level `RUN-*/context.md`; під час активації run створити `result.md`.
+4. Не змінювати code або canonical memory поза task boundary.
+5. Для product/domain/technical work дотримуватися source policy та current/target separation.
+6. Для змістових змін canonical memory готувати `FIX-*` і застосовувати його тільки після human approval.
+7. Оновлювати direct `index.md`, task progress і документи загального рівня при зміні структури або статусу.
+8. Перед передачею в review виконувати memory sync, language gate, architecture pressure check і незалежний audit, якщо subagent доступний.
 
 ## Головні точки входу
 
 - `agent-start.md` — startup protocol для агентів.
 - `human-start.md` — короткий вступ до регламенту для людини.
+- `reglament/agents.md` — operational agent rules PDADM MVP 0.5.
+- `reglament/memory-rules.md` — правила пам'яті, universal task/run invariants і glossary регламенту.
+- `project/agents.md` — project-specific адаптації правил агентів.
+- `project/memory-rules.md` — project-specific memory policy.
 - `state.md` — актуальний стан проекту.
 - `product/index.md` — продуктова пам'ять.
 - `domain/index.md` — current/target domain memory.

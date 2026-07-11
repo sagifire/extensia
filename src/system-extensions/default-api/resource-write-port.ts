@@ -3,6 +3,7 @@ import type { Token } from "@sagifire/ioc";
 import { createExtensiaInternalNamespace } from "../../composition/tokens.js";
 import type { IDString } from "../../domain/scalars.js";
 import type { ResourceSnapshot } from "../../domain/snapshots.js";
+import type { MarkSnapshot } from "../../domain/snapshots.js";
 
 const defaultApiTokens = createExtensiaInternalNamespace(
   "system-extensions.default-api",
@@ -37,11 +38,26 @@ export interface MoveResourceWriteRequest {
   readonly order_index: number;
   readonly fail_integrity?: RuntimeIntegrityFailureHandler;
 }
+export interface SetMarksWriteRequest {
+  readonly type: "resource.marks.set";
+  readonly id: IDString;
+  readonly marks: readonly MarkSnapshot[];
+  readonly fail_integrity?: RuntimeIntegrityFailureHandler;
+}
+export interface SetKVWriteRequest {
+  readonly type: "resource.kv.set";
+  readonly id: IDString;
+  readonly namespace: string;
+  readonly values: Readonly<Record<string, string>>;
+  readonly fail_integrity?: RuntimeIntegrityFailureHandler;
+}
 
 export type CoreResourceWriteRequest =
   | CreateResourceWriteRequest
   | UpdateResourceWriteRequest
-  | MoveResourceWriteRequest;
+  | MoveResourceWriteRequest
+  | SetMarksWriteRequest
+  | SetKVWriteRequest;
 export type CoreResourceWriteFailureCode =
   | "RESOURCE_INPUT_INVALID"
   | "RESOURCE_NOT_FOUND"

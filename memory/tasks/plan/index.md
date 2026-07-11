@@ -38,10 +38,11 @@
 - [TASK-07.26-0030-p3-stab1-create-update-foundation](TASK-07.26-0030-p3-stab1-create-update-foundation/index.md) - Done bounded create/update foundation stabilization.
 - [TASK-07.26-0031-p3-dg2-order-delete-mark-kv-semantics](TASK-07.26-0031-p3-dg2-order-delete-mark-kv-semantics/index.md) - Done canonical P3-DG2 design; FIX-001 applied by TASK-0032 pending artifact publication.
 - [TASK-07.26-0032-apply-p3-dg2-fix-001](TASK-07.26-0032-apply-p3-dg2-fix-001/index.md) - Done owner application task; APP-0032 published and whole-task review accepted.
-- [TASK-07.26-0033-p3-vs3-resource-hierarchy-order-move](TASK-07.26-0033-p3-vs3-resource-hierarchy-order-move/index.md) - Backlog P3-VS3 with prepared RUN-001.
-- [TASK-07.26-0034-p3-vs4-mark-kv-writes](TASK-07.26-0034-p3-vs4-mark-kv-writes/index.md) - Backlog P3-VS4 with prepared RUN-001.
-- [TASK-07.26-0035-p3-vs5-resource-soft-delete](TASK-07.26-0035-p3-vs5-resource-soft-delete/index.md) - Backlog P3-VS5 with prepared RUN-001.
-- [TASK-07.26-0036-p3-stab-final-phase-3](TASK-07.26-0036-p3-stab-final-phase-3/index.md) - Backlog final P3-STAB with prepared RUN-001.
+- [TASK-07.26-0033-p3-vs3-resource-hierarchy-order-move](TASK-07.26-0033-p3-vs3-resource-hierarchy-order-move/index.md) - Done P3-VS3 Resource hierarchy/order/move slice.
+- [TASK-07.26-0034-p3-vs4-mark-kv-writes](TASK-07.26-0034-p3-vs4-mark-kv-writes/index.md) - Backlog P3-VS4 with target-format prepared RUN-002; legacy RUN-001 preserved.
+- [TASK-07.26-0035-p3-vs5-resource-soft-delete](TASK-07.26-0035-p3-vs5-resource-soft-delete/index.md) - Backlog P3-VS5 with target-format prepared RUN-002; legacy RUN-001 preserved.
+- [TASK-07.26-0036-p3-stab-final-phase-3](TASK-07.26-0036-p3-stab-final-phase-3/index.md) - Backlog final P3-STAB with target-format prepared RUN-002; legacy RUN-001 preserved.
+- [TASK-07.26-0037-migrate-project-memory-to-mvp-0.5](TASK-07.26-0037-migrate-project-memory-to-mvp-0.5/index.md) - Done migration to Starter Kit 5.0 / PDADM MVP 0.5, accepted by whole-task human review.
 
 ## Файли
 

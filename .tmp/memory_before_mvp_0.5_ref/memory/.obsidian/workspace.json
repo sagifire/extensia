@@ -1,0 +1,272 @@
+{
+  "main": {
+    "id": "367cbb8912fab912",
+    "type": "split",
+    "children": [
+      {
+        "id": "a6b79c10d4c54a3f",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "1c3a9eac413d3398",
+            "type": "leaf",
+            "pinned": true,
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "tasks/plan/progress.md",
+                "mode": "preview",
+                "source": false
+              },
+              "pinned": true,
+              "icon": "lucide-file",
+              "title": "progress"
+            }
+          },
+          {
+            "id": "9242fdfb9dd0594c",
+            "type": "leaf",
+            "pinned": true,
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "state.md",
+                "mode": "preview",
+                "source": false
+              },
+              "pinned": true,
+              "icon": "lucide-file",
+              "title": "state"
+            }
+          },
+          {
+            "id": "8ae9abf2006810a4",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "technical/open-questions.md",
+                "mode": "preview",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "open-questions"
+            }
+          },
+          {
+            "id": "774dc3b871770a7d",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "tasks/plan/TASK-07.26-0026-bp3-02-operation-engine-foundation/runs/RUN-001/requirements.md",
+                "mode": "preview",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "requirements"
+            }
+          }
+        ],
+        "currentTab": 3
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "13cce4a76afda2cc",
+    "type": "split",
+    "children": [
+      {
+        "id": "cc2eaa6c9d8253f3",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "e7a186528fb4591b",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Файловий менеджер"
+            }
+          },
+          {
+            "id": "b74d8d006979c02c",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "P1-VS1",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Пошук"
+            }
+          },
+          {
+            "id": "e79d78f57bacd0de",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Закладки"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "f8a27bc388e41995",
+    "type": "split",
+    "children": [
+      {
+        "id": "baa91586104d56f4",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "425282e3732d1c1a",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "state.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Зворотні посилання для state"
+            }
+          },
+          {
+            "id": "3d9c5d8f2f55d99e",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "state.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Вихідні посилання з state"
+            }
+          },
+          {
+            "id": "780bdb520f979e1e",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Мітки"
+            }
+          },
+          {
+            "id": "b64d10952f00a4e5",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "Всі властивості"
+            }
+          },
+          {
+            "id": "2c1f5a75714152e2",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "state.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Вміст state"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Відкрити провідник файлів": false,
+      "graph:Граф": false,
+      "canvas:Створити нове полотно": false,
+      "daily-notes:Сьогоднішня нотатка": false,
+      "templates:Вставити шаблон": false,
+      "command-palette:Відкрити меню команд": false,
+      "bases:Створити нову базу": false
+    }
+  },
+  "active": "e7a186528fb4591b",
+  "lastOpenFiles": [
+    "knowledge/packages/index.md",
+    "knowledge/packages/pdadm-mvp-reglament/package.md",
+    "knowledge/packages/pdadm-mvp-reglament/mvp_one_to_one_0.5.md",
+    "knowledge/packages/pdadm-mvp-reglament/migration-from-0.4-to-0.5.md",
+    "knowledge/packages/pdadm-mvp-reglament/index.md",
+    "knowledge/packages/pdadm-mvp-reglament",
+    "tasks/plan/progress.md",
+    "tasks/plan/TASK-07.26-0033-p3-vs3-resource-hierarchy-order-move/closure.md",
+    "technical/open-questions.md",
+    "domain/open-questions.md",
+    "tasks/plan/TASK-07.26-0032-apply-p3-dg2-fix-001/closure.md",
+    "tasks/plan/TASK-07.26-0032-apply-p3-dg2-fix-001/application-artifacts/APP-07.26-0032-001.md",
+    "tasks/plan/TASK-07.26-0032-apply-p3-dg2-fix-001/application-artifacts/index.md",
+    "tasks/plan/TASK-07.26-0032-apply-p3-dg2-fix-001/application-artifacts",
+    "tasks/plan/TASK-07.26-0036-p3-stab-final-phase-3/runs/RUN-001/result.md",
+    "tasks/plan/TASK-07.26-0036-p3-stab-final-phase-3/runs/RUN-001/context.md",
+    "tasks/plan/TASK-07.26-0036-p3-stab-final-phase-3/runs/RUN-001/requirements.md",
+    "tasks/plan/TASK-07.26-0036-p3-stab-final-phase-3/runs/RUN-001/index.md",
+    "tasks/plan/TASK-07.26-0036-p3-stab-final-phase-3/runs/RUN-001",
+    "tasks/plan/TASK-07.26-0036-p3-stab-final-phase-3/runs/index.md",
+    "tasks/plan/TASK-07.26-0036-p3-stab-final-phase-3/runs",
+    "tasks/plan/TASK-07.26-0036-p3-stab-final-phase-3/index.md",
+    "tasks/plan/TASK-07.26-0036-p3-stab-final-phase-3/task.md",
+    "tasks/plan/TASK-07.26-0035-p3-vs5-resource-soft-delete/runs/RUN-001/result.md",
+    "tasks/plan/TASK-07.26-0035-p3-vs5-resource-soft-delete/runs/RUN-001/context.md",
+    "tasks/plan/TASK-07.26-0035-p3-vs5-resource-soft-delete/runs/RUN-001/requirements.md",
+    "tasks/plan/TASK-07.26-0035-p3-vs5-resource-soft-delete/runs/RUN-001/index.md",
+    "tasks/plan/TASK-07.26-0035-p3-vs5-resource-soft-delete/runs/RUN-001",
+    "tasks/plan/TASK-07.26-0035-p3-vs5-resource-soft-delete/runs/index.md",
+    "tasks/plan/TASK-07.26-0035-p3-vs5-resource-soft-delete/runs",
+    "tasks/plan/TASK-07.26-0035-p3-vs5-resource-soft-delete/index.md",
+    "tasks/plan/TASK-07.26-0035-p3-vs5-resource-soft-delete/task.md",
+    "tasks/plan/TASK-07.26-0035-p3-vs5-resource-soft-delete",
+    "tasks/plan/TASK-07.26-0036-p3-stab-final-phase-3",
+    "tasks/plan/TASK-07.26-0034-p3-vs4-mark-kv-writes/runs/RUN-001",
+    "tasks/plan/TASK-07.26-0034-p3-vs4-mark-kv-writes/runs"
+  ]
+}

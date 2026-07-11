@@ -1,22 +1,121 @@
-# P3-VS4 / TASK-07.26-0034: Mark і KV writes
+# P3-VS4 / TASK-07.26-0034: Запис Marks і KV
 
-Status: backlog
+Task Status: done
 Type: feature
-Execution Mode: autonomous-implementation
 Created: 2026-07-11
+Owner Role: Product Lead Hat
 Depends On: done `P3-VS3 / TASK-07.26-0033`
-Current Run: `runs/RUN-001` (prepared, not activated)
+Current Run: RUN-002
 
-## Мета й обсяг
+## Поточний стан
 
-Реалізувати exact descriptor-safe `setMarks`/`setKV` parsing, limits, canonicalization, full replacement/namespace delete/no-change, public types/errors, one-Resource pipeline, journal/fingerprint/recovery і detached packed read-back.
+Run Status: completed
+Progress: Exact Mark/KV replacement прийнято whole-task approval; required FIX-001 applied.
+Acceptance: 13/13
+Blockers: none
+Blocked Phase: n/a
+Pending Decisions: none
+Next Action: Немає; TASK-0035 потребує окремої explicit activation.
+
+## Мета
+
+Реалізувати точний, безпечний щодо дескрипторів розбір `setMarks`/`setKV`, обмеження, канонічне впорядкування, повну заміну, видалення простору імен і випадок без змін, публічні типи та помилки, конвеєр одного Resource, журнал, fingerprint, відновлення й відокремлене читання назад із пакета.
+
+## Продуктовий контекст
+
+P3-VS4 продовжує прийнятий зріз запису Resource фази 3 поверх завершеної основи P3-VS3 для ієрархії, порядку й переміщення та додає семантику повної заміни Marks і KV без нового шляху запису.
+
+## Вимоги
+
+- Публічні кореневі та facade-контракти мають надати точні `SetMarkInput`, `setMarks`, `setKV`, експорти й адаптери `ResourceMarksError`/`ResourceKVError` без додаткових кодів помилок.
+- Допоміжні засоби розбору й домену мають безпечно щодо дескрипторів розбирати щільні масиви та точні звичайні записи або записи з null-прототипом, канонічно сортувати Marks і ключі та перевіряти рівність і обмеження.
+- Обробник Core має використовувати одне блокування цільового Resource, завантаження найновішого стану, повну заміну або випадок без змін, власний `updated_at`, підготовлений набір одного Resource та наявні стики семантичної фіксації, індексу й читання назад.
+- Об'єднання протоколу й тести мають додати `resource.marks.set` і `resource.kv.set`, повторно використовуючи підготовлений набір VS3 та незмінне відображення integrity-помилок.
+- Marks: щільний `Array` не більше 256 елементів; дозволені лише data properties довжини та індексів; елемент має рівно власні перелічувані `type/name/value`; рядки мають бути непорожніми й завдовжки 1..128; value має тип int32 або null; дублікат `(type,name)` дає `RESOURCE_INPUT_INVALID`; застосовується канонічне бінарне сортування `(type,name)`; порожній вхід очищає Marks.
+- KV: простір імен і ключ мають бути непорожніми й завдовжки 1..128; потрібен точний перелічуваний звичайний запис або запис із null-прототипом; дозволено не більше 256 ключів і результуючих просторів імен; довжина value 0..16384; сума `sum(namespace.length+key.length+value.length)` не перевищує 1,048,576; порожній запис видаляє простір імен; порядок ключів не впливає на рівність.
+- Відсутній або видалений цільовий Resource дає `RESOURCE_NOT_FOUND`; помилка входу чи обмеження дає `RESOURCE_INPUT_INVALID`; точна рівність дає `RESOURCE_NO_CHANGES`; readonly перевіряється до інспекції; діє точний пріоритет блокування, I/O та integrity з розділу 11.
+- Ефективна зміна модифікує лише Marks або цільовий простір імен та власну часову мітку, створює одну фіксацію й один запис і повертає успішний відокремлений цільовий Resource із читанням назад.
+- Marks і KV одного Resource виконуються FIFO; сукупний запис і зміна сусіда в ієрархії використовують чинну серіалізацію.
+- Точки зупинки begin/stage/commit/publish/cleanup та відновлення після аварії у свіжому процесі мають зберігати прийняту семантику й гарантії цілісності.
+- Синхронізація пам'яті має за потреби оновити фактичний поточний стан домену й технічний стан реалізації, а також task/run/result/progress/state/indexes; канонічні target/product зазвичай мають стан `not-needed`.
+- Результат має зафіксувати стани пам'яті загального рівня, мовний контроль, архітектурний тиск, ризики, подальші дії без активації та незалежний аудит.
+
+## Обсяг
+
+- Спільні точні допоміжні засоби розбору й канонічного впорядкування.
+- Обробники Marks і KV.
+- Інтеграція публічного API й пакета, точні типи та помилки.
+- Інтеграція з наявними підготовленим набором Core, семантичною фіксацією, індексом, fingerprint, журналом і відновленням.
+- Точні матриці перевірки ворожого входу, меж, конкурентності, відмов, відновлення, відокремленого читання назад і пакета.
 
 ## Поза обсягом
 
-Move/delete, Mark query/stats/index, patch APIs, Assets, plugins/hooks, concrete layout і sync.
+- Переміщення й видалення.
+- Запити, статистика та індекс Marks і API часткових змін.
+- Assets і `Asset.data`.
+- Plugins і hooks.
+- Конкретна схема сховища й синхронізація.
+- Дублювання стиків конвеєра чи валідації або створення нового шляху запису.
+- Зміна прийнятих обмежень чи семантики заміни, володіння ієрархією або видаленням чи імпорт відкладеної семантики запитів, Asset, plugins або схеми сховища.
 
-## Acceptance і verification
+## Критерії приймання
 
-Hostile descriptors/prototypes/sparse arrays; exact string/count/int32/total boundaries; duplicates; empty clear/delete; property-order-insensitive equality; no-change zero transaction; serialized schedules; one commit/entry, recovery, detached snapshots, readonly-before-inspection, exact packed API, full package/source scans й independent audit без open P0-P3.
+- [x] Точний публічний розбір, типи, експорти, адаптери й об'єднання помилок реалізовані без зайвих кодів.
+- [x] Ворожі дескриптори, accessors, symbols, успадковані й неперелічувані поля, розріджені масиви та прототипи покриті точними тестами розбору.
+- [x] Для Marks перевірені межі рядків, кількості й int32 на ±1, дублікати, канонічний бінарний порядок та очищення порожнім входом.
+- [x] Для KV перевірені межі простору імен, ключа, value, кількості й сукупного розміру на ±1, обмеження результуючих просторів імен, видалення порожнього простору імен та рівність незалежно від порядку вставлення.
+- [x] Відсутність, видалення, некоректний вхід і випадок без змін дають точні помилки, readonly перевіряється до інспекції, а некоректна чи неефективна операція не створює транзакції або запису журналу.
+- [x] Ефективна зміна модифікує тільки дозволений aggregate та власну часову мітку й створює рівно одну семантичну фіксацію та один запис.
+- [x] Перевірені FIFO для Marks і KV одного Resource, різні Resources і розклади сукупного запису проти зміни ієрархії.
+- [x] Перевірені точки begin/stage/commit/publish/cleanup, аварії після них і відновлення у свіжому процесі.
+- [x] Успішна відповідь і читання назад повертають відокремлені знімки з пакета.
+- [x] Цільові тести, `npm run check`, перевірки пакета, типів і packed consumer, `git diff --check` та сканування джерел зелені й мають точні докази.
+- [x] Незалежний аудит завершено без відкритих P0-P3.
+- [x] Результат містить повну синхронізацію пам'яті, мовний контроль, архітектурний тиск, ризики й стан подальших дій.
+- [x] Task/run не активовані до окремого прямого рішення користувача.
 
-Task/run не activated до explicit user decision.
+## Пов'язана пам'ять
+
+- [Вимоги legacy RUN-001](runs/RUN-001/requirements.md) - повний початковий контракт до структурної міграції.
+- [Контекст legacy RUN-001](runs/RUN-001/context.md) - джерела повноважень, основи, умови зупинки й ризики.
+- [P3-VS3 / TASK-07.26-0033](../TASK-07.26-0033-p3-vs3-resource-hierarchy-order-move/index.md) - обов'язкова завершена спільна основа.
+- Нормативний контракт order/delete/Mark/KV у розділах Mark/KV/protocol, ADR-0009, опублікований APP-0032 та прийнятий звіт, розділи 9-16/18.
+
+## Прогони
+
+- [Legacy RUN-001](runs/RUN-001/index.md) - superseded - джерело лише для структурної міграції; підготовлені артефакти збережено без змін, реалізацію не активовано.
+- [RUN-002](RUN-002/index.md) - completed - implementation, verification, independent audit, approval і finalization завершені.
+
+## Дослідження
+
+- Немає.
+
+## Фіксації
+
+- [FIX-001](FIX-001.md) - required approved/applied synchronization фактичного domain current і technical architecture.
+
+## Запити на рішення
+
+- Немає.
+
+## Запропоновані follow-up задачі
+
+- Немає.
+
+## Human Review
+
+Status: approved
+Requested: 2026-07-11
+Reviewed: 2026-07-11
+Approval Source: explicit user decision `whole task: approve`
+Approved Fixations: FIX-001
+Rejected Fixations: none
+Follow-up Decisions: none
+Decision Notes: Whole-task result і FIX-001 окремо approved; FIX-001 applied during finalization. Downstream tasks не активовані.
+
+## Фінальний результат
+
+Completed: 2026-07-11
+Final Run: RUN-002
+Summary: Exact Mark/KV replacement реалізовано, independently audited, прийнято й синхронізовано в canonical current/technical memory.
+Residual Risks: Public signatures лишаються experimental Phase 3; delete, concrete storage, query/index і plugins deferred.
