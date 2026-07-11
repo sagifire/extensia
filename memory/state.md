@@ -1,6 +1,6 @@
 # Стан проекту
 
-Updated: 2026-07-11
+Updated: 2026-07-12
 Starter Kit Version: 5.0
 PDADM MVP Version: 0.5
 Target Release: `0.1.0`
@@ -8,7 +8,7 @@ Internal Stage: `v2`
 
 ## Поточний фокус
 
-Phase 1 і Phase 2 завершені та прийняті explicit human gates. Phase 3 design/application foundation through P3-DG2 published as APP-0032; P3-VS3/TASK-0033, P3-VS4/TASK-0034 і P3-VS5/TASK-0035 завершені після final independent `REVIEW_READY` та whole-task human approval. `TASK-07.26-0037` завершила прийняту міграцію Project Memory до Starter Kit 5.0 / PDADM MVP 0.5; TASK-0036 не активована.
+Phase 1, Phase 2 і Phase 3 завершені та прийняті explicit human gates. P3-STAB/TASK-0036 отримала whole-task approval; required FIX-001 applied exactly, post-application independent audit `PASS`, open P0-P3 немає. `TASK-07.26-0037` завершила прийняту міграцію Project Memory до Starter Kit 5.0 / PDADM MVP 0.5.
 
 ## Поточний стан продукту
 
@@ -17,7 +17,7 @@ Phase 1 і Phase 2 завершені та прийняті explicit human gates
 - Product/domain/technical design розгорнуто зі source specifications, але самі specifications мають статус draft.
 - Усі 37 product requirements мають статус `accepted`; detailed contracts і open questions все ще проходять окремі stabilization gates.
 - Detailed source specifications зберігаються в `memory/references/extensia-v2/`; obsolete non-IoC documents і root `v2/` видалені.
-- Internal pure domain contract kernel і його tests реалізовані в `BP1-02`; bounded public read API реалізований у BP2-04, BP3-04/BP3-05 додали experimental Resource create/update, P3-VS3 — hierarchy-aware create/move, а P3-VS4 — exact Mark/KV replacement через opaque full-driver boundary. Final concrete Storage Driver, delete і plugins ще відсутні.
+- Internal pure domain contract kernel і його tests реалізовані в `BP1-02`; bounded public read API реалізований у BP2-04, BP3-04/BP3-05 додали experimental Resource create/update, P3-VS3 — hierarchy-aware create/move, P3-VS4 — exact Mark/KV replacement, а P3-VS5 — leaf soft delete/default tombstone invisibility через opaque full-driver boundary. Final concrete Storage Driver, restore/cascade/purge і plugins ще відсутні.
 - Internal BP2-02 Core read slice реалізує readonly Resource listing port, greedy by-id/children index, exact shared read-port provider і lifecycle cleanup; це не public/final Storage Driver або facade.
 - Internal BP2-03 slice реалізує єдиний Facade Provider/Registry mechanism, `extensia.default-api` query/storage adapters, trusted reserved provenance, atomic ready publication і intake drain.
 - BP2-04 RUN-001 реалізувала root-only public Extensia Module read slice: exact type/value exports, descriptor-safe config, normalized lifecycle/results, safe inspection, stable ready `query`/`storage` facades і packed consumer verification; результат прийнятий whole-task human review.
@@ -28,7 +28,9 @@ Phase 1 і Phase 2 завершені та прийняті explicit human gates
 
 ## Активні задачі
 
-- `P3-VS5 / TASK-07.26-0035` завершена як `done`: RUN-002 реалізувала leaf soft delete/default tombstone invisibility; focused 12/full 202 gates і final independent `REVIEW_READY` зелені, whole-task result прийнятий, required FIX-001 applied. TASK-0036 не активована.
+- `P3-STAB / TASK-07.26-0036` завершена як `done`: fresh 20-file / 202-test full gate і byte-identical 126-path double pack accepted; required FIX-001 applied exactly, post-application audit `PASS`, open P0-P3 немає.
+
+- `P3-VS5 / TASK-07.26-0035` завершена як `done`: RUN-002 реалізувала leaf soft delete/default tombstone invisibility; focused 12/full 202 gates і final independent `REVIEW_READY` зелені, whole-task result прийнятий, required FIX-001 applied.
 
 - `TASK-07.26-0037` завершена як `done`: operational cutover, task-format migration `TASK-0034…0036`, automated gates, repeated independent audit і whole-task human approval завершені; open P0-P3 немає.
 - `BP3-01 / P3-DG1 / TASK-07.26-0023` завершена як `done`; approved FIX-001 застосовується TASK-0024.
@@ -129,7 +131,7 @@ Phase 1 і Phase 2 завершені та прийняті explicit human gates
 
 ## Наступні кроки
 
-1. За окремим explicit рішенням активувати P3-STAB/TASK-0036; її dependency gate P3-VS3…VS5 тепер виконаний.
+1. Phase 3 completed. Phase 4 rolling-wave planning/activation потребує окремого task contract і explicit рішення.
 
 ## Відкриті питання
 

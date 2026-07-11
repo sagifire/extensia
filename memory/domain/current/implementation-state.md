@@ -1,6 +1,6 @@
 # Поточний стан доменної реалізації
 
-As Of: 2026-07-11
+As Of: 2026-07-12
 Status: current
 
 ## Фактичний стан
@@ -32,7 +32,10 @@ Status: current
 - `TASK-07.26-0030 / RUN-001` стабілізувала сукупну create/update foundation: create input отримав симетричну update safe-inspection/prototype policy для hostile traps та inherited payload, generated root tarball прибрано з tracked source, а clean 172-test і focused 61-test gates, rebuild/double-pack hashes та package/API/source scans зелені; independent audit `REVIEW_READY` і whole-task human approval завершили задачу.
 - `TASK-07.26-0033 / RUN-001` реалізувала dense active sibling order, hierarchy-aware root append і exact `moveResource`: root/same/cross-parent insertion normalization, cycle/parent/range/no-change validation, common-timestamp sorted effective Resource write-set, один semantic commit/journal entry та atomic batch index publication.
 - Той самий VS3 slice додав typed storage/index integrity classification: Operation Engine синхронно закриває intake й через bounded no-throw fault callback unpublish-ить facades до awaited cleanup; current call отримує `STORAGE_INTEGRITY_FAILED`, stale/new calls — `MODULE_NOT_READY`, inspection — safe `operation` diagnostic з validated operation ID.
-- Public opaque full-driver handle є experimental; deterministic fake доводить protocol/recovery behavior, але не concrete physical durability. P3-DG2 semantics, plugins, sync і concrete driver ще відсутні.
+- `TASK-07.26-0034 / RUN-002` реалізувала exact full-replace Marks і namespace-replace/delete KV через той самий Core/Operation Engine pipeline: descriptor-safe parsing, canonical ordering/equality, accepted limits, one semantic commit/journal entry/fingerprint, prepared batch index publication і detached read-back.
+- `TASK-07.26-0035 / RUN-002` реалізувала exact leaf soft delete/default tombstone invisibility: active-parent eligibility, dense sibling reindex, common timestamp, sorted effective write-set, one semantic commit/journal entry/fingerprint, detached tombstone command result і not-found semantics для default reads та інших writes.
+- `TASK-07.26-0036 / RUN-002` свіжо перевірила всю Phase 3 matrix: clean install, 20 test files / 202 tests, focused API/semantic/protocol/recovery/concurrency/integrity matrices, package gate і два byte-identical 126-path tarballs. Production correctness defect не знайдено; packed type consumer розширено exact move/delete public types.
+- Public opaque full-driver handle є experimental; deterministic fake доводить protocol/recovery behavior, але не concrete physical durability. Restore/include-deleted/cascade/purge/retention, plugins, sync і concrete driver ще відсутні.
 - Durable storage format і міграція даних попередньої версії не підтримуються; legacy memory/data не переносились.
 - Три documents у `memory/references/extensia-v2/` є draft source specifications майбутнього стану, а не доказом реалізованої поведінки.
 
@@ -62,4 +65,7 @@ Resource/Asset/Mark/KV data-contract kernel, IoC composition/conformance skeleto
 - `memory/tasks/plan/TASK-07.26-0029-bp3-05-resource-update-slice/runs/RUN-001/result.md`.
 - `memory/tasks/plan/TASK-07.26-0030-p3-stab1-create-update-foundation/runs/RUN-001/result.md`.
 - `memory/tasks/plan/TASK-07.26-0033-p3-vs3-resource-hierarchy-order-move/runs/RUN-001/result.md`.
-- Фактична структура репозиторію станом на 2026-07-10.
+- `memory/tasks/plan/TASK-07.26-0034-p3-vs4-mark-kv-writes/RUN-002/result.md`.
+- `memory/tasks/plan/TASK-07.26-0035-p3-vs5-resource-soft-delete/RUN-002/result.md`.
+- `memory/tasks/plan/TASK-07.26-0036-p3-stab-final-phase-3/RUN-002/result.md`.
+- Фактична структура репозиторію станом на 2026-07-12.

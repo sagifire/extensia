@@ -26,16 +26,18 @@ Updated: 2026-07-11
 
 | Елемент | Статус | Рішення |
 |---|---|---|
-| Storage Driver contract | current-experimental | Opaque full-driver author boundary і internal Resource session/transaction seams реалізовані для bounded create/update; final wider contract і concrete layout не визначені. |
+| Storage Driver contract | current-experimental | Opaque full-driver author boundary і internal Resource session/transaction seams реалізовані для create/update/move/Marks/KV/leaf delete; final wider contract і concrete layout не визначені. |
 | Concrete full driver | unselected | Physical format і driver package ще не визначені. |
 | Read-only driver | current-experimental | Public Phase 2 Resource listing contract інтегровано BP2-04; це не final Storage Driver contract і не concrete durable implementation. |
-| Hot Metadata Index | current | Resource-only greedy index має validated immutable batch preparation та atomic publication для create/update/move; lazy mode і wider metadata не реалізовані. |
+| Hot Metadata Index | current | Resource-only greedy index має validated immutable batch preparation та atomic publication для create/update/move/Marks/KV/leaf delete; default get/tree приховують tombstones, lazy mode і wider metadata не реалізовані. |
 | Operation Journal | current-internal | Deterministic full fake реалізує committed-only contiguous Resource journal та recovery contract; concrete durable journal/layout лишається planned. |
 | Operation Engine foundation | current-internal | BP3-02 реалізувала atomic multi-key lock queue, explicit scopes, pipeline state/cancellation boundary, committed warnings і close-and-drain без Resource handlers або persistence wiring. |
 | Deterministic full driver | current-internal | BP3-03 реалізувала contract-faithful shared-backing fake, committed journal, crash/fresh recovery та same-session startup scan без public write success або concrete durability claim. |
 | Resource create slice | current-experimental | BP3-04 інтегрувала opaque full-driver handle й Core create pipeline; P3-VS3 refine-ила root create до active-root append під hierarchy lock. Concrete durability лишається deferred. |
 | Resource update slice | current-experimental | BP3-05 інтегрувала exact own-metadata update через той самий Core pipeline: latest-state serialization, no-change без transaction, semantic commit, prepared index publication і recovery; P3-DG2 та concrete durability deferred. |
 | Resource move slice | current-experimental | P3-VS3 інтегрувала exact root/same/cross-parent insertion move, dense sibling normalization, cycle/parent/range/no-change policy, sorted multi-Resource commit та typed integrity fail-close через той самий Core pipeline. |
+| Resource Marks/KV slices | current-experimental | P3-VS4 інтегрувала exact full-replace Marks і namespace-replace/delete KV з canonical ordering/equality, accepted limits, one semantic commit та detached read-back через shared pipeline. |
+| Resource leaf delete slice | current-experimental | P3-VS5 інтегрувала active leaf soft delete, dense sibling reindex і default tombstone invisibility через shared hierarchy/write/index pipeline; restore/include-deleted/cascade/purge/retention deferred. |
 
 Extensia Core не залежить напряму від local filesystem, S3, NFS або packed format. Вибір першого concrete driver є окремим design decision.
 
@@ -43,8 +45,8 @@ Extensia Core не залежить напряму від local filesystem, S3, 
 
 | Елемент | Статус | Рішення |
 |---|---|---|
-| Extensia Module | current-bounded | Root `createExtensia` підтримує readonly і opaque experimental full driver; BP3-04/BP3-05 додали bounded Resource create/update та post-commit fail-close без P3-DG2 semantics. |
-| Facades | current-bounded | Shared Registry і system `storage`/`query` adapters реалізовані BP2-03 та опубліковані через BP2-04 Module; custom/plugin API ще не реалізований. |
+| Extensia Module | current-bounded | Root `createExtensia` підтримує readonly і opaque experimental full driver; Phase 3 додала bounded Resource create/update/move/Marks/KV/leaf delete та post-commit/integrity fail-close через один pipeline. |
+| Facades | current-bounded | Shared Registry і system `storage`/`query` adapters публікують bounded reads та Phase 3 create/update/move/Marks/KV/leaf-delete commands; custom/plugin API ще не реалізований. |
 | Plugins/hooks | planned | Trusted in-process механізм розширень. |
 | Advanced IoC extension modules | unselected | Optional/experimental surface; не входить у normal plugin API без окремого рішення. |
 
@@ -74,6 +76,8 @@ Publishable `src/**` збирається окремим `tsconfig.build.json`; 
 `BP2-05/R1` повторно підтверджує Phase 2 package baseline на Node.js `v24.17.0` / npm `11.13.0`: clean `npm ci`, повний `npm run check`, 10 test files / 112 tests, 66 packed paths і 64 controlled emitted artifacts із byte-identical SHA-256 після повторного build; два послідовні tarball samples також byte-identical. Це stabilization evidence, а не нове dependency або compatibility рішення.
 
 `P3-STAB1/R1` повторно підтверджує create/update foundation на Node.js `v24.17.0` / npm `11.13.0`: clean install, 16 test files / 172 tests, focused 7 files / 61 tests, 112 byte-identical controlled `dist/**` artifacts і два byte-identical packs по 114 paths. Generated root tarball більше не tracked; це stabilization evidence, а не compatibility promise або activation `P3-DG2`.
+
+`P3-STAB/RUN-002` повторно підтверджує всю Phase 3 на Node.js `v24.17.0` / npm `11.13.0`: clean install, 20 test files / 202 tests, focused API/semantic/protocol/recovery/concurrency/integrity matrices, exact root/packed type surface і два byte-identical packs по 126 paths. Production correctness defect не знайдено; packed type probe доповнено move/delete types. Це stabilization evidence, а не concrete durability або cross-environment tar metadata promise.
 
 ## Package і source boundaries
 

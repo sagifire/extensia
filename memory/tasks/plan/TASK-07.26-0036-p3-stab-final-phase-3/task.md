@@ -1,6 +1,6 @@
 # P3-STAB / TASK-07.26-0036: Фінальна стабілізація фази 3
 
-Task Status: backlog
+Task Status: done
 Type: chore
 Created: 2026-07-11
 Owner Role: Product Lead Hat
@@ -9,13 +9,13 @@ Current Run: RUN-002
 
 ## Поточний стан
 
-Run Status: prepared
-Progress: Пакет задачі структурно перенесено на PDADM MVP 0.5; стабілізацію не активовано.
-Acceptance: 0/12
-Blockers: залежності P3-VS4 / TASK-07.26-0034 і P3-VS5 / TASK-07.26-0035 мають бути `done` до активації
+Run Status: completed
+Progress: Whole-task approved; required FIX-001 applied exactly; post-application audit `PASS`; task completed.
+Acceptance: 12/12
+Blockers: none
 Blocked Phase: n/a
 Pending Decisions: none
-Next Action: Після виконання всіх залежностей і прямого рішення користувача активувати RUN-002.
+Next Action: None; Phase 3 gate completed. Any Phase 4 planning requires a separate task/decision.
 
 ## Мета
 
@@ -84,7 +84,7 @@ P3-STAB є фінальним gate фази 3: він створює свіжу 
 ## Прогони
 
 - [Legacy RUN-001](runs/RUN-001/index.md) - superseded - джерело лише для структурної міграції; підготовлені артефакти збережено без змін, стабілізацію не активовано.
-- [RUN-002](RUN-002/index.md) - prepared - поточний прогон MVP 0.5; результат ще не створено.
+- [RUN-002](RUN-002/index.md) - completed - whole-task approved, required FIX-001 applied, post-application audit `PASS`.
 
 ## Дослідження
 
@@ -92,7 +92,7 @@ P3-STAB є фінальним gate фази 3: він створює свіжу 
 
 ## Фіксації
 
-- Немає.
+- [FIX-001](FIX-001.md) - required factual synchronization domain current і technical architecture/stack; approved and applied exactly.
 
 ## Запити на рішення
 
@@ -104,18 +104,18 @@ P3-STAB є фінальним gate фази 3: він створює свіжу 
 
 ## Human Review
 
-Status: not-ready
-Requested: n/a
-Reviewed: pending
-Approval Source: n/a
-Approved Fixations: none
+Status: approved
+Requested: 2026-07-12
+Reviewed: 2026-07-12
+Approval Source: explicit user decision `Whole task: approve`
+Approved Fixations: FIX-001
 Rejected Fixations: none
 Follow-up Decisions: none
-Decision Notes: Стабілізацію ще не активовано; структурна міграція не є gate фази 3 або прийняттям результату.
+Decision Notes: User approved whole task and required FIX-001. Exact application received independent post-application `PASS`; no open P0-P3.
 
 ## Фінальний результат
 
-Completed: pending
-Final Run: pending
-Summary: Стабілізація очікує залежностей та активації RUN-002.
-Residual Risks: Свіжі докази всієї фази 3, виправлення й незалежний аудит ще не виконані.
+Completed: 2026-07-12
+Final Run: RUN-002
+Summary: Final Phase 3 stabilization accepted and completed: fresh gates green, production correctness defect not found, package type-evidence gap closed, required FIX-001 applied exactly, post-application audit `PASS`.
+Residual Risks: Concrete physical durability, restore/include-deleted/cascade/purge/retention, plugins, sync and Phase 4 remain deferred and are not claimed by this gate.
