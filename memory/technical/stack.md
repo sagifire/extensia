@@ -34,6 +34,7 @@ Updated: 2026-07-11
 | Operation Engine foundation | current-internal | BP3-02 реалізувала atomic multi-key lock queue, explicit scopes, pipeline state/cancellation boundary, committed warnings і close-and-drain без Resource handlers або persistence wiring. |
 | Deterministic full driver | current-internal | BP3-03 реалізувала contract-faithful shared-backing fake, committed journal, crash/fresh recovery та same-session startup scan без public write success або concrete durability claim. |
 | Resource create slice | current-experimental | BP3-04 інтегрувала opaque full-driver handle, Core create pipeline, semantic commit, prepared index publication і local read-back; concrete durability лишається deferred. |
+| Resource update slice | current-experimental | BP3-05 інтегрувала exact own-metadata update через той самий Core pipeline: latest-state serialization, no-change без transaction, semantic commit, prepared index publication і recovery; P3-DG2 та concrete durability deferred. |
 
 Extensia Core не залежить напряму від local filesystem, S3, NFS або packed format. Вибір першого concrete driver є окремим design decision.
 
@@ -41,7 +42,7 @@ Extensia Core не залежить напряму від local filesystem, S3, 
 
 | Елемент | Статус | Рішення |
 |---|---|---|
-| Extensia Module | current-bounded | Root `createExtensia` підтримує readonly і opaque experimental full driver; BP3-04 додала bounded Resource create та post-commit fail-close без update/P3-DG2 semantics. |
+| Extensia Module | current-bounded | Root `createExtensia` підтримує readonly і opaque experimental full driver; BP3-04/BP3-05 додали bounded Resource create/update та post-commit fail-close без P3-DG2 semantics. |
 | Facades | current-bounded | Shared Registry і system `storage`/`query` adapters реалізовані BP2-03 та опубліковані через BP2-04 Module; custom/plugin API ще не реалізований. |
 | Plugins/hooks | planned | Trusted in-process механізм розширень. |
 | Advanced IoC extension modules | unselected | Optional/experimental surface; не входить у normal plugin API без окремого рішення. |

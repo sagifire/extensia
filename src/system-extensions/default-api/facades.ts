@@ -96,6 +96,12 @@ export interface StorageFacade {
   ): Promise<
     DefaultApiResult<DefaultResourceWriteSuccess, CreateResourceFailure>
   >;
+  updateResource(
+    id: string,
+    patch: unknown,
+  ): Promise<
+    DefaultApiResult<DefaultResourceWriteSuccess, UpdateResourceFailure>
+  >;
 }
 
 interface DefaultResourceWriteSuccess {
@@ -114,6 +120,16 @@ type CreateResourceFailure =
   | StorageReadonlyFailure
   | DefaultApiFailure<"RESOURCE_INPUT_INVALID">
   | DefaultApiFailure<"RESOURCE_ID_GENERATION_FAILED">
+  | DefaultApiFailure<"STORAGE_LOCK_FAILED">
+  | DefaultApiFailure<"STORAGE_WRITE_FAILED">;
+
+type UpdateResourceFailure =
+  | ModuleNotReadyFailure
+  | InvalidResourceIDFailure
+  | StorageReadonlyFailure
+  | DefaultApiFailure<"RESOURCE_INPUT_INVALID">
+  | ResourceNotFoundFailure
+  | DefaultApiFailure<"RESOURCE_NO_CHANGES">
   | DefaultApiFailure<"STORAGE_LOCK_FAILED">
   | DefaultApiFailure<"STORAGE_WRITE_FAILED">;
 
@@ -232,6 +248,78 @@ function parseCreateInput(
   });
 }
 
+function parseUpdatePatch(
+  patch: unknown,
+): { readonly title?: string; readonly description?: string | null } | null {
+  try {
+    if (typeof patch !== "object" || patch === null || Array.isArray(patch))
+      return null;
+    const prototype = Object.getPrototypeOf(patch);
+    if (prototype !== Object.prototype && prototype !== null) return null;
+    const keys = Reflect.ownKeys(patch);
+    if (
+      keys.length === 0 ||
+      keys.some(
+        (key) =>
+          typeof key !== "string" || (key !== "title" && key !== "description"),
+      )
+    )
+      return null;
+    const title = Object.getOwnPropertyDescriptor(patch, "title");
+    if (
+      title !== undefined &&
+      (!("value" in title) ||
+        typeof title.value !== "string" ||
+        title.value.trim().length === 0)
+    )
+      return null;
+    const description = Object.getOwnPropertyDescriptor(patch, "description");
+    if (
+      description !== undefined &&
+      (!("value" in description) ||
+        (description.value !== null && typeof description.value !== "string"))
+    )
+      return null;
+    return Object.freeze({
+      ...(title === undefined ? {} : { title: title.value as string }),
+      ...(description === undefined
+        ? {}
+        : { description: description.value as string | null }),
+    });
+  } catch {
+    return null;
+  }
+}
+
+function writeSuccess(
+  result: Extract<
+    Awaited<ReturnType<CoreResourceWritePort["write"]>>,
+    { ok: true }
+  >,
+  context: FacadeFactoryContext,
+): { readonly ok: true; readonly value: DefaultResourceWriteSuccess } {
+  if (result.value.warnings.length > 0) context.failClose();
+  return Object.freeze({
+    ok: true,
+    value: Object.freeze({
+      committed: true,
+      operation_id: result.value.operation_id,
+      resource: result.value.resource,
+      warnings: Object.freeze(
+        result.value.warnings.map((code) =>
+          Object.freeze({
+            code,
+            message:
+              code === "LOCAL_INDEX_PUBLICATION_FAILED"
+                ? "Committed Resource could not be published to the local index"
+                : "Committed Resource cleanup failed",
+          }),
+        ),
+      ),
+    }),
+  });
+}
+
 function createStorageFacade(
   context: FacadeFactoryContext,
   port: CoreResourceWritePort | null,
@@ -254,26 +342,39 @@ function createStorageFacade(
           return failure("RESOURCE_INPUT_INVALID", "Resource input is invalid");
         const result = await port.write({ type: "resource.create", ...parsed });
         if (!result.ok) return createWriteFailure(result.error.code);
-        if (result.value.warnings.length > 0) context.failClose();
-        return Object.freeze({
-          ok: true,
-          value: Object.freeze({
-            committed: true,
-            operation_id: result.value.operation_id,
-            resource: result.value.resource,
-            warnings: Object.freeze(
-              result.value.warnings.map((code) =>
-                Object.freeze({
-                  code,
-                  message:
-                    code === "LOCAL_INDEX_PUBLICATION_FAILED"
-                      ? "Committed Resource could not be published to the local index"
-                      : "Committed Resource cleanup failed",
-                }),
-              ),
-            ),
-          }),
+        return writeSuccess(result, context);
+      } finally {
+        lease.release();
+      }
+    },
+    async updateResource(
+      rawId: string,
+      patch: unknown,
+    ): ReturnType<StorageFacade["updateResource"]> {
+      const lease = context.operations.acquire();
+      if (lease === null) return notReady();
+      try {
+        if (port === null)
+          return failure(
+            "STORAGE_READONLY",
+            "Resource storage is readonly in this runtime",
+          );
+        let id;
+        try {
+          id = parseIDString(rawId);
+        } catch {
+          return invalidResourceID();
+        }
+        const parsed = parseUpdatePatch(patch);
+        if (parsed === null)
+          return failure("RESOURCE_INPUT_INVALID", "Resource input is invalid");
+        const result = await port.write({
+          type: "resource.update",
+          id,
+          patch: parsed,
         });
+        if (!result.ok) return updateWriteFailure(result.error.code);
+        return writeSuccess(result, context);
       } finally {
         lease.release();
       }
@@ -312,6 +413,24 @@ function createWriteFailure(
       return failure(code, messageForWriteFailure(code));
     case "RESOURCE_NOT_FOUND":
     case "RESOURCE_NO_CHANGES":
+      return failure(
+        "STORAGE_WRITE_FAILED",
+        messageForWriteFailure("STORAGE_WRITE_FAILED"),
+      );
+  }
+}
+
+function updateWriteFailure(
+  code: CoreResourceWriteFailureCode,
+): DefaultApiResult<never, UpdateResourceFailure> {
+  switch (code) {
+    case "RESOURCE_INPUT_INVALID":
+    case "RESOURCE_NOT_FOUND":
+    case "RESOURCE_NO_CHANGES":
+    case "STORAGE_LOCK_FAILED":
+    case "STORAGE_WRITE_FAILED":
+      return failure(code, messageForWriteFailure(code));
+    case "RESOURCE_ID_GENERATION_FAILED":
       return failure(
         "STORAGE_WRITE_FAILED",
         messageForWriteFailure("STORAGE_WRITE_FAILED"),

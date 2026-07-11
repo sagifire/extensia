@@ -101,6 +101,11 @@ export interface CreateResourceInput {
   readonly description?: string | null;
 }
 
+export interface UpdateResourceInput {
+  readonly title?: string;
+  readonly description?: string | null;
+}
+
 export type ResourceWriteWarningCode =
   "LOCAL_INDEX_PUBLICATION_FAILED" | "POST_COMMIT_CLEANUP_FAILED";
 
@@ -118,8 +123,11 @@ export interface ResourceWriteSuccess {
 
 export type ResourceWriteError =
   | ModuleNotReadyError
+  | InvalidResourceIDError
   | StorageReadonlyError
   | ExtensiaError<"RESOURCE_INPUT_INVALID">
+  | ResourceNotFoundError
+  | ExtensiaError<"RESOURCE_NO_CHANGES">
   | ExtensiaError<"RESOURCE_ID_GENERATION_FAILED">
   | ExtensiaError<"STORAGE_LOCK_FAILED">
   | ExtensiaError<"STORAGE_WRITE_FAILED">;
@@ -151,6 +159,10 @@ export interface QueryFacade {
 export interface StorageFacade {
   createResource(
     input: CreateResourceInput,
+  ): Promise<ExtensiaResult<ResourceWriteSuccess, ResourceWriteError>>;
+  updateResource(
+    id: string,
+    patch: UpdateResourceInput,
   ): Promise<ExtensiaResult<ResourceWriteSuccess, ResourceWriteError>>;
 }
 

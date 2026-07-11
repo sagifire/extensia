@@ -49,7 +49,7 @@ Activation order: `BP2-01 done -> TASK-07.26-0021 / APP-07.26-0021-001 published
 - [x] **[Done]** [BP3-02 / P3-WP1 / TASK-07.26-0026](TASK-07.26-0026-bp3-02-operation-engine-foundation/index.md) - Internal Operation Engine foundation реалізована, independently reviewed і прийнята whole-task human review; BP3-03 не активована.
 - [x] **[Done]** [BP3-03 / P3-WP2 / TASK-07.26-0027](TASK-07.26-0027-bp3-03-deterministic-full-fake-recovery/index.md) - Deterministic full fake/journal/recovery реалізовано, independently reviewed і прийнято whole-task human review; BP3-04 не активована.
 - [x] **[Done]** [BP3-04 / P3-VS1 / TASK-07.26-0028](TASK-07.26-0028-bp3-04-resource-create-slice/index.md) - Resource create/read-back реалізовано, independently reviewed і прийнято whole-task human review; BP3-05 не активована.
-- [ ] **[Backlog]** [BP3-05 / P3-VS2 / TASK-07.26-0029](TASK-07.26-0029-bp3-05-resource-update-slice/index.md) - Own-metadata update/read-back; depends on done BP3-04.
+- [x] **[Done]** [BP3-05 / P3-VS2 / TASK-07.26-0029](TASK-07.26-0029-bp3-05-resource-update-slice/index.md) - Own-metadata update/read-back реалізовано, independently reviewed і прийнято whole-task human review; P3-STAB1 не активована.
 - [ ] **[Backlog]** [P3-STAB1 / TASK-07.26-0030](TASK-07.26-0030-p3-stab1-create-update-foundation/index.md) - Bounded create/update stabilization before P3-DG2; depends on done BP3-05.
 
 Activation order: `Phase 2 gate -> BP3-01 done -> TASK-0024 published artifact -> separately activated BP3-01A -> separately activated BP3-02/BP3-03 -> BP3-04 -> BP3-05 -> P3-STAB1 -> separate P3-DG2`.

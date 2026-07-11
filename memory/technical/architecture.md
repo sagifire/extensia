@@ -6,7 +6,7 @@ Updated: 2026-07-10
 
 ## Статус реалізації
 
-Цей документ описує цільову архітектуру зі draft-специфікацій. Фактично реалізовані internal pure domain contract kernel, IoC composition/conformance skeleton, strict internal lifecycle host/controller, bounded BP2-02 Core Resource read module, BP2-03 shared Facade Provider/Registry із system `query`/`storage` adapters та BP2-04 public Extensia Module read slice; BP2-05 незалежно повторно перевірила й стабілізувала цей сукупний baseline без production code changes, результат прийнятий whole-task human review. Registry має trusted provenance, dependency-aware build, freeze, atomic ready publication, intake drain і reverse cleanup; root package публікує `createExtensia` та bounded Phase 2 type contracts. Final Storage Driver, successful writes, journal і recovery відсутні. Детальний current state зафіксовано в `memory/domain/current/implementation-state.md`. Internal lifecycle/driver/index/facade names не є package API; ширші conceptual signatures і subsystem sketches потребують окремих design gates.
+Цей документ описує цільову архітектуру зі draft-специфікацій. Фактично реалізовані internal pure domain contract kernel, IoC composition/conformance skeleton, strict internal lifecycle host/controller, bounded Core Resource read model, shared Facade Provider/Registry, Operation Engine, deterministic full-driver fake/recovery та experimental public Resource create/update slice. Registry має trusted provenance, dependency-aware build, freeze, atomic ready publication, intake drain і reverse cleanup; root package публікує `createExtensia`, opaque full-driver factory та bounded public contracts. Final concrete Storage Driver і physical durability ще відсутні. Детальний current state зафіксовано в `memory/domain/current/implementation-state.md`. Internal lifecycle/driver/index/facade names не є package API; ширші conceptual signatures і subsystem sketches потребують окремих design gates.
 
 ## Архітектурна ідея
 
@@ -85,7 +85,7 @@ Facades представляють capabilities application code. Plugins дод
 
 ### Applied P2-DG1 read boundary
 
-Phase 2 реалізувала exact root-only `createExtensia(config)` boundary і bounded reads. P3-DG1/BP3-01A визначили та materialize-или shared write seams; BP3-02 додала Operation Engine, а BP3-03 — deterministic full-driver fixture, semantic commit, journal і recovery. BP3-04 інтегрувала перший application-visible Resource create: opaque full-driver handle з runtime validation, exact input/result/warnings, один Operation Engine scope для collision replanning, prepared index publication, local read-back і module/facade fail-close після committed infrastructure fault. Update та P3-DG2 semantics ще не реалізовані; другого read або write contract немає.
+Phase 2 реалізувала exact root-only `createExtensia(config)` boundary і bounded reads. P3-DG1/BP3-01A визначили та materialize-или shared write seams; BP3-02 додала Operation Engine, а BP3-03 — deterministic full-driver fixture, semantic commit, journal і recovery. BP3-04 інтегрувала application-visible Resource create, а BP3-05 — exact own-metadata update через той самий Core port і Operation Engine: latest committed reload під serialized Resource lock, no-change без transaction, own `updated_at`, semantic update commit, prepared index publication, detached read-back і recovery. P3-DG2 semantics та concrete driver ще не реалізовані; другого write path немає.
 
 ### Composition
 

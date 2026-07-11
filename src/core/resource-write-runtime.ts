@@ -66,6 +66,8 @@ type Attempt =
       )[];
     }
   | { readonly kind: "collision" }
+  | { readonly kind: "missing" }
+  | { readonly kind: "no-change" }
   | { readonly kind: "lock-failed" }
   | { readonly kind: "write-failed" };
 type BaseAttempt =
@@ -167,26 +169,99 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
     });
   }
 
+  async function attemptUpdate(
+    request: Extract<
+      Parameters<CoreResourceWritePort["write"]>[0],
+      { type: "resource.update" }
+    >,
+    now: ReturnType<typeof parseTimestamp>,
+    scope: OperationScope<BaseAttempt>,
+    plan: ResourceOperationPlan,
+  ): Promise<BaseAttempt> {
+    let session;
+    try {
+      session = await driver.acquireStorageSession(scope.signal);
+    } catch {
+      return Object.freeze({ kind: "lock-failed" as const });
+    }
+    let transaction: ResourceWriteTransaction | undefined;
+    let committed = false;
+    try {
+      const current = await session.readResource(request.id);
+      if (current === null) return Object.freeze({ kind: "missing" as const });
+      const title = request.patch.title ?? current.data.title;
+      const description =
+        "description" in request.patch
+          ? (request.patch.description ?? null)
+          : current.data.description;
+      if (
+        title === current.data.title &&
+        description === current.data.description
+      )
+        return Object.freeze({ kind: "no-change" as const });
+      const resource = buildResourceSnapshot({
+        ...current,
+        data: { ...current.data, title, description, updated_at: now },
+      });
+      const prepared = index.prepareUpsert(resource);
+      transaction = await session.begin(plan.operation_id);
+      scope.transition("staging");
+      await transaction.stageResource(resource);
+      const draft: CommittedOperationDraft = Object.freeze({
+        schema_version: 1,
+        operation_id: plan.operation_id,
+        actor_id: plan.actor_id,
+        type: "resource.update",
+        affected_resources: Object.freeze([resource.data.id]),
+        committed_at: now,
+        write_set_fingerprint: computeResourceWriteSetFingerprint([resource]),
+        changes: Object.freeze([
+          { kind: "resource.upsert" as const, resource_id: resource.data.id },
+        ]),
+      });
+      scope.transition("committing");
+      await transaction.commit(draft);
+      const success = Object.freeze({
+        kind: "success" as const,
+        resource: buildResourceSnapshot(resource),
+        operationId: plan.operation_id,
+      });
+      scope.commit(success);
+      committed = true;
+      scope.deferCleanup(async () => {
+        await transaction?.abort();
+        await session.release();
+      });
+      prepared.publish();
+      return success;
+    } finally {
+      if (!committed) {
+        await transaction?.abort();
+        await session.release();
+      }
+    }
+  }
+
   const writePort: CoreResourceWritePort = Object.freeze({
     async write(
       request: Parameters<CoreResourceWritePort["write"]>[0],
     ): Promise<CoreResourceWriteResult> {
-      if (request.type !== "resource.create") {
-        return Object.freeze({
-          ok: false,
-          error: Object.freeze({ code: "RESOURCE_INPUT_INVALID" }),
-        });
-      }
       const identity = Object.freeze(identities.create());
       const now = parseTimestamp(Date.now());
       const engineResult = await engine.execute<BaseAttempt>(
         {
-          type: "resource.create",
-          affected_resources: [],
+          type: request.type,
+          affected_resources:
+            request.type === "resource.update" ? [request.id] : [],
           identity,
-          lock_keys: [],
+          lock_keys:
+            request.type === "resource.update"
+              ? [`resource:${request.id}`]
+              : [],
         },
         async (scope, plan) => {
+          if (request.type === "resource.update")
+            return attemptUpdate(request, now, scope, plan);
           for (let candidate = 0; candidate < 3; candidate += 1) {
             const resource = buildResourceSnapshot({
               data: {
@@ -222,6 +297,16 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
         return Object.freeze({
           ok: false,
           error: Object.freeze({ code: "RESOURCE_ID_GENERATION_FAILED" }),
+        });
+      if (attempt.kind === "missing")
+        return Object.freeze({
+          ok: false,
+          error: Object.freeze({ code: "RESOURCE_NOT_FOUND" }),
+        });
+      if (attempt.kind === "no-change")
+        return Object.freeze({
+          ok: false,
+          error: Object.freeze({ code: "RESOURCE_NO_CHANGES" }),
         });
       if (attempt.kind === "lock-failed")
         return Object.freeze({
