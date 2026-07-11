@@ -215,37 +215,43 @@ function createQueryFacade(
 function parseCreateInput(
   input: unknown,
 ): { title: string; description?: string | null } | null {
-  if (typeof input !== "object" || input === null || Array.isArray(input))
-    return null;
-  const keys = Reflect.ownKeys(input);
-  if (
-    keys.some(
-      (key) =>
-        typeof key !== "string" || (key !== "title" && key !== "description"),
+  try {
+    if (typeof input !== "object" || input === null || Array.isArray(input))
+      return null;
+    const prototype = Object.getPrototypeOf(input);
+    if (prototype !== Object.prototype && prototype !== null) return null;
+    const keys = Reflect.ownKeys(input);
+    if (
+      keys.some(
+        (key) =>
+          typeof key !== "string" || (key !== "title" && key !== "description"),
+      )
     )
-  )
+      return null;
+    const title = Object.getOwnPropertyDescriptor(input, "title");
+    if (
+      title === undefined ||
+      !("value" in title) ||
+      typeof title.value !== "string" ||
+      title.value.trim().length === 0
+    )
+      return null;
+    const description = Object.getOwnPropertyDescriptor(input, "description");
+    if (
+      description !== undefined &&
+      (!("value" in description) ||
+        (description.value !== null && typeof description.value !== "string"))
+    )
+      return null;
+    return Object.freeze({
+      title: title.value,
+      ...(description === undefined
+        ? {}
+        : { description: description.value as string | null }),
+    });
+  } catch {
     return null;
-  const title = Object.getOwnPropertyDescriptor(input, "title");
-  if (
-    title === undefined ||
-    !("value" in title) ||
-    typeof title.value !== "string" ||
-    title.value.trim().length === 0
-  )
-    return null;
-  const description = Object.getOwnPropertyDescriptor(input, "description");
-  if (
-    description !== undefined &&
-    (!("value" in description) ||
-      (description.value !== null && typeof description.value !== "string"))
-  )
-    return null;
-  return Object.freeze({
-    title: title.value,
-    ...(description === undefined
-      ? {}
-      : { description: description.value as string | null }),
-  });
+  }
 }
 
 function parseUpdatePatch(

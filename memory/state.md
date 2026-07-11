@@ -8,7 +8,7 @@ Internal Stage: `v2`
 
 ## Поточний фокус
 
-Phase 1 і Phase 2 завершені та прийняті explicit human gates. BP3-01A, BP3-02, BP3-03, BP3-04 і BP3-05 завершені як `done` після independent audits і whole-task human approvals. P3-STAB1 не активована.
+Phase 1 і Phase 2 завершені та прийняті explicit human gates. BP3-01A, BP3-02, BP3-03, BP3-04, BP3-05 і P3-STAB1 завершені як `done` після independent audits і whole-task human approvals. `P3-DG2 / TASK-07.26-0031` підготовлена в `backlog` із research run `RSCH-001`, але не активована.
 
 ## Поточний стан продукту
 
@@ -17,7 +17,7 @@ Phase 1 і Phase 2 завершені та прийняті explicit human gates
 - Product/domain/technical design розгорнуто зі source specifications, але самі specifications мають статус draft.
 - Усі 37 product requirements мають статус `accepted`; detailed contracts і open questions все ще проходять окремі stabilization gates.
 - Detailed source specifications зберігаються в `memory/references/extensia-v2/`; obsolete non-IoC documents і root `v2/` видалені.
-- Internal pure domain contract kernel і його tests реалізовані в `BP1-02`; bounded public Phase 2 read API реалізований у BP2-04, а final Storage Driver, successful writes і plugins ще відсутні.
+- Internal pure domain contract kernel і його tests реалізовані в `BP1-02`; bounded public read API реалізований у BP2-04, а BP3-04/BP3-05 додали experimental Resource create/update через opaque full-driver boundary. Final concrete Storage Driver, wider writes і plugins ще відсутні.
 - Internal BP2-02 Core read slice реалізує readonly Resource listing port, greedy by-id/children index, exact shared read-port provider і lifecycle cleanup; це не public/final Storage Driver або facade.
 - Internal BP2-03 slice реалізує єдиний Facade Provider/Registry mechanism, `extensia.default-api` query/storage adapters, trusted reserved provenance, atomic ready publication і intake drain.
 - BP2-04 RUN-001 реалізувала root-only public Extensia Module read slice: exact type/value exports, descriptor-safe config, normalized lifecycle/results, safe inspection, stable ready `query`/`storage` facades і packed consumer verification; результат прийнятий whole-task human review.
@@ -34,7 +34,9 @@ Phase 1 і Phase 2 завершені та прийняті explicit human gates
 - `BP3-02 / P3-WP1 / TASK-07.26-0026` завершена як `done`: RUN-001 реалізувала internal atomic multi-key locks, explicit disposable operation scopes, Operation Engine close-and-drain та committed warning/fail-close foundation; full 126-test package gate зелений, repeated independent audit `REVIEW_READY` без відкритих P0-P3, результат прийнятий whole-task human review. `TASK-07.26-0027…0030` лишаються backlog без activation.
 - `BP3-03 / P3-WP2 / TASK-07.26-0027` завершена як `done`: RUN-001 реалізувала deterministic full fake, committed-only journal, exclusive recovery-clean sessions, canonical sequence/cursor/fingerprint integrity, crash/fresh recovery і coherent startup scan; full 143-test package gate зелений, repeated independent audit `REVIEW_READY` без відкритих P0-P3, результат прийнятий whole-task human review. BP3-04 не активована.
 - `BP3-04 / P3-VS1 / TASK-07.26-0028` завершена як `done`: opaque full-driver integration, exact public Resource create, one-scope three-candidate policy, semantic commit, prepared index publication, detached read-back і committed fail-close warnings реалізовані; full 158-test gate та repeated audit зелені, результат прийнятий whole-task human review. BP3-05 не активована.
-- `BP3-05 / P3-VS2 / TASK-07.26-0029` завершена як `done`: exact own-metadata update, latest-state serialization, no-change без transaction, semantic commit, recovery та detached read-back реалізовані; full 171-test gate і repeated independent audit `REVIEW_READY`, результат прийнятий whole-task human review. P3-STAB1 не активована.
+- `BP3-05 / P3-VS2 / TASK-07.26-0029` завершена як `done`: exact own-metadata update, latest-state serialization, no-change без transaction, semantic commit, recovery та detached read-back реалізовані; full 171-test gate і repeated independent audit `REVIEW_READY`, результат прийнятий whole-task human review. P3-STAB1 згодом активована окремим рішенням.
+- `P3-STAB1 / TASK-07.26-0030` завершена як `done`: RUN-001 відтворила clean/package/API/architecture, concurrency/failure/recovery та protocol/source boundary evidence для `BP3-01A`…`BP3-05`; create safe-inspection/inherited-input і tracked tarball findings закриті, 172-test full gate та 61-test focused gate зелені, independent audit `REVIEW_READY` без відкритих P0-P3, результат прийнятий whole-task human review. `P3-DG2` не активована.
+- `P3-DG2 / TASK-07.26-0031` підготовлена як canonical backlog design task у режимі `autonomous-research`; `RSCH-001` містить execution contract для order/delete/optional restore та Mark/KV semantics. Задача не активована, design result/report/fixation ще не створені.
 - `BP2-06 / TASK-07.26-0020` завершена як `done`: `RSCH-001` відтворила clean/package/API/architecture evidence, repeated bounded meta-review повернув `REVIEW_READY`, recommendation `pass` прийнята whole-task review, а explicit human gate завершив Phase 2.
 - `BP2-05 / TASK-07.26-0019` завершена як `done`: RUN-001 виконала risk-based Phase 2 stabilization, clean package/reproducibility evidence і memory sync без Phase 3 feature work; initial evidence P2 закрито, repeated audit `REVIEW_READY` без відкритих P0–P3, whole-task review прийнятий людиною.
 - `BP2-04 / TASK-07.26-0018` завершена як `done`: RUN-001 реалізувала root public contract, Extensia Module lifecycle, readonly driver integration та application/package verification; repeated independent audit не має відкритих P0-P3, whole-task review прийнятий людиною.
@@ -47,6 +49,9 @@ Phase 1 і Phase 2 завершені та прийняті explicit human gates
 
 ## Останні рішення
 
+- Користувач 2026-07-11 доручив підготувати canonical `P3-DG2` включно з execution artifacts; це створює backlog task і prepared `RSCH-001`, але не є activation або дозволом на independent subagent delegation.
+- Користувач 2026-07-11 виконав whole-task review `P3-STAB1 / TASK-07.26-0030` і дозволив завершити задачу як `done`; це не активує `P3-DG2`.
+- Користувач 2026-07-11 явно активував `P3-STAB1 / TASK-07.26-0030` і дозволив незалежних субагентів для рев'ю; це не активує `P3-DG2`.
 - Користувач 2026-07-11 виконав whole-task review `BP3-05 / TASK-07.26-0029` і дозволив завершити задачу як `done`; це не активує P3-STAB1.
 - Користувач 2026-07-11 явно активував `BP3-05 / TASK-07.26-0029` і дозволив незалежних субагентів для рев'ю.
 - Користувач 2026-07-11 виконав whole-task review `BP3-04 / TASK-07.26-0028` і дозволив завершити задачу як `done`; це не активує BP3-05.
@@ -108,7 +113,7 @@ Phase 1 і Phase 2 завершені та прийняті explicit human gates
 
 ## Наступні кроки
 
-1. `P3-STAB1 / TASK-07.26-0030` потребує окремої activation; завершення BP3-05 її не активує.
+1. За окремим рішенням активувати `P3-DG2 / TASK-07.26-0031` і дозволити незалежного субагента для audit; виконати prepared `RSCH-001` без activation downstream implementation tasks.
 
 ## Відкриті питання
 

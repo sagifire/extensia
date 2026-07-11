@@ -66,7 +66,7 @@ Gate: жодна write-операція не може повернути success
 
 Wave IDs: `P3-DG1` write/journal/recovery protocol -> `BP3-01A` shared seam -> паралельні `P3-WP1` locks/scopes/engine і `P3-WP2` fake driver/journal/recovery -> `P3-VS1/VS2` create/update -> bounded `P3-STAB1` create/update foundation -> `P3-DG2` order/delete/Mark/KV semantics -> `P3-VS3/VS4` move та Mark/KV -> `P3-VS5` delete/optional restore -> final `P3-STAB`.
 
-Application gate: [canonical P3 contract](../technical/write-journal-recovery-contract.md), ADR-0008 і `APP-07.26-0024-001` published; `TASK-0025` done. `TASK-0026…0030` є backlog-only і кожна потребує власного activation decision після dependency gates. `P3-STAB1` не замінює final `P3-STAB`.
+Application gate: [canonical P3 contract](../technical/write-journal-recovery-contract.md), ADR-0008 і `APP-07.26-0024-001` published; `TASK-0025…0029` done. `P3-STAB1 / TASK-0030` done після bounded RUN-001, independent audit і whole-task human approval; `P3-DG2` лишається окремим неактивованим gate. `P3-STAB1` не замінює final `P3-STAB`.
 
 - Розширити deterministic fake Storage Driver до full capability model для failure-injection tests.
 - Реалізувати Async Lock Queue, operation scopes, Operation Engine, storage-level write lock, мінімальний Operation Journal і recovery path до ready state.

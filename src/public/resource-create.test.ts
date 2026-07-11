@@ -179,6 +179,42 @@ describe("public Resource create slice", () => {
     await extensia.stop();
   });
 
+  it("normalizes hostile traps and rejects inherited payload in full mode", async () => {
+    const fixture = createDeterministicFullResourceDriver();
+    const extensia = createExtensia({
+      storage: { driver: defineFullResourceDriver(fixture.adapter) },
+    });
+    await extensia.start();
+
+    const hostile = new Proxy(
+      {},
+      {
+        getPrototypeOf() {
+          throw new Error("must not escape");
+        },
+      },
+    );
+    await expect(
+      extensia.storage()!.createResource(hostile as { title: string }),
+    ).resolves.toMatchObject({
+      ok: false,
+      error: { code: "RESOURCE_INPUT_INVALID" },
+    });
+
+    const inherited = Object.assign(
+      Object.create({ description: "inherited" }) as object,
+      { title: "own title" },
+    );
+    await expect(
+      extensia.storage()!.createResource(inherited as { title: string }),
+    ).resolves.toMatchObject({
+      ok: false,
+      error: { code: "RESOURCE_INPUT_INVALID" },
+    });
+    expect(fixture.inspect().journal).toHaveLength(0);
+    await extensia.stop();
+  });
+
   it.each([
     null,
     [],

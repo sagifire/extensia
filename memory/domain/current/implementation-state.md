@@ -29,6 +29,7 @@ Status: current
 - `TASK-07.26-0019 / RUN-001` повторно перевірила сукупний Phase 2 baseline: clean install, 10 test files / 112 tests, focused Core/Registry/public/lifecycle matrices, exact root runtime/type surface, packed Node.js 24 consumer і controlled build/pack reproducibility зелені; production code або dependencies не змінювалися, repeated independent audit `REVIEW_READY`, результат прийнятий whole-task human review.
 - `TASK-07.26-0028 / RUN-001` реалізувала bounded root Resource create: exact title/description input, generated root defaults, максимум три ID candidates в одному operation scope, driver-owned Resource+journal semantic commit, prepared local index publication, detached success/read-back і committed post-fault fail-close warnings.
 - `TASK-07.26-0029 / RUN-001` реалізувала bounded root Resource update: descriptor-safe exact own `title`/`description` patch, latest committed reload під serialized Resource lock, missing/no-change без transaction, own `updated_at`, semantic update commit, prepared local index publication, detached success/read-back і crash recovery.
+- `TASK-07.26-0030 / RUN-001` стабілізувала сукупну create/update foundation: create input отримав симетричну update safe-inspection/prototype policy для hostile traps та inherited payload, generated root tarball прибрано з tracked source, а clean 172-test і focused 61-test gates, rebuild/double-pack hashes та package/API/source scans зелені; independent audit `REVIEW_READY` і whole-task human approval завершили задачу.
 - Public opaque full-driver handle є experimental; deterministic fake доводить protocol/recovery behavior, але не concrete physical durability. P3-DG2 semantics, plugins, sync і concrete driver ще відсутні.
 - Durable storage format і міграція даних попередньої версії не підтримуються; legacy memory/data не переносились.
 - Три documents у `memory/references/extensia-v2/` є draft source specifications майбутнього стану, а не доказом реалізованої поведінки.
@@ -39,7 +40,7 @@ Status: current
 
 ## Межа current/target
 
-Resource/Asset/Mark/KV data-contract kernel, IoC composition/conformance skeleton, generic internal lifecycle host, bounded readonly Core Resource index, shared internal Facade Registry, default system facade adapters і bounded public Extensia Module read contract є current implementation. Це не означає наявність final Storage Driver semantics, successful write API, durable guarantees, plugin/custom facade API або public concurrency/retry policy. Operation pipeline, durable storage semantics і plugin API не можна позначати як current implementation до відповідних vertical slices та review. Після кожного implementation run цей документ треба синхронізувати з фактичним кодом і tests.
+Resource/Asset/Mark/KV data-contract kernel, IoC composition/conformance skeleton, generic internal lifecycle host, bounded Core Resource index, shared internal Facade Registry, default system facade adapters, public Extensia Module reads та experimental Resource create/own-metadata update є current implementation. Це не означає наявність final Storage Driver semantics, concrete physical durability, wider successful write API, plugin/custom facade API або public concurrency/retry policy. `P3-DG2`, wider operation semantics і plugin API не можна позначати як current implementation до відповідних design/vertical slices та review. Після кожного implementation run цей документ треба синхронізувати з фактичним кодом і tests.
 
 ## Джерела
 
@@ -57,4 +58,5 @@ Resource/Asset/Mark/KV data-contract kernel, IoC composition/conformance skeleto
 - `memory/tasks/plan/TASK-07.26-0019-bp2-05-phase-2-stabilization/runs/RUN-001/result.md`.
 - `memory/tasks/plan/TASK-07.26-0028-bp3-04-resource-create-slice/runs/RUN-001/result.md`.
 - `memory/tasks/plan/TASK-07.26-0029-bp3-05-resource-update-slice/runs/RUN-001/result.md`.
+- `memory/tasks/plan/TASK-07.26-0030-p3-stab1-create-update-foundation/runs/RUN-001/result.md`.
 - Фактична структура репозиторію станом на 2026-07-10.

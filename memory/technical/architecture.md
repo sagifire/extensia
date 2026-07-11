@@ -2,7 +2,7 @@
 
 Status: target-draft
 Target Release: `0.1.0`
-Updated: 2026-07-10
+Updated: 2026-07-11
 
 ## Статус реалізації
 
@@ -205,6 +205,8 @@ Baseline не обіцяє dynamic extensions після startup, high-throughpu
 ## Architecture health
 
 Фактичні Phase 1 foundations і bounded BP2-02/BP2-03/BP2-04 slices не створюють істотного architecture pressure: вони використовують один Composition Root, один consumer-owned shared read seam, один Facade Provider/Registry mechanism і один lifecycle host. Public Module лише bind-ить readonly driver та мапить application lifecycle/results; index лишається derived від driver, а facade/Core cleanup і graph disposal мають розділене ownership. Lifecycle отримав generic synchronous ready-publication hook замість facade-specific wiring. BP2-05 risk-based scan і executable matrices не виявили duplicate wiring, hidden write/Journal path, accidental public Core/IoC surface або потребу в workaround. Ризик design pressure лишається високим через широку цільову surface area. Implementation має йти вертикальними slices з dependency gates з `memory/product/roadmap.md`; спроба додати lazy completeness, writes, plugin API або public Core/IoC через ці internal modules буде сигналом для окремого architecture/design review.
+
+P3-STAB1 повторно підтвердила один consumer-owned Core write port, один Operation Engine, driver-owned semantic commit/journal, prepared index publication і opaque experimental full-driver boundary. Stabilization усунула create parser asymmetry на існуючій facade normalization boundary і generated tarball hygiene defect без нового layer/path. Істотного нового architecture pressure не виявлено; `P3-DG2`, concrete durability, hooks і sync лишаються окремими gates.
 
 ## Джерела
 

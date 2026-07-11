@@ -1,10 +1,13 @@
 # P3-STAB1 / TASK-07.26-0030: Create/update foundation stabilization
 
-Status: backlog
+Status: done
 Type: chore
 Execution Mode: autonomous-implementation
 Created: 2026-07-10
 Depends On: done `BP3-05 / TASK-07.26-0029`
+Activated: 2026-07-11
+Current Run: `RUN-001`
+Closed: 2026-07-11
 
 ## Мета
 

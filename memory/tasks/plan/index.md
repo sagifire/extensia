@@ -36,6 +36,7 @@
 - [TASK-07.26-0028-bp3-04-resource-create-slice](TASK-07.26-0028-bp3-04-resource-create-slice/index.md) - Backlog P3-VS1 Resource create/read-back slice.
 - [TASK-07.26-0029-bp3-05-resource-update-slice](TASK-07.26-0029-bp3-05-resource-update-slice/index.md) - Backlog P3-VS2 Resource own-metadata update/read-back slice.
 - [TASK-07.26-0030-p3-stab1-create-update-foundation](TASK-07.26-0030-p3-stab1-create-update-foundation/index.md) - Backlog bounded create/update foundation stabilization before P3-DG2.
+- [TASK-07.26-0031-p3-dg2-order-delete-mark-kv-semantics](TASK-07.26-0031-p3-dg2-order-delete-mark-kv-semantics/index.md) - Backlog canonical design gate P3-DG2 для Resource order/delete/optional restore та Mark/KV semantics.
 
 ## Файли
 

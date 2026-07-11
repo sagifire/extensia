@@ -26,11 +26,11 @@ Updated: 2026-07-11
 
 | Елемент | Статус | Рішення |
 |---|---|---|
-| Storage Driver contract | planned | Абстракція для metadata, asset files, staging, journal, write lock і recovery. |
+| Storage Driver contract | current-experimental | Opaque full-driver author boundary і internal Resource session/transaction seams реалізовані для bounded create/update; final wider contract і concrete layout не визначені. |
 | Concrete full driver | unselected | Physical format і driver package ще не визначені. |
 | Read-only driver | current-experimental | Public Phase 2 Resource listing contract інтегровано BP2-04; це не final Storage Driver contract і не concrete durable implementation. |
 | Hot Metadata Index | current | Resource-only greedy index має prepared immutable upsert/publication для BP3-04; lazy mode і wider metadata не реалізовані. |
-| Operation Journal | planned | Append-only persistent journal через Storage Driver. |
+| Operation Journal | current-internal | Deterministic full fake реалізує committed-only contiguous Resource journal та recovery contract; concrete durable journal/layout лишається planned. |
 | Operation Engine foundation | current-internal | BP3-02 реалізувала atomic multi-key lock queue, explicit scopes, pipeline state/cancellation boundary, committed warnings і close-and-drain без Resource handlers або persistence wiring. |
 | Deterministic full driver | current-internal | BP3-03 реалізувала contract-faithful shared-backing fake, committed journal, crash/fresh recovery та same-session startup scan без public write success або concrete durability claim. |
 | Resource create slice | current-experimental | BP3-04 інтегрувала opaque full-driver handle, Core create pipeline, semantic commit, prepared index publication і local read-back; concrete durability лишається deferred. |
@@ -71,6 +71,8 @@ Publishable `src/**` збирається окремим `tsconfig.build.json`; 
 `BP1-05/R1` повторно підтвердила current baseline на Node.js `v24.17.0` / npm `11.13.0`: clean `npm ci`, повний `npm run check`, 7 test files / 75 tests, 38 packed paths і 36 controlled emitted artifacts із byte-identical SHA-256 після повторного build. Це verification evidence, а не нове dependency або compatibility рішення.
 
 `BP2-05/R1` повторно підтверджує Phase 2 package baseline на Node.js `v24.17.0` / npm `11.13.0`: clean `npm ci`, повний `npm run check`, 10 test files / 112 tests, 66 packed paths і 64 controlled emitted artifacts із byte-identical SHA-256 після повторного build; два послідовні tarball samples також byte-identical. Це stabilization evidence, а не нове dependency або compatibility рішення.
+
+`P3-STAB1/R1` повторно підтверджує create/update foundation на Node.js `v24.17.0` / npm `11.13.0`: clean install, 16 test files / 172 tests, focused 7 files / 61 tests, 112 byte-identical controlled `dist/**` artifacts і два byte-identical packs по 114 paths. Generated root tarball більше не tracked; це stabilization evidence, а не compatibility promise або activation `P3-DG2`.
 
 ## Package і source boundaries
 
