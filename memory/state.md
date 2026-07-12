@@ -8,7 +8,7 @@ Internal Stage: `v2`
 
 ## Поточний фокус
 
-Phase 1, Phase 2 і Phase 3 завершені та прийняті explicit human gates. P3-STAB/TASK-0036 отримала whole-task approval; required FIX-001 applied exactly, post-application independent audit `PASS`, open P0-P3 немає. `TASK-07.26-0037` завершила прийняту міграцію Project Memory до Starter Kit 5.0 / PDADM MVP 0.5.
+Phase 1, Phase 2 і Phase 3 завершені та прийняті explicit human gates. `TASK-07.26-0038` завершена whole-task approval: наступну rolling wave підготовлено як backlog/prepared `P4-DG1 / TASK-0039` concrete storage protocol і `P4-DG2 / TASK-0040` Asset contracts без activation або downstream implementation shells.
 
 ## Поточний стан продукту
 
@@ -27,6 +27,10 @@ Phase 1, Phase 2 і Phase 3 завершені та прийняті explicit hu
 - Прийняті UUID v4 `IDString`, numeric epoch-millisecond `Timestamp` і deeply readonly detached JSON-safe DTO реалізовані як internal domain contracts без public root export.
 
 ## Активні задачі
+
+- `TASK-07.26-0038` done: Phase 4 planning і canonical preparation двох owner gates прийняті whole-task human review; repeated independent audit без open P0-P3.
+- `P4-DG1 / TASK-07.26-0039` backlog/prepared: concrete durable storage protocol design/research, не activated.
+- `P4-DG2 / TASK-07.26-0040` backlog/prepared: exact Asset contracts design/research, не activated.
 
 - `P3-STAB / TASK-07.26-0036` завершена як `done`: fresh 20-file / 202-test full gate і byte-identical 126-path double pack accepted; required FIX-001 applied exactly, post-application audit `PASS`, open P0-P3 немає.
 
@@ -131,7 +135,7 @@ Phase 1, Phase 2 і Phase 3 завершені та прийняті explicit hu
 
 ## Наступні кроки
 
-1. Phase 3 completed. Phase 4 rolling-wave planning/activation потребує окремого task contract і explicit рішення.
+1. Окремим explicit рішенням активувати `P4-DG1 / TASK-0039` або `P4-DG2 / TASK-0040`; вони можуть досліджуватися паралельно. Downstream implementation shells до approved/applied owner gates не створювати.
 
 ## Відкриті питання
 

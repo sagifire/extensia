@@ -58,7 +58,7 @@ Activation order: `BP2-01 done -> TASK-07.26-0021 / APP-07.26-0021-001 published
 - [x] **[Done]** [P3-VS5 / TASK-07.26-0035](TASK-07.26-0035-p3-vs5-resource-soft-delete/index.md) - Leaf soft delete/default tombstone invisibility реалізовано; focused 12/full 202 gates і final independent `REVIEW_READY` зелені, whole-task result прийнятий, required FIX-001 applied. TASK-0036 не активована.
 - [x] **[Done]** [P3-STAB / TASK-07.26-0036](TASK-07.26-0036-p3-stab-final-phase-3/index.md) - Fresh Phase 3 gates accepted; required FIX-001 applied exactly, post-application audit `PASS`, no open P0-P3.
 
-Activation order: `Phase 2 gate -> BP3-01 done -> TASK-0024 published artifact -> BP3-01A -> BP3-02 -> BP3-03 -> BP3-04 -> BP3-05 -> P3-STAB1 -> P3-DG2 -> TASK-0032 -> P3-VS3 done -> future P3-VS4`.
+Activation order completed: `Phase 2 gate -> BP3-01 -> TASK-0024 -> BP3-01A -> BP3-02 -> BP3-03 -> BP3-04 -> BP3-05 -> P3-STAB1 -> P3-DG2 -> TASK-0032 -> P3-VS3 -> P3-VS4 -> P3-VS5 -> P3-STAB -> Phase 3 human gate`.
 
 ## Обслуговування Project Memory
 
@@ -66,7 +66,11 @@ Activation order: `Phase 2 gate -> BP3-01 done -> TASK-0024 published artifact -
 
 ## Фаза 4 — Assets і перший concrete durable Storage Driver
 
-Немає canonical tasks: rolling-wave деталізація не починається до owner gates Phase 3.
+- [x] **[Done]** [TASK-07.26-0038](TASK-07.26-0038-prepare-phase-4-owner-gates/index.md) - Phase 4 owner-gate plan і canonical P4-DG1/P4-DG2 packages прийняті whole-task human review; design tasks не активовані.
+- [ ] **[Backlog]** [P4-DG1 / TASK-07.26-0039](TASK-07.26-0039-p4-dg1-concrete-storage-protocol/index.md) - Concrete durable storage protocol design/research; RUN-001 prepared, не activated.
+- [ ] **[Backlog]** [P4-DG2 / TASK-07.26-0040](TASK-07.26-0040-p4-dg2-asset-contracts/index.md) - Exact Asset domain/API lifecycle contract; RUN-001 prepared, не activated.
+
+Allowed parallelism: P4-DG1 і P4-DG2 можуть активуватися окремими рішеннями й досліджуватися паралельно. Downstream `P4-WP1`, `P4-VS1`…`P4-VS3` і `P4-STAB` не створюються до відповідних approved/applied owner gates.
 
 ## Фаза 5 — Повний read model і синхронізація кількох instances
 
