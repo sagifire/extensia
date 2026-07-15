@@ -19,3 +19,6 @@ Detailed reports для formal research, planning і design усередині t
 - [Write, journal і recovery protocol Extensia](2026-07-10-extensia-write-journal-recovery-protocol.md) - Detailed P3-DG1 design для semantic commit, deterministic fake recovery й first Resource create/update slices.
 - [Order, delete, Mark і KV semantics Extensia](2026-07-11-extensia-order-delete-mark-kv-semantics.md) - Detailed P3-DG2 design для hierarchy/order, leaf soft delete, Mark/KV writes і final Phase 3 decomposition.
 - [План owner gates фази 4 Extensia](2026-07-12-extensia-phase-4-owner-gate-plan.md) - Rolling-wave decomposition і canonical-now boundary для P4-DG1/P4-DG2.
+- [Concrete storage protocol Extensia](2026-07-12-extensia-concrete-storage-protocol.md) - Evidence-backed P4-DG1 single-SQLite durability domain, recovery і proof matrix.
+- [Taxonomy storage driver families Extensia](2026-07-12-extensia-storage-driver-taxonomy.md) - RUN-002 framing filesystem-native, embedded-transactional і client-server transactional profiles.
+- [Exact Asset semantic contract Extensia](2026-07-15-extensia-asset-contracts.md) - P4-DG2 field, lineage, primary, ownership, staged upload і pipeline design для P4-VS2/P4-VS3.

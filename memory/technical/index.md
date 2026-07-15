@@ -18,3 +18,6 @@
 - [Rules](rules.md) - Обов'язкові технічні правила й архітектурні інваріанти.
 - [Source Specifications](source-specifications.md) - Канонічні source files, виключені документи та правила інтерпретації.
 - [Open Questions](open-questions.md) - Технічні design gates, які не можна вирішувати неявно під час implementation.
+- [ADR-0010: Local SQLite storage protocol](decisions/ADR-0010-local-sqlite-storage-protocol.md) - First concrete embedded-transactional profile, physical protocol і proof gate.
+- [Asset Semantic Contract](asset-contract.md) - Accepted P4-DG2 fields, lineage, primary, ownership, staged lifecycle і one-commit boundary.
+- [ADR-0011: Asset semantic lifecycle](decisions/ADR-0011-asset-semantic-lifecycle.md) - Same-Resource lineage, explicit primary, staged-only initial state і Resource-delete upload conflict.

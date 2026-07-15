@@ -36,6 +36,19 @@ Detailed Design: [Write, journal і recovery protocol Extensia](../reports/resea
 - Intake close-and-drain не force-cancel-ить admitted operation. Cancellation діє під час lock wait і до staging; після початку commit outcome не змінюється.
 - Local multi-key locks захоплюються атомарно за normalized lexical keys; conflicting FIFO зберігається, non-conflicting preparation може прогресувати. Global session визначає commit order.
 
+## Concrete profile `local-sqlite-v1`
+
+Accepted P4-DG1 profile реалізує цей semantic contract через одну SQLite durability domain (`node:sqlite`) для metadata, committed `journal` і майбутніх opaque payload chunks. External filesystem blob publication та independent journal append у baseline заборонені.
+
+- Proposed boundary: Windows 11 local NTFS, one host/one full writer; certification лише після P4-WP1 crash/lock proof. Linux ext4/XFS candidate; network/removable/sync/FUSE/direct mutation unsupported.
+- Rollback journal + `synchronous=EXTRA`; dedicated `locking_mode=EXCLUSIVE` connection тримає lease від session acquire через recovery/scan/COMMIT/Core publication до release.
+- `journal` є єдиним committed authority. Sequence — arbitrary-length canonical decimal TEXT з length+lexical comparison. Idempotency — unique `operation_id`; fingerprint не globally unique.
+- COMMIT error класифікується через `isTransaction`, rollback/retry і query by `operation_id`. Resolve/reject truth не змінюється, але persistent unavailable durability domain може призупинити settlement/runtime: safety guarantee не є termination guarantee.
+- Full recovery відбувається before-ready; readonly не виконує recovery/cleanup writes і fail-close, якщо mutation потрібна.
+- Driver-owned DB path, format/application/version markers, schema/quick-check і canonical content integrity перевіряються до ready; corrupt/unknown state fail-close.
+
+Profile використовує незмінений opaque `FullResourceDriverAdapter`; SQLite schema, pragmas, paths і recovery implementation не просочуються в Core/public API. Asset semantics не визначаються цим profile.
+
 ## Index publication
 
 - Core reload-ить latest committed Resource під storage session і до transaction готує validated immutable `PreparedResourceIndexChange`.
@@ -160,3 +173,7 @@ BP3-02 materialized internal foundation для normalized atomic local locks, ex
 ## Compatibility і stop conditions
 
 Full driver та successful create/update мають label `experimental-phase-3`; existing `createExtensia` lifecycle/reads не послаблюються. Зміна semantic commit, callable raw transaction через application config, independent journal append, concrete layout, P3-DG2 behavior або index-before-commit потребує окремого design/ADR gate.
+
+## P4-DG2 Asset refinement
+
+Asset operations reuse unchanged outcome-definite semantic commit. Prepared fingerprint binds sorted full Resource snapshots, exact logical Asset change and discriminated compound payload action/upload generation without path leakage. Metadata, payload action and exactly one journal row commit atomically; independent file publication remains forbidden. This does not retroactively widen bounded P3 public Resource commands.

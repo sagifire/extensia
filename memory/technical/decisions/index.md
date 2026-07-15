@@ -19,3 +19,5 @@ ADR-like рішення з технічними або структурними 
 - [ADR-0007 Мінімальний public read contract](ADR-0007-minimal-public-read-contract.md) - Exact P2-DG1 factory/module/result/facade publication/shared seam decision.
 - [ADR-0008 Journal-backed write protocol](ADR-0008-journal-backed-write-protocol.md) - Driver-owned outcome-definite semantic commit, committed-only journal, recovery-before-ready та post-commit index publication.
 - [ADR-0009 Resource order, delete, Mark і KV](ADR-0009-resource-order-delete-mark-kv.md) - Dense order, insertion move, leaf soft delete, replacement aggregates і typed integrity fail-close.
+- [ADR-0010: Local SQLite storage protocol](ADR-0010-local-sqlite-storage-protocol.md) - Accepted target concrete embedded-transactional profile і bounded physical durability protocol.
+- [ADR-0011: Asset semantic lifecycle](ADR-0011-asset-semantic-lifecycle.md) - Same-Resource lineage, explicit primary, staged-only internal lifecycle і one-commit payload action.

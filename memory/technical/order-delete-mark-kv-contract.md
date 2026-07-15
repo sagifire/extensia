@@ -51,7 +51,14 @@ type ExtensiaErrorCode =
   | 'STORAGE_WRITE_FAILED' | 'STORAGE_INTEGRITY_FAILED'
   | 'RESOURCE_PARENT_NOT_FOUND' | 'RESOURCE_MOVE_CYCLE'
   | 'RESOURCE_ORDER_OUT_OF_RANGE' | 'RESOURCE_HAS_CHILDREN'
-  | 'RESOURCE_ALREADY_DELETED'
+  | 'RESOURCE_ALREADY_DELETED' | 'RESOURCE_ASSET_UPLOAD_ACTIVE'
+  | 'INVALID_ASSET_ID' | 'ASSET_INPUT_INVALID' | 'ASSET_URL_INVALID'
+  | 'ASSET_DATA_INVALID' | 'ASSET_NOT_FOUND' | 'ASSET_NO_CHANGES'
+  | 'ASSET_ID_GENERATION_FAILED' | 'ASSET_PRIMARY_CONFLICT'
+  | 'ASSET_NOT_READY' | 'ASSET_LINEAGE_INVALID'
+  | 'ASSET_LINEAGE_CONFLICT' | 'ASSET_HAS_DERIVATIVES'
+  | 'ASSET_UPLOAD_ALREADY_ACTIVE' | 'ASSET_UPLOAD_NOT_ACTIVE'
+  | 'ASSET_UPLOAD_INCOMPLETE' | 'ASSET_FILE_NOT_READY'
 
 type ErrorOf<TCode extends ExtensiaErrorCode> = ExtensiaError<TCode>
 
@@ -66,9 +73,9 @@ type ResourceMoveError =
 type ResourceDeleteError =
   | ErrorOf<'MODULE_NOT_READY'> | ErrorOf<'STORAGE_READONLY'>
   | ErrorOf<'INVALID_RESOURCE_ID'> | ErrorOf<'RESOURCE_NOT_FOUND'>
-  | ErrorOf<'RESOURCE_HAS_CHILDREN'> | ErrorOf<'RESOURCE_ALREADY_DELETED'>
-  | ErrorOf<'STORAGE_LOCK_FAILED'> | ErrorOf<'STORAGE_WRITE_FAILED'>
-  | ErrorOf<'STORAGE_INTEGRITY_FAILED'>
+  | ErrorOf<'RESOURCE_HAS_CHILDREN'> | ErrorOf<'RESOURCE_ASSET_UPLOAD_ACTIVE'>
+  | ErrorOf<'RESOURCE_ALREADY_DELETED'> | ErrorOf<'STORAGE_LOCK_FAILED'>
+  | ErrorOf<'STORAGE_WRITE_FAILED'> | ErrorOf<'STORAGE_INTEGRITY_FAILED'>
 
 type ResourceMarksError =
   | ErrorOf<'MODULE_NOT_READY'> | ErrorOf<'STORAGE_READONLY'>
@@ -108,7 +115,7 @@ type ResourceKVResult = ExtensiaResult<ResourceWriteSuccess, ResourceKVError>
 | 6 | typed load/prepare integrity / ordinary I/O | same | same | same |
 | 7 | stored/index/journal integrity | same | same | same |
 | 8 | missing/deleted target `RESOURCE_NOT_FOUND` | missing not-found; tombstone `RESOURCE_ALREADY_DELETED` | missing/deleted not-found | missing/deleted not-found |
-| 9 | missing/deleted parent, cycle, then range | active children | resulting aggregate validation | resulting namespace/resource count/total validation |
+| 9 | missing/deleted parent, cycle, then range | active children, then active Asset upload | resulting aggregate validation | resulting namespace/resource count/total validation |
 | 10 | `RESOURCE_NO_CHANGES` | — | no-change | no-change |
 | 11 | ordinary begin/stage/commit `STORAGE_WRITE_FAILED` | same | same | same |
 
@@ -264,3 +271,7 @@ Ordinary acquire/read/begin/stage/commit reject з proven uncommitted state ли
 ## Deferred scope
 
 Restore/include-deleted/cascade/purge/retention, Mark queries/stats, global/lazy completeness, Assets, concrete storage layout/durability, External Change Sync, hooks/plugins та release compatibility freeze мають окремих future owners.
+
+## P4-DG2 Resource delete refinement
+
+Once Assets exist, `deleteResource` checks latest coherent target after existing active-children conflict. Any `is_on_uploading=true` Asset returns normalized `RESOURCE_ASSET_UPLOAD_ACTIVE` before transaction/timestamp/journal mutation. Caller must finish/abort/delete active uploads first; delete does not cascade upload cleanup. This code extends `ResourceDeleteError` in Phase 4.

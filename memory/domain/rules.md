@@ -77,3 +77,12 @@ Detailed Source: `memory/references/extensia-v2/domain-model-v2.md`
 ## Правило невизначеності
 
 Поведінка, якої немає в source specification, не додається за аналогією з CMS, ORM або старою Extensia. Вона фіксується у `open-questions.md` і вирішується окремим design decision.
+
+## Applied P4-DG2 Asset refinement
+
+1. Asset ID globally unique in storage; кожен Asset належить одному active owning Resource для writes, а aggregate зберігає Assets sorted binary by ID.
+2. Exact field/URL/data envelope визначає `technical/asset-contract.md`; silent normalization відсутня, крім canonical UUID/WHATWG URL.
+3. `derived_from` посилається лише на existing ready Asset того самого Resource, не self і не створює cycle/dangling relation.
+4. Primary selection/clear explicit; initial-uploading internal Asset не primary; delete primary leaves none; reassign clears primary й дозволений лише без lineage/active upload.
+5. Internal create staged-only; replacement тримає last committed payload visible. Resource delete за active upload fail-ить `RESOURCE_ASSET_UPLOAD_ACTIVE` до mutation.
+6. Effective Asset/file-state transition bump-ить changed Asset та owning Resource common Timestamp; no-change/failure не змінює persisted timestamps.

@@ -44,8 +44,11 @@
 - [TASK-07.26-0036-p3-stab-final-phase-3](TASK-07.26-0036-p3-stab-final-phase-3/index.md) - Backlog final P3-STAB with target-format prepared RUN-002; legacy RUN-001 preserved.
 - [TASK-07.26-0037-migrate-project-memory-to-mvp-0.5](TASK-07.26-0037-migrate-project-memory-to-mvp-0.5/index.md) - Done migration to Starter Kit 5.0 / PDADM MVP 0.5, accepted by whole-task human review.
 - [TASK-07.26-0038-prepare-phase-4-owner-gates](TASK-07.26-0038-prepare-phase-4-owner-gates/index.md) - Done Phase 4 owner-gate decomposition; P4-DG1/P4-DG2 prepared without activation.
-- [TASK-07.26-0039-p4-dg1-concrete-storage-protocol](TASK-07.26-0039-p4-dg1-concrete-storage-protocol/index.md) - Backlog/prepared P4-DG1 concrete durable storage protocol owner gate.
+- [TASK-07.26-0039-p4-dg1-concrete-storage-protocol](TASK-07.26-0039-p4-dg1-concrete-storage-protocol/index.md) - Done P4-DG1; ADR-0010/taxonomy applied, APP-07.26-0039-001 published after PASS.
 - [TASK-07.26-0040-p4-dg2-asset-contracts](TASK-07.26-0040-p4-dg2-asset-contracts/index.md) - Backlog/prepared P4-DG2 exact Asset contracts owner gate.
+- [TASK-07.26-0041-filesystem-native-storage-driver-design](TASK-07.26-0041-filesystem-native-storage-driver-design/index.md) - Backlog/prepared filesystem-native feasibility, native primitives і sidecar protocol design.
+- [TASK-07.26-0042-client-server-sql-storage-driver-design](TASK-07.26-0042-client-server-sql-storage-driver-design/index.md) - Backlog/prepared PostgreSQL/MySQL client-server transactional family design.
+- [TASK-07.26-0043-introduce-specification-memory-artifact](TASK-07.26-0043-introduce-specification-memory-artifact/index.md) - Canceled memory-update; FIX-001 rejected, canonical memory unchanged.
 
 ## Файли
 

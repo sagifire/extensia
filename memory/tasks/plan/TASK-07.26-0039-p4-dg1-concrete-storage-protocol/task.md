@@ -1,20 +1,20 @@
 # P4-DG1 / TASK-07.26-0039: Concrete storage protocol
 
-Task Status: backlog
+Task Status: done
 Type: design/research
 Created: 2026-07-12
 Owner Role: Agent Architect Hat
-Current Run: RUN-001
+Current Run: RUN-003
 
 ## Поточний стан
 
-Run Status: prepared
-Progress: Canonical task package підготовлено; formal design/research не активовано.
-Acceptance: 0/9
+Run Status: completed
+Progress: FIX-001/FIX-002 applied exactly; final post-application audit `PASS`; APP-07.26-0039-001 published.
+Acceptance: 9/9 original + RUN-002/RUN-003 acceptance delta complete
 Blockers: none
 Blocked Phase: n/a
-Pending Decisions: activation; вибір першого supported concrete driver і protocol recommendation
-Next Action: Окреме явне рішення про activation `P4-DG1`; створення backlog-задачі не активує run.
+Pending Decisions: none
+Next Action: Separate decision may activate P4-DG2, TASK-0041 або TASK-0042; P4-WP1 preparation requires a separate owner action.
 
 ## Мета
 
@@ -78,15 +78,19 @@ Phase 3 довела єдиний journal-backed write pipeline на determinist
 
 ## Прогони
 
-- [RUN-001](RUN-001/index.md) - prepared - Formal concrete storage protocol design/research owner gate.
+- [RUN-001](RUN-001/index.md) - changes-requested - Initial single-SQLite protocol, audited REVIEW_READY, але whole-task не прийнятий.
+- [RUN-002](RUN-002/index.md) - changes-requested - Taxonomy design complete; post-freeze task creation перенесено в RUN-003.
+- [RUN-003](RUN-003/index.md) - active - Authorized follow-up task creation/validation і final taxonomy review package.
 
 ## Дослідження
 
-- `RSCH-001` - planned on activation; detailed report required у `memory/reports/research/`.
+- [RSCH-001](RSCH-001.md) - completed, disposition `final-result`; detailed report published у `memory/reports/research/`.
+- [RSCH-002](RSCH-002.md) - completed, disposition `final-result`; taxonomy addendum published у `memory/reports/research/`.
 
 ## Фіксації
 
-- `FIX-001` - expected, required; exact concrete protocol/ADR і upward consistency proposal, не застосовувати до окремого human approval.
+- [FIX-001](FIX-001.md) - applied; concrete `local-sqlite-v1`/ADR proposal.
+- [FIX-002](FIX-002.md) - applied; taxonomy і architecture framing.
 
 ## Додатковий контекст
 
@@ -94,29 +98,30 @@ Planning ID `P4-DG1`. Ризик критичний, невизначеніст�
 
 ## Запити на рішення
 
-- Activation `RUN-001`.
 - Після research: whole-task decision `approve | request changes | cancel`.
 - Окреме рішення щодо required `FIX-001`; downstream tasks розглядаються лише після application/publication gate.
 
 ## Запропоновані follow-up задачі
 
+- [TASK-07.26-0041](../TASK-07.26-0041-filesystem-native-storage-driver-design/index.md) - backlog/prepared filesystem-native feasibility, native primitives і exact sidecar protocol research/design; не активовано.
+- [TASK-07.26-0042](../TASK-07.26-0042-client-server-sql-storage-driver-design/index.md) - backlog/prepared PostgreSQL/MySQL client-server family research/design; не активовано.
 - Після approved і applied `P4-DG1`: окрема owner/application task для exact fixation, якщо її не може безпечно фіналізувати цей run за правилами review freeze.
 - Після published application artifact: canonical preparation `P4-WP1` concrete driver; `P4-VS1` лише після accepted `P4-WP1`.
 
 ## Human Review
 
-Status: not-ready
-Requested: n/a
-Reviewed: n/a
-Approval Source: n/a
-Approved Fixations: none
+Status: approved-completed
+Requested: 2026-07-12 (RUN-003)
+Reviewed: 2026-07-12
+Approval Source: user decision in task conversation
+Approved Fixations: FIX-001, FIX-002 (both applied; post-audit pending)
 Rejected Fixations: none
 Follow-up Decisions: none
-Decision Notes: none
+Decision Notes: Prior whole-task request changes incorporated. Current review covers taxonomy, FIX-002 і prepared TASK-0041/0042; downstream implementation не активовано.
 
 ## Фінальний результат
 
-Completed: n/a
-Final Run: n/a
-Summary: n/a
-Residual Risks: n/a
+Completed: 2026-07-12
+Final Run: RUN-003
+Summary: `local-sqlite-v1` concrete target protocol і three-family taxonomy accepted/applied/published; TASK-0041/TASK-0042 prepared; final audit PASS.
+Residual Risks: production implementation/certification, payload performance, filesystem-native feasibility і PostgreSQL/MySQL vendor design лишаються окремими gates.

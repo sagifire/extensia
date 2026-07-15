@@ -36,6 +36,8 @@ Status: current
 - `TASK-07.26-0035 / RUN-002` реалізувала exact leaf soft delete/default tombstone invisibility: active-parent eligibility, dense sibling reindex, common timestamp, sorted effective write-set, one semantic commit/journal entry/fingerprint, detached tombstone command result і not-found semantics для default reads та інших writes.
 - `TASK-07.26-0036 / RUN-002` свіжо перевірила всю Phase 3 matrix: clean install, 20 test files / 202 tests, focused API/semantic/protocol/recovery/concurrency/integrity matrices, package gate і два byte-identical 126-path tarballs. Production correctness defect не знайдено; packed type consumer розширено exact move/delete public types.
 - Public opaque full-driver handle є experimental; deterministic fake доводить protocol/recovery behavior, але не concrete physical durability. Restore/include-deleted/cascade/purge/retention, plugins, sync і concrete driver ще відсутні.
+- P4-DG1 accepted target design визначає families `filesystem-native`, `embedded-transactional`, `client-server-transactional` і first/default profile `local-sqlite-v1`. Це design state: production SQLite/filesystem/PostgreSQL/MySQL driver не реалізований і не сертифікований.
+- P4-DG2 accepted target design defines exact Asset fields/lineage/primary/reassign/staged lifecycle, але current code still has only permissive baseline snapshot validation: Asset writes, upload generation/runtime, `RESOURCE_ASSET_UPLOAD_ACTIVE` і concrete durability не реалізовані.
 - Durable storage format і міграція даних попередньої версії не підтримуються; legacy memory/data не переносились.
 - Три documents у `memory/references/extensia-v2/` є draft source specifications майбутнього стану, а не доказом реалізованої поведінки.
 

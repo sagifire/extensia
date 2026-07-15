@@ -60,6 +60,14 @@ Internal runtime coordinator. Він підтримує доменні інва�
 
 Port до durable state. Driver приховує physical layout, metadata/file persistence, staging, storage-level lock, journal persistence та recovery primitives. Core працює з logical asset IDs, а не physical paths.
 
+Extensia не є database engine. Storage Driver реалізує Core-owned semantic persistence port. Canonical physical families:
+
+- `filesystem-native` — platform-bounded filesystem protocol із verified native lock/directory-durability primitives;
+- `embedded-transactional` — in-process transactional engine; `local-sqlite-v1` є first/default concrete profile `0.1.0`;
+- `client-server-transactional` — server-managed PostgreSQL/MySQL та інші vendor profiles.
+
+Families поділяють semantic session/coherence, atomic commit, one committed journal, idempotency, recovery-before-ready, readonly, integrity та truthful outcome guarantees. Files/sidecars/native calls, SQL/schema/isolation, server topology, physical lock і recovery лишаються profile-local. Core і public API їх не бачать. SQLite є першим bounded implementation engine, а не universal physical Storage Driver model.
+
 ### Extension/API layer
 
 Facades представляють capabilities application code. Plugins додають trusted in-process behavior через descriptors, hooks, facade providers і Core Extension Port. Звичайний plugin не отримує Composed Runtime або private tokens.
@@ -221,3 +229,7 @@ P3-STAB свіжо перевірила Phase 3 на Node.js `v24.17.0` / npm `1
 - `memory/references/extensia-v2/runtime-architecture-v2-ioc.md`.
 - `memory/references/extensia-v2/extension-and-api-model-v2-ioc.md`.
 - `memory/references/extensia-v2/domain-model-v2.md` для доменних інваріантів, які runtime має підтримувати.
+
+## Applied P4-DG2 target
+
+Asset operations розширюють той самий facade → Core port → Operation Engine → driver semantic commit pipeline. Full sorted Resource snapshots, exact logical Asset change, compound payload action і one journal entry формують один prepared write-set; reassign atomically stages two Resources. Driver generation state не є public DTO/path. Index batch publish-иться post-commit; P5 indexes derived. Separate staged-file publication, cross-Resource lineage cascade або facade/direct-driver upload write є architecture stop condition.

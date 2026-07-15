@@ -3,6 +3,17 @@
 Status: target baseline
 Updated: 2026-07-10
 
+## Concrete Storage Driver profiles
+
+1. Новий driver profile декларує `filesystem-native | embedded-transactional | client-server-transactional`, exact capability/support boundary і executable conformance matrix.
+2. Shared semantic contract не стандартизує physical layout, SQL, sidecar або lock mechanism між families.
+3. Concrete commit exception не стає reject до durable reconciliation. Outcome-definite означає definite settled value; persistent unavailable durability domain може призупинити settlement/runtime і не перетворюється на ambiguous rejection.
+4. `local-sqlite-v1` використовує одну SQLite durability domain; external filesystem blob publication і independent journal append у baseline заборонені. SQLite `journal` є єдиним journal authority.
+5. PID/stale lock files, network-filesystem claims і physical layout leakage заборонені для baseline profile; readonly не виконує recovery/cleanup writes.
+6. Filesystem sidecar records не вважаються lock/directory durability primitive без verified native/platform guarantee.
+7. Client-server profiles reconcile-ять network-ambiguous COMMIT за durable `operation_id` і не маскують unknown як reject.
+8. Vendor profiles не зводяться до lowest-common-denominator, якщо це послаблює semantic guarantees.
+
 ## Source і версії
 
 1. Для нового design використовуються тільки три source files із `technical/source-specifications.md`.
@@ -79,3 +90,12 @@ Updated: 2026-07-10
 - Restore/include-deleted/cascade/purge, Mark patch/query, concrete layout, sync і hooks не входять у P3-VS3…VS5.
 
 Під час implementation, research і design треба перевіряти: чи не дублюються module graphs, чи не просочується storage layout у Core/API, чи не перетворюється IoC на service locator, чи не з'являється другий write path, чи не стають tests залежними від patching frozen runtime. Істотне відхилення вимагає architecture audit або окремої design/refactor task.
+
+## Applied P4-DG2 rules
+
+- Asset fields/URL/data use exact descriptor-safe bounded contract; only UUID and WHATWG HTTP(S) URL canonicalize.
+- Lineage same-Resource, ready-target, no self/cycle/dangling; primary explicit; reassign lineage-free/non-primary/no-active-upload.
+- Initial internal lifecycle staged-only; replacement exposes only last committed payload; Resource delete conflicts on active upload.
+- Every effective transition uses common Asset/Resource Timestamp, exact frozen locks/prepared Resources/payload action, one semantic commit/journal and post-commit atomic index swap.
+- Readonly precedes input/staging; no-change/failure has no persisted timestamp/journal mutation; proven Asset integrity fail-close maps to `STORAGE_INTEGRITY_FAILED`.
+- Physical layout, bytes transport, P5 indexes і P7 compatibility remain separate owners.

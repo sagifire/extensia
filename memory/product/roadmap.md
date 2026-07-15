@@ -77,11 +77,11 @@ Gate: кожний Resource write journal-backed; committed entry є publication
 
 ## Фаза 4 — Assets і перший concrete durable Storage Driver
 
-Стан: planned.
+Стан: P4-DG1 і P4-DG2 approved/applied target designs; concrete driver/Asset implementation ще не створена/активована.
 
 Wave IDs: паралельні `P4-DG1` concrete storage protocol і `P4-DG2` Asset contracts; `P4-DG1 -> P4-WP1` concrete driver -> `P4-VS1` Resource durability, після чого гілка приєднує погоджений `P4-DG2` перед `P4-VS2/VS3` Asset metadata/upload -> `P4-STAB`.
 
-- Уточнити й реалізувати full Storage Driver contract та один реальний driver з atomic/staged persistence, journal, storage lock і recovery primitives.
+- Реалізувати first/default `embedded-transactional/local-sqlite-v1` profile з atomic SQLite persistence, committed journal, exclusive storage session і recovery primitives після окремого P4-WP1 gate.
 - Реалізувати Asset invariants, internal/external assets, primary asset і staged upload lifecycle.
 - Перевірити crash/recovery matrix для metadata, files, upload staging і journal publication на concrete driver.
 
@@ -128,6 +128,6 @@ Gate: критерії релізу визначені окремою release ta
 
 - Dynamic extensions після startup.
 - Advanced public/experimental IoC extension modules після окремого compatibility gate.
-- Додаткові official Storage Drivers і system facades.
+- Додаткові official Storage Drivers і system facades: `filesystem-native` після native/sidecar feasibility gate та `client-server-transactional` PostgreSQL/MySQL після vendor design gate.
 - Driver-specific reconcile для direct external modifications.
 - Масштабування за межі базової single-writer-per-storage model лише після окремого architecture research.

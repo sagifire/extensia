@@ -63,14 +63,17 @@ Activation order completed: `Phase 2 gate -> BP3-01 -> TASK-0024 -> BP3-01A -> B
 ## Обслуговування Project Memory
 
 - [x] **[Done]** [TASK-07.26-0037](TASK-07.26-0037-migrate-project-memory-to-mvp-0.5/index.md) - Міграція до Starter Kit 5.0 / PDADM MVP 0.5 завершена, repeated independent audit `REVIEW_READY` і whole-task human approval прийняті.
+- [ ] **[Canceled]** [TASK-07.26-0043](TASK-07.26-0043-introduce-specification-memory-artifact/index.md) - Скасовано: зміни надмірно взаємодіють з регламентом, баланс користь/ціна поганий; FIX-001 rejected, canonical memory unchanged.
 
 ## Фаза 4 — Assets і перший concrete durable Storage Driver
 
 - [x] **[Done]** [TASK-07.26-0038](TASK-07.26-0038-prepare-phase-4-owner-gates/index.md) - Phase 4 owner-gate plan і canonical P4-DG1/P4-DG2 packages прийняті whole-task human review; design tasks не активовані.
-- [ ] **[Backlog]** [P4-DG1 / TASK-07.26-0039](TASK-07.26-0039-p4-dg1-concrete-storage-protocol/index.md) - Concrete durable storage protocol design/research; RUN-001 prepared, не activated.
-- [ ] **[Backlog]** [P4-DG2 / TASK-07.26-0040](TASK-07.26-0040-p4-dg2-asset-contracts/index.md) - Exact Asset domain/API lifecycle contract; RUN-001 prepared, не activated.
+- [x] **[Done]** [P4-DG1 / TASK-07.26-0039](TASK-07.26-0039-p4-dg1-concrete-storage-protocol/index.md) - FIX-001/FIX-002 applied, final post-application audit `PASS`, APP-07.26-0039-001 published; downstream не активовано.
+- [ ] **[Review]** [P4-DG2 / TASK-07.26-0040](TASK-07.26-0040-p4-dg2-asset-contracts/index.md) - FIX-001 applied; corrective RUN-002/FIX-002 repeated independent audit `REVIEW_READY`, human decisions pending.
+- [ ] **[Backlog]** [TASK-07.26-0041](TASK-07.26-0041-filesystem-native-storage-driver-design/index.md) - Filesystem-native driver feasibility/design для game-development: native lock/directory-sync primitives, exact sidecar formats і certification boundary; RUN-001 prepared.
+- [ ] **[Backlog]** [TASK-07.26-0042](TASK-07.26-0042-client-server-sql-storage-driver-design/index.md) - PostgreSQL/MySQL client-server transactional driver family design; RUN-001 prepared.
 
-Allowed parallelism: P4-DG1 і P4-DG2 можуть активуватися окремими рішеннями й досліджуватися паралельно. Downstream `P4-WP1`, `P4-VS1`…`P4-VS3` і `P4-STAB` не створюються до відповідних approved/applied owner gates.
+Allowed parallelism: P4-DG1 і P4-DG2 можуть активуватися окремими рішеннями й досліджуватися паралельно. TASK-0041/TASK-0042 є future family design gates і потребують окремої activation. Downstream `P4-WP1`, `P4-VS1`…`P4-VS3` і `P4-STAB` не створюються до відповідних approved/applied owner gates.
 
 ## Фаза 5 — Повний read model і синхронізація кількох instances
 

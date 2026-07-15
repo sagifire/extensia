@@ -8,7 +8,7 @@ Internal Stage: `v2`
 
 ## Поточний фокус
 
-Phase 1, Phase 2 і Phase 3 завершені та прийняті explicit human gates. `TASK-07.26-0038` завершена whole-task approval: наступну rolling wave підготовлено як backlog/prepared `P4-DG1 / TASK-0039` concrete storage protocol і `P4-DG2 / TASK-0040` Asset contracts без activation або downstream implementation shells.
+Phase 1, Phase 2 і Phase 3 завершені. `P4-DG1 / TASK-0039` і `P4-DG2 / TASK-0040` accepted/applied target designs; production driver та Asset writes/upload ще не реалізовані. TASK-0041 і TASK-0042 лишаються backlog/prepared.
 
 ## Поточний стан продукту
 
@@ -29,8 +29,10 @@ Phase 1, Phase 2 і Phase 3 завершені та прийняті explicit hu
 ## Активні задачі
 
 - `TASK-07.26-0038` done: Phase 4 planning і canonical preparation двох owner gates прийняті whole-task human review; repeated independent audit без open P0-P3.
-- `P4-DG1 / TASK-07.26-0039` backlog/prepared: concrete durable storage protocol design/research, не activated.
-- `P4-DG2 / TASK-07.26-0040` backlog/prepared: exact Asset contracts design/research, не activated.
+- `P4-DG1 / TASK-07.26-0039` done: FIX-001/FIX-002 applied, final post-application audit `PASS`, `APP-07.26-0039-001` published; downstream не активовано.
+- `P4-DG2 / TASK-07.26-0040` review/finalizing: whole-task і FIX-001 approved; exact canonical application виконується, downstream не активовано.
+- `TASK-07.26-0041` backlog/prepared: filesystem-native native/sidecar protocol research/design, не activated.
+- `TASK-07.26-0042` backlog/prepared: PostgreSQL/MySQL client-server transactional family research/design, не activated.
 
 - `P3-STAB / TASK-07.26-0036` завершена як `done`: fresh 20-file / 202-test full gate і byte-identical 126-path double pack accepted; required FIX-001 applied exactly, post-application audit `PASS`, open P0-P3 немає.
 
@@ -61,6 +63,7 @@ Phase 1, Phase 2 і Phase 3 завершені та прийняті explicit hu
 
 ## Останні рішення
 
+- Користувач 2026-07-12 approved whole-task `P4-DG1 / TASK-0039` і required FIX-002; раніше approved FIX-001 має disposition `apply unchanged`. Обидві fixations застосовано до post-application audit; downstream tasks не активовано.
 - Користувач 2026-07-11 явно схвалив whole-task result `TASK-07.26-0037`; migration фіналізована як `done`, а `TASK-0034…0036` лишаються backlog і не активовані.
 - Користувач 2026-07-11 явно доручив міграцію Project Memory зі Starter Kit 4.0 / PDADM MVP 0.4 до Starter Kit 5.0 / PDADM MVP 0.5 та дозволив послідовну task-format migration субагентами групами по 3–5 задач.
 - Користувач 2026-07-11 виконав whole-task review `P3-VS3 / TASK-07.26-0033` і явно дозволив завершити задачу як `done`; це не активує TASK-0034…0036.
@@ -129,13 +132,13 @@ Phase 1, Phase 2 і Phase 3 завершені та прийняті explicit hu
 - Усі три source specifications мають статус draft; conceptual signatures не можна випадково заморозити як public API.
 - Source specifications задають широку surface area. Реалізація без вертикальних slices створить сильний architecture pressure і ризик незавершених cross-cutting guarantees.
 - Tooling/package reproducibility, IoC composition conformance, strict internal lifecycle controller/rollback/ready-state publication і bounded public Extensia Module lifecycle/config/readonly-storage integration реалізовані та прийняті Phase 2 human gate; final write/storage contracts лишаються deferred owner gates.
-- Перший concrete Storage Driver, atomic commit protocol, journal format і recovery matrix не визначені.
+- First concrete target profile визначено як `embedded-transactional/local-sqlite-v1` в ADR-0010; production implementation і environment certification ще відсутні.
 - BP2-01 owner task застосувала canonical public read contract/ADR і shared seam design; `APP-07.26-0021-001` published. Write API, повний error catalog, hooks і release compatibility policy лишаються окремими gates.
 - Runtime reference містить історичні self-references на видалений non-IoC filename; canonical source policy явно перенаправляє до актуального IoC document.
 
 ## Наступні кроки
 
-1. Окремим explicit рішенням активувати `P4-DG1 / TASK-0039` або `P4-DG2 / TASK-0040`; вони можуть досліджуватися паралельно. Downstream implementation shells до approved/applied owner gates не створювати.
+1. Окремим owner рішенням підготувати/активувати наступний Phase 4 slice за prerequisites або активувати TASK-0041/TASK-0042; application P4-DG2 не активує downstream автоматично.
 
 ## Відкриті питання
 

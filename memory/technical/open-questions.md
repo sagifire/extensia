@@ -1,6 +1,6 @@
 # Відкриті технічні питання
 
-Updated: 2026-07-10
+Updated: 2026-07-12
 
 ## Закритий Phase 1 baseline
 
@@ -16,11 +16,9 @@ Updated: 2026-07-10
 
 ## Runtime і storage
 
-- Який concrete Storage Driver буде першим supported driver і який його physical metadata/file layout?
-- Яка atomic commit strategy узгоджує metadata, files і committed journal entry для першого driver?
-- Який concrete lock/lease mechanism і timeout потрібні першому physical driver? P3 baseline уже задає exclusive recovery-clean session, cancellation до staging і no outcome change після commit start.
-- Який physical encoding/persistence format матиме прийнята canonical positive-decimal contiguous journal sequence?
-- Який concrete staging/layout mechanism доведе outcome-definite semantic commit і recovery matrix на першому durable driver?
+- Який exact native/sidecar protocol зробить `filesystem-native` profile feasible: platform lock, directory durability, fencing, state formats і certification boundary? Owner: `TASK-07.26-0041`.
+- Які shared family та vendor-specific profiles потрібні PostgreSQL/MySQL для network-ambiguous commit, locking, schema migration і certification? Owner: `TASK-07.26-0042`.
+- Які tested environment/performance limits сертифікують `local-sqlite-v1` після P4-WP1 crash/lock/payload evidence?
 - Який trigger для External Change Sync: polling, driver notification або explicit refresh; яка cursor persistence policy?
 - Яка correctness/completeness semantics глобальних queries у `lazy` mode?
 
@@ -52,3 +50,17 @@ Updated: 2026-07-10
 - Dense order/root append/insertion move/coarse hierarchy lock/atomic prepared set accepted.
 - Leaf soft delete/default invisibility accepted; restore/include-deleted/cascade/purge deferred.
 - Full-replace Marks, namespace-replace/delete KV, batch index і typed integrity fail-close accepted.
+
+## Закритий P4-DG1 baseline
+
+- Перший concrete profile — `embedded-transactional/local-sqlite-v1`; одна SQLite durability domain, rollback journal, exclusive connection lease, canonical TEXT sequence і recovery/readonly/integrity gates прийняті в ADR-0010.
+- Canonical driver families: `filesystem-native`, `embedded-transactional`, `client-server-transactional`. Shared semantic port не стандартизує family-specific physical layout, SQL або locks.
+- Physical implementation/certification ще не виконані; P4-WP1 лишається окремим gate.
+
+## Закритий P4-DG2 baseline
+
+- U-21: lineage same-Resource/ready/acyclic/no-dangling; primary explicit, delete leaves none, reassign non-primary and lineage-free.
+- U-22: exact field/MIME/extension/WHATWG HTTP(S) URL validation fixed in `asset-contract.md`.
+- U-23: exact `Asset.data` depth/node/container/string/canonical UTF-8 limits fixed; schema evolution remains P7-WP1.
+- U-24: internal create staged-only; replacement retains old committed payload; active upload blocks Resource delete.
+- Still open: application bytes transport, executable driver upload adapter/performance/certification, P5 global indexes/sync and P7 API/schema freeze.

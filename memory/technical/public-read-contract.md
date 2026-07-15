@@ -140,3 +140,7 @@ One shared internal seam не є package API. BP2-01A materialized `src/system-e
 | `createResource(anything)` while started | `STORAGE_READONLY`; input uninspected, no mutation |
 
 Root factory/module/result/scalars/snapshots and two reads are `public-stable-candidate` for `0.1.0`; driver shape and readonly command are `experimental-phase-2`; `inspect()` is `provisional-safe-tooling`; Registry/provider/read-port seam is `internal-versioned-by-task`; custom facades, plugins/hooks and advanced IoC are `deferred`. Final error catalog and release compatibility policy remain open.
+
+## P4-DG2 compatibility note
+
+Public `AssetSnapshot` field shape is unchanged. Accepted target valid values/aggregate relations are tightened by [Asset semantic contract](asset-contract.md). P4 metadata methods/errors remain `experimental-phase-4` until implementation and P7 compatibility freeze; Phase 2 implemented reads are not rewritten by this note.

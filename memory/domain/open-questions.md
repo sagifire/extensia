@@ -13,11 +13,14 @@ Updated: 2026-07-10
 
 ## Asset
 
-- Чи буде `derived_from` між assets різних Resources дозволений у stabilized contract, чи бажане same-resource правило стане hard invariant?
-- Що відбувається з primary designation під час delete/move primary Asset?
-- Які validation/normalization rules потрібні для `type`, `role`, `mime`, `extension` і external `url`?
-- Які size limits, schema-versioning policy та додаткові compatibility constraints потрібні для `Asset.data` поверх уже прийнятого readonly JSON-safe object-or-null baseline?
-- Чи може internal Asset створюватися одразу з готовим file без visible `is_on_uploading = true` phase?
+Немає відкритих P4-DG2 blockers. Application bytes transport, P5 indexes/sync і P7 schema/API freeze лишаються technical owner gates.
+
+## Закритий P4-DG2 baseline
+
+- `derived_from` same-Resource, ready-target, acyclic і no-dangling; delete/reassign conflicts без implicit rewrite.
+- Primary explicit; delete leaves none; reassign non-primary; initial-uploading not primary.
+- Exact fields/MIME/extension/WHATWG HTTP(S) URL та `Asset.data` limits defined in `technical/asset-contract.md`.
+- Internal create staged-only; replacement retains last committed payload; active upload blocks Resource delete.
 
 ## Mark і KV
 

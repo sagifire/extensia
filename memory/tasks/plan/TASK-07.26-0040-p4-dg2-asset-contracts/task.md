@@ -1,20 +1,20 @@
 # TASK-07.26-0040: P4-DG2 Asset contracts
 
-Task Status: backlog
+Task Status: review
 Type: design
 Created: 2026-07-12
 Owner Role: Agent Architect
-Current Run: RUN-001
+Current Run: RUN-002
 
 ## Поточний стан
 
-Run Status: prepared
-Progress: Контракт P4-DG2 і RUN-001 підготовлені; виконання не активоване.
-Acceptance: 0/8
+Run Status: review-ready
+Progress: RUN-001/FIX-001 approved and applied; corrective RUN-002/FIX-002 passed repeated independent audit.
+Acceptance: 4/4 corrective
 Blockers: none
 Blocked Phase: n/a
-Pending Decisions: Asset validation; lineage; ownership/primary lifecycle; data limits; timestamp semantics; initial internal-file lifecycle; metadata/upload boundary; public command/result contract.
-Next Action: Окремим explicit рішенням активувати RUN-001; під час execution використовувати доступне P4-DG1 capability evidence без блокування semantic design або перегляду вже визначеної межі.
+Pending Decisions: corrective RUN-002 whole-task review and separate required FIX-002 approval
+Next Action: Human decision `approve | request changes | cancel` plus fixation-specific `approve | reject` for FIX-002.
 
 ## Мета
 
@@ -85,15 +85,17 @@ Phase 3 завершила journal-backed Resource writes на deterministic ful
 
 ## Прогони
 
-- [RUN-001](RUN-001/index.md) — prepared — exact Asset contract research/design.
+- [RUN-001](RUN-001/index.md) — changes-requested — exact FIX-001 applied; post-application findings transferred to RUN-002.
+- [RUN-002](RUN-002/index.md) — review-ready — corrective domain upward-consistency fixation; repeated independent audit `REVIEW_READY`.
 
 ## Дослідження
 
-Немає; `RSCH-001` створюється після активації RUN-001.
+- [RSCH-001](RSCH-001.md) — completed; `final-result`; exact Asset semantic contract і U-21..U-24 disposition.
 
 ## Фіксації
 
-Немає; exact proposals створюються під час RUN-001 і не застосовуються без human approval.
+- [FIX-001](FIX-001.md) — required, applied 2026-07-15; exact mechanical application verified, corrective upward consistency owned by FIX-002.
+- [FIX-002](FIX-002.md) — required, proposed; corrective exact domain wording/timestamp closure, not applied.
 
 ## Запити на рішення
 
@@ -105,14 +107,14 @@ Phase 3 завершила journal-backed Resource writes на deterministic ful
 
 ## Human Review
 
-Status: not-ready
-Requested: n/a
-Reviewed: pending
-Approval Source: n/a
-Approved Fixations: none
+Status: requested
+Requested: 2026-07-15 (corrective RUN-002 re-review)
+Reviewed: pending corrective decision; RUN-001 approved 2026-07-15
+Approval Source: pending corrective decision; retained RUN-001 user decision 2026-07-15 (`Task: approve`)
+Approved Fixations: FIX-001 (`Required FIX-001: approve`)
 Rejected Fixations: none
-Follow-up Decisions: pending
-Decision Notes: RUN-001 не активований.
+Follow-up Decisions: none
+Decision Notes: Whole-task/FIX-001 approval retained and FIX-001 applied. Corrective RUN-002 passed repeated independent audit; new whole-task review and separate FIX-002 decision requested.
 
 ## Фінальний результат
 
