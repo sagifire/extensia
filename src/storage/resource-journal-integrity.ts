@@ -39,7 +39,7 @@ export function journalSequence(value: bigint): JournalSequence {
   return value.toString() as JournalSequence;
 }
 
-function canonicalize(value: unknown): string {
+export function canonicalResourceStorageJson(value: unknown): string {
   if (value === null || typeof value !== "object") {
     const encoded = JSON.stringify(value);
     if (encoded === undefined) {
@@ -48,12 +48,15 @@ function canonicalize(value: unknown): string {
     return encoded;
   }
   if (Array.isArray(value)) {
-    return `[${value.map(canonicalize).join(",")}]`;
+    return `[${value.map(canonicalResourceStorageJson).join(",")}]`;
   }
   const record = value as Readonly<Record<string, unknown>>;
   return `{${Object.keys(record)
     .sort()
-    .map((key) => `${JSON.stringify(key)}:${canonicalize(record[key])}`)
+    .map(
+      (key) =>
+        `${JSON.stringify(key)}:${canonicalResourceStorageJson(record[key])}`,
+    )
     .join(",")}}`;
 }
 
@@ -62,7 +65,7 @@ export function computeResourceWriteSetFingerprint(
 ): WriteSetFingerprint {
   const detached = resources.map(buildResourceSnapshot);
   return createHash("sha256")
-    .update(canonicalize(detached), "utf8")
+    .update(canonicalResourceStorageJson(detached), "utf8")
     .digest("hex") as WriteSetFingerprint;
 }
 
@@ -92,8 +95,8 @@ export function equalCommittedOperationDrafts(
   right: CommittedOperationDraft,
 ): boolean {
   return (
-    canonicalize(cloneCommittedOperationDraft(left)) ===
-    canonicalize(cloneCommittedOperationDraft(right))
+    canonicalResourceStorageJson(cloneCommittedOperationDraft(left)) ===
+    canonicalResourceStorageJson(cloneCommittedOperationDraft(right))
   );
 }
 

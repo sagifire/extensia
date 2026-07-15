@@ -1,6 +1,6 @@
 # Відкриті технічні питання
 
-Updated: 2026-07-12
+Updated: 2026-07-15
 
 ## Закритий Phase 1 baseline
 
@@ -16,7 +16,7 @@ Updated: 2026-07-12
 
 ## Runtime і storage
 
-- Які tested environment/performance limits сертифікують `local-sqlite-v1` після P4-WP1 crash/lock/payload evidence?
+- Які додаткові Node.js minor, Windows/NTFS device/cache, Linux ext4/XFS, payload-volume/latency та destructive power-loss profiles треба сертифікувати понад bounded P4-WP1 Windows local NTFS process-crash evidence?
 - Який trigger для External Change Sync: polling, driver notification або explicit refresh; яка cursor persistence policy?
 - Яка correctness/completeness semantics глобальних queries у `lazy` mode?
 
@@ -53,7 +53,7 @@ Updated: 2026-07-12
 
 - Перший concrete profile — `embedded-transactional/local-sqlite-v1`; одна SQLite durability domain, rollback journal, exclusive connection lease, canonical TEXT sequence і recovery/readonly/integrity gates прийняті в ADR-0010.
 - Canonical driver families: `filesystem-native`, `embedded-transactional`, `client-server-transactional`. Shared semantic port не стандартизує family-specific physical layout, SQL або locks.
-- Physical implementation/certification ще не виконані; P4-WP1 лишається окремим gate.
+- P4-WP1 реалізувала internal `local-sqlite-v1` і bounded Windows local fixed NTFS process-crash/lock/readonly/corruption/payload-seam evidence. Public/default driver surface, broader Node/OS/filesystem profiles, performance envelopes і destructive power-loss certificates лишаються окремими gates.
 
 ## Закритий P4-DG2 baseline
 

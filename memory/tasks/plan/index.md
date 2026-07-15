@@ -54,6 +54,7 @@
 - [TASK-07.26-0046-filesystem-native-linux-process-crash-certification](TASK-07.26-0046-filesystem-native-linux-process-crash-certification/index.md) - Backlog/prepared exact-profile Linux process-crash certification.
 - [TASK-07.26-0047-filesystem-native-linux-power-loss-certification](TASK-07.26-0047-filesystem-native-linux-power-loss-certification/index.md) - Backlog/prepared optional destructive Linux power-loss certification.
 - [TASK-07.26-0048-filesystem-native-windows-ntfs-research](TASK-07.26-0048-filesystem-native-windows-ntfs-research/index.md) - Backlog/prepared research-only Windows/NTFS feasibility gate.
+- [TASK-07.26-0049-p4-wp1-local-sqlite-driver](TASK-07.26-0049-p4-wp1-local-sqlite-driver/index.md) - Done `P4-WP1`: internal `embedded-transactional/local-sqlite-v1`, bounded physical proof і required FIX-001 accepted/applied; downstream не активований.
 
 ## Файли
 

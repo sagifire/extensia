@@ -72,8 +72,9 @@ Activation order completed: `Phase 2 gate -> BP3-01 -> TASK-0024 -> BP3-01A -> B
 - [x] **[Done]** [P4-DG2 / TASK-07.26-0040](TASK-07.26-0040-p4-dg2-asset-contracts/index.md) - FIX-001/FIX-002/FIX-003 approved and applied; final repeated post-application audit `PASS`, downstream не активовано.
 - [x] **[Done]** [TASK-07.26-0041](TASK-07.26-0041-filesystem-native-storage-driver-design/index.md) - Filesystem-native design прийнятий: native helper + immutable graph/one-HEAD protocol; FIX-001 applied, zero certified profiles, п'ять follow-up tasks підготовлено без activation.
 - [x] **[Done]** [TASK-07.26-0042](TASK-07.26-0042-client-server-sql-storage-driver-design/index.md) - PostgreSQL/MySQL family design і FIX-001 approved/applied exactly; final repeated post-application audit `PASS`, downstream skipped.
+- [x] **[Done]** [P4-WP1 / TASK-07.26-0049](TASK-07.26-0049-p4-wp1-local-sqlite-driver/index.md) - Internal Node-native `local-sqlite-v1`, 234-test gate і bounded physical proof accepted; FIX-001 applied exactly, downstream не активований.
 
-Allowed parallelism: P4-DG1 і P4-DG2 могли активуватися окремими рішеннями й досліджуватися паралельно. TASK-0041 завершена, а TASK-0042 лишається future family design gate й потребує окремої activation. Downstream `P4-WP1`, `P4-VS1`…`P4-VS3` і `P4-STAB` не створюються до відповідних approved/applied owner gates.
+Allowed parallelism: P4-DG1 і P4-DG2 могли активуватися окремими рішеннями й досліджуватися паралельно. Обидва owner gates accepted/applied. `P4-WP1` активовано окремим explicit owner action; `P4-VS1`…`P4-VS3` і `P4-STAB` лишаються proposals до відповідних predecessor gates.
 
 ## Майбутня фаза FN — Filesystem-native Storage Driver
 

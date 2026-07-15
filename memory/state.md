@@ -8,7 +8,7 @@ Internal Stage: `v2`
 
 ## Поточний фокус
 
-Phase 1, Phase 2 і Phase 3 завершені. `P4-DG1 / TASK-0039` і `P4-DG2 / TASK-0040` accepted/applied target designs; production driver та Asset writes/upload ще не реалізовані. TASK-0041 завершена: filesystem-native design прийнятий і FIX-001 applied; окрема майбутня фаза FN має п'ять backlog/prepared задач без activation. TASK-0042 завершена: PostgreSQL/MySQL family design прийнятий, FIX-001 applied, final post-application audit `PASS`; downstream skipped.
+Phase 1, Phase 2 і Phase 3 завершені. `P4-DG1 / TASK-0039` і `P4-DG2 / TASK-0040` accepted/applied target designs; Asset writes/upload ще не реалізовані. `P4-WP1 / TASK-0049` done: internal `embedded-transactional/local-sqlite-v1`, bounded physical proof і FIX-001 прийняті/applied; downstream не активований. TASK-0041 завершена: filesystem-native design прийнятий і FIX-001 applied; окрема майбутня фаза FN має п'ять backlog/prepared задач без activation. TASK-0042 завершена: PostgreSQL/MySQL family design прийнятий, FIX-001 applied, final post-application audit `PASS`; downstream skipped.
 
 ## Поточний стан продукту
 
@@ -34,6 +34,7 @@ Phase 1, Phase 2 і Phase 3 завершені. `P4-DG1 / TASK-0039` і `P4-DG2 
 - `TASK-07.26-0041` done: conditional native-helper feasibility, immutable graph/one-HEAD protocol, exact formats/cut points і required FIX-001 прийняті; fixation applied, жоден profile не certified.
 - Future phase FN backlog/prepared: TASK-0044 Linux helper spike → TASK-0045 driver implementation → TASK-0046 process-crash certification → optional TASK-0047 power-loss certification; TASK-0048 Windows/NTFS research може виконуватися окремо. Жодну задачу не активовано.
 - `TASK-07.26-0042` done: PostgreSQL/MySQL family contract і vendor profiles прийняті, required FIX-001 approved/applied exactly, final repeated post-application audit `PASS`; downstream tasks skipped і не створені.
+- `P4-WP1 / TASK-07.26-0049` done: canonical Node.js 24 `node:sqlite` implementation, 234-test full gate і bounded Windows local NTFS physical proof прийняті; required FIX-001 applied exactly, final post-application audit `PASS`, P4-VS1 не створена.
 
 - `P3-STAB / TASK-07.26-0036` завершена як `done`: fresh 20-file / 202-test full gate і byte-identical 126-path double pack accepted; required FIX-001 applied exactly, post-application audit `PASS`, open P0-P3 немає.
 
@@ -133,7 +134,7 @@ Phase 1, Phase 2 і Phase 3 завершені. `P4-DG1 / TASK-0039` і `P4-DG2 
 - Усі три source specifications мають статус draft; conceptual signatures не можна випадково заморозити як public API.
 - Source specifications задають широку surface area. Реалізація без вертикальних slices створить сильний architecture pressure і ризик незавершених cross-cutting guarantees.
 - Tooling/package reproducibility, IoC composition conformance, strict internal lifecycle controller/rollback/ready-state publication і bounded public Extensia Module lifecycle/config/readonly-storage integration реалізовані та прийняті Phase 2 human gate; final write/storage contracts лишаються deferred owner gates.
-- First concrete target profile визначено як `embedded-transactional/local-sqlite-v1` в ADR-0010; production implementation і environment certification ще відсутні.
+- Internal first concrete profile `embedded-transactional/local-sqlite-v1` реалізований і має bounded exact-host/root Windows local NTFS process-crash evidence; public/default surface, broader environment/performance та destructive power-loss certification ще відсутні.
 - BP2-01 owner task застосувала canonical public read contract/ADR і shared seam design; `APP-07.26-0021-001` published. Write API, повний error catalog, hooks і release compatibility policy лишаються окремими gates.
 - Runtime reference містить історичні self-references на видалений non-IoC filename; canonical source policy явно перенаправляє до актуального IoC document.
 
