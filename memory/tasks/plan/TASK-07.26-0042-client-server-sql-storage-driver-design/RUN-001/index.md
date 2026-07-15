@@ -2,7 +2,7 @@
 
 ## Призначення
 
-Підготовлений перший run порівняльного research/design для PostgreSQL/MySQL client-server transactional Storage Driver family.
+Completed перший run: PostgreSQL/MySQL design approved, FIX-001 applied exactly, final repeated post-application audit `PASS`.
 
 ## Папки
 
@@ -11,5 +11,4 @@
 ## Файли
 
 - [Context](context.md) - Заморожуваний після активації snapshot вимог, scope, acceptance і verification.
-
-`result.md` буде створено лише під час активації run.
+- [Result](result.md) - Frozen execution, verification, self-review та independent audit report.

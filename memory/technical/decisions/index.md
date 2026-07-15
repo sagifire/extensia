@@ -21,3 +21,5 @@ ADR-like рішення з технічними або структурними 
 - [ADR-0009 Resource order, delete, Mark і KV](ADR-0009-resource-order-delete-mark-kv.md) - Dense order, insertion move, leaf soft delete, replacement aggregates і typed integrity fail-close.
 - [ADR-0010: Local SQLite storage protocol](ADR-0010-local-sqlite-storage-protocol.md) - Accepted target concrete embedded-transactional profile і bounded physical durability protocol.
 - [ADR-0011: Asset semantic lifecycle](ADR-0011-asset-semantic-lifecycle.md) - Same-Resource lineage, explicit primary, staged-only internal lifecycle і one-commit payload action.
+- [ADR-0012: Filesystem-native Storage Driver protocol](ADR-0012-filesystem-native-storage-protocol.md) - Умовна feasibility через native helper, immutable graph і one-HEAD committed authority.
+- [ADR-0013: Client-server transactional Storage Driver family](ADR-0013-client-server-transactional-storage.md) - Shared semantic contract, separate PostgreSQL/MySQL profiles і durable ambiguous-commit reconciliation.

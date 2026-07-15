@@ -1,6 +1,6 @@
 # Стан проекту
 
-Updated: 2026-07-12
+Updated: 2026-07-15
 Starter Kit Version: 5.0
 PDADM MVP Version: 0.5
 Target Release: `0.1.0`
@@ -8,7 +8,7 @@ Internal Stage: `v2`
 
 ## Поточний фокус
 
-Phase 1, Phase 2 і Phase 3 завершені. `P4-DG1 / TASK-0039` і `P4-DG2 / TASK-0040` accepted/applied target designs; production driver та Asset writes/upload ще не реалізовані. TASK-0041 і TASK-0042 лишаються backlog/prepared.
+Phase 1, Phase 2 і Phase 3 завершені. `P4-DG1 / TASK-0039` і `P4-DG2 / TASK-0040` accepted/applied target designs; production driver та Asset writes/upload ще не реалізовані. TASK-0041 завершена: filesystem-native design прийнятий і FIX-001 applied; окрема майбутня фаза FN має п'ять backlog/prepared задач без activation. TASK-0042 завершена: PostgreSQL/MySQL family design прийнятий, FIX-001 applied, final post-application audit `PASS`; downstream skipped.
 
 ## Поточний стан продукту
 
@@ -30,9 +30,10 @@ Phase 1, Phase 2 і Phase 3 завершені. `P4-DG1 / TASK-0039` і `P4-DG2 
 
 - `TASK-07.26-0038` done: Phase 4 planning і canonical preparation двох owner gates прийняті whole-task human review; repeated independent audit без open P0-P3.
 - `P4-DG1 / TASK-07.26-0039` done: FIX-001/FIX-002 applied, final post-application audit `PASS`, `APP-07.26-0039-001` published; downstream не активовано.
-- `P4-DG2 / TASK-07.26-0040` review/finalizing: whole-task і FIX-001 approved; exact canonical application виконується, downstream не активовано.
-- `TASK-07.26-0041` backlog/prepared: filesystem-native native/sidecar protocol research/design, не activated.
-- `TASK-07.26-0042` backlog/prepared: PostgreSQL/MySQL client-server transactional family research/design, не activated.
+- `P4-DG2 / TASK-07.26-0040` done: FIX-001/FIX-002/FIX-003 approved and applied; final repeated post-application audit `PASS`, downstream не активовано.
+- `TASK-07.26-0041` done: conditional native-helper feasibility, immutable graph/one-HEAD protocol, exact formats/cut points і required FIX-001 прийняті; fixation applied, жоден profile не certified.
+- Future phase FN backlog/prepared: TASK-0044 Linux helper spike → TASK-0045 driver implementation → TASK-0046 process-crash certification → optional TASK-0047 power-loss certification; TASK-0048 Windows/NTFS research може виконуватися окремо. Жодну задачу не активовано.
+- `TASK-07.26-0042` done: PostgreSQL/MySQL family contract і vendor profiles прийняті, required FIX-001 approved/applied exactly, final repeated post-application audit `PASS`; downstream tasks skipped і не створені.
 
 - `P3-STAB / TASK-07.26-0036` завершена як `done`: fresh 20-file / 202-test full gate і byte-identical 126-path double pack accepted; required FIX-001 applied exactly, post-application audit `PASS`, open P0-P3 немає.
 
@@ -138,7 +139,7 @@ Phase 1, Phase 2 і Phase 3 завершені. `P4-DG1 / TASK-0039` і `P4-DG2 
 
 ## Наступні кроки
 
-1. Окремим owner рішенням підготувати/активувати наступний Phase 4 slice за prerequisites або активувати TASK-0041/TASK-0042; application P4-DG2 не активує downstream автоматично.
+1. За окремим owner рішенням можна активувати TASK-0044 або TASK-0048; client-server vendor tasks також потребують окремого створення/activation. Жодна downstream activation не відбувається автоматично.
 
 ## Відкриті питання
 

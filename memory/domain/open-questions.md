@@ -1,12 +1,11 @@
 # Відкриті доменні питання
 
-Updated: 2026-07-10
+Updated: 2026-07-15
 
 Ці питання не мають неявних відповідей у target model. До окремого рішення implementation повинна або не надавати відповідну behavior, або працювати за явно локалізованим experimental contract.
 
 ## Resource
 
-- Як `updated_at` змінюється для Asset? Для accepted Phase 3 move/delete/Mark/KV усі effective staged Resources мають common operation timestamp; parent не bump-иться лише через derived children projection.
 - Яка майбутня restore/include-deleted/cascade/purge semantics? Phase 3 already fixes leaf-only Resource tombstone і default invisibility.
 - Які integrations або plugins першими визначатимуть behavior `locked` і `hidden`, і чи потрібні reserved hook names для них?
 - Які future cross-storage/migration rules потрібні hierarchy? Phase 3 already fixes existing active parent, cycle-free graph, safe-integer dense order і exact insertion range.
@@ -17,7 +16,8 @@ Updated: 2026-07-10
 
 ## Закритий P4-DG2 baseline
 
-- `derived_from` same-Resource, ready-target, acyclic і no-dangling; delete/reassign conflicts без implicit rewrite.
+- Кожний effective Asset/file-state transition використовує common operation Timestamp для changed Assets і affected owning Resources; no-change/failure не змінює persisted timestamps.
+- `derived_from` same-Resource, ready-representation-target, acyclic і no-dangling; delete/reassign conflicts без implicit rewrite.
 - Primary explicit; delete leaves none; reassign non-primary; initial-uploading not primary.
 - Exact fields/MIME/extension/WHATWG HTTP(S) URL та `Asset.data` limits defined in `technical/asset-contract.md`.
 - Internal create staged-only; replacement retains last committed payload; active upload blocks Resource delete.

@@ -2,7 +2,7 @@
 
 ## Призначення
 
-Підготовлений перший run filesystem-native feasibility і physical protocol research/design.
+Завершений перший run filesystem-native feasibility і physical protocol research/design.
 
 ## Папки
 
@@ -10,6 +10,6 @@
 
 ## Файли
 
-- [Context](context.md) - Заморожуваний після активації snapshot вимог, scope, acceptance і verification.
-
-`result.md` буде створено лише під час активації run.
+- [Context](context.md) - Заморожений після активації snapshot вимог, scope, acceptance і verification.
+- [Result](result.md) - Завершені execution, verification, self-review, independent audit і дані Review Request.
+- [Filesystem capability probe](filesystem-capability-probe.mjs) - Research-only executable matrix для Node/platform filesystem capabilities і negative certification evidence.

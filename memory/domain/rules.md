@@ -44,7 +44,7 @@ Detailed Source: `memory/references/extensia-v2/domain-model-v2.md`
 4. External asset вимагає `is_external = true`, `url != null`, `is_on_uploading = false`.
 5. Internal asset вимагає `is_external = false`, `url = null`; під час upload `is_on_uploading` може бути `true`.
 6. `derived_from` не створює ownership або containment relation.
-7. Link на asset того самого Resource для `derived_from` є бажаним, але не hard invariant поточного draft.
+7. `derived_from`, якщо задано, посилається на existing Asset того самого Resource з ready representation, не на self і не створює cycle або dangling relation.
 8. `data` є asset-local metadata й не підміняє Marks або resource-level KV.
 
 ## Mark
@@ -82,7 +82,7 @@ Detailed Source: `memory/references/extensia-v2/domain-model-v2.md`
 
 1. Asset ID globally unique in storage; кожен Asset належить одному active owning Resource для writes, а aggregate зберігає Assets sorted binary by ID.
 2. Exact field/URL/data envelope визначає `technical/asset-contract.md`; silent normalization відсутня, крім canonical UUID/WHATWG URL.
-3. `derived_from` посилається лише на existing ready Asset того самого Resource, не self і не створює cycle/dangling relation.
+3. `derived_from` посилається лише на existing Asset того самого Resource з ready representation (external-ready, internal ready або replacement-uploading), не self і не створює cycle/dangling relation.
 4. Primary selection/clear explicit; initial-uploading internal Asset не primary; delete primary leaves none; reassign clears primary й дозволений лише без lineage/active upload.
 5. Internal create staged-only; replacement тримає last committed payload visible. Resource delete за active upload fail-ить `RESOURCE_ASSET_UPLOAD_ACTIVE` до mutation.
 6. Effective Asset/file-state transition bump-ить changed Asset та owning Resource common Timestamp; no-change/failure не змінює persisted timestamps.

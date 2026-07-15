@@ -1,6 +1,6 @@
 # TASK-07.26-0041: Filesystem-native Storage Driver design
 
-Task Status: backlog
+Task Status: done
 Type: research/design
 Created: 2026-07-12
 Owner Role: Agent Architect
@@ -8,13 +8,13 @@ Current Run: RUN-001
 
 ## Поточний стан
 
-Run Status: prepared
-Progress: Контракт дослідження й дизайну та RUN-001 підготовлені; виконання не активоване.
-Acceptance: 0/9
+Run Status: completed
+Progress: Whole-task result прийнятий, FIX-001 applied, п'ять backlog/prepared follow-up tasks створені й validated у future phase FN; жодну не активовано.
+Acceptance: 9/9
 Blockers: none
 Blocked Phase: n/a
-Pending Decisions: feasibility boundary; supported platform/filesystem profiles; lock і directory-sync primitives; sidecar ownership/state/formats; stale/crash/fencing semantics; namespace publication; conformance evidence.
-Next Action: Окремим explicit рішенням активувати RUN-001 після прийняття canonical taxonomy Storage Driver families у owner task.
+Pending Decisions: none; approved follow-up tasks створюються backlog/prepared і не активуються.
+Next Action: За окремим owner рішенням активувати TASK-0044 або незалежну TASK-0048; task closure не активує downstream.
 
 ## Мета
 
@@ -81,38 +81,44 @@ Next Action: Окремим explicit рішенням активувати RUN-0
 
 ## Прогони
 
-- [RUN-001](RUN-001/index.md) — prepared — filesystem-native feasibility і exact physical protocol research/design.
+- [RUN-001](RUN-001/index.md) — completed — filesystem-native feasibility і exact physical protocol research/design.
 
 ## Дослідження
 
-Немає; `RSCH-001` створюється після активації RUN-001.
+- [RSCH-001](RSCH-001.md) — completed / `final-result` — feasibility, alternatives, exact protocol і certification boundary.
 
 ## Фіксації
 
-Немає; exact proposals створюються під час RUN-001 і не застосовуються без human approval.
+- [FIX-001](FIX-001.md) — applied / required — canonical filesystem-native profile contract, схвалено й застосовано 2026-07-15.
 
 ## Запити на рішення
 
-Немає на етапі підготовки.
+Немає; whole-task, FIX-001 і створення п'яти follow-up tasks схвалені 2026-07-15. Activation кожної follow-up task лишається окремим майбутнім рішенням.
 
 ## Запропоновані follow-up задачі
 
-Немає; implementation або platform-certification slices дозволено пропонувати лише після verdict RUN-001.
+- [TASK-07.26-0044](../TASK-07.26-0044-filesystem-native-linux-helper-spike/index.md) — research-only native helper, path containment, OFD lock, directory-sync і `NAME_MAX` proof.
+- [TASK-07.26-0045](../TASK-07.26-0045-filesystem-native-driver-implementation/index.md) — bounded implementation після accepted TASK-0044.
+- [TASK-07.26-0046](../TASK-07.26-0046-filesystem-native-linux-process-crash-certification/index.md) — executable local-ext4 process-crash certificate після TASK-0044/0045.
+- [TASK-07.26-0047](../TASK-07.26-0047-filesystem-native-linux-power-loss-certification/index.md) — optional destructive power-loss gate після TASK-0046 й окремого environment approval.
+- [TASK-07.26-0048](../TASK-07.26-0048-filesystem-native-windows-ntfs-research/index.md) — окремий Windows/NTFS proof gate для `LockFileEx`, reparse safety і replace/directory durability.
+
+Усі follow-up задачі створені як `backlog/prepared` у future phase FN і не активовані.
 
 ## Human Review
 
-Status: not-ready
-Requested: n/a
-Reviewed: pending
-Approval Source: n/a
-Approved Fixations: none
+Status: approved
+Requested: 2026-07-15
+Reviewed: 2026-07-15
+Approval Source: user message 2026-07-15 — «підтверджую її виконання»
+Approved Fixations: FIX-001
 Rejected Fixations: none
-Follow-up Decisions: pending
-Decision Notes: RUN-001 не активований.
+Follow-up Decisions: створити всі п'ять proposal tasks в окремій запланованій майбутній фазі; activation не надана.
+Decision Notes: RUN-001 пройшов final independent audit `REVIEW_READY`, AC1–AC9 виконані; whole-task і FIX-001 схвалено, exact fixation застосовано.
 
 ## Фінальний результат
 
-Completed: pending
-Final Run: pending
-Summary: pending
-Residual Risks: pending
+Completed: 2026-07-15
+Final Run: RUN-001
+Summary: Filesystem-native target design прийнятий; exact FIX-001 applied; п'ять follow-up task packages створені у future phase FN без activation.
+Residual Risks: zero certified profiles; native ABI/build/signing pressure; O(history)/immutable retention; Windows durability unresolved; derived staging name потребує `NAME_MAX`/`ENAMETOOLONG` gate.

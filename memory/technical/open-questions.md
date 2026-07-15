@@ -16,8 +16,6 @@ Updated: 2026-07-12
 
 ## Runtime і storage
 
-- Який exact native/sidecar protocol зробить `filesystem-native` profile feasible: platform lock, directory durability, fencing, state formats і certification boundary? Owner: `TASK-07.26-0041`.
-- Які shared family та vendor-specific profiles потрібні PostgreSQL/MySQL для network-ambiguous commit, locking, schema migration і certification? Owner: `TASK-07.26-0042`.
 - Які tested environment/performance limits сертифікують `local-sqlite-v1` після P4-WP1 crash/lock/payload evidence?
 - Який trigger для External Change Sync: polling, driver notification або explicit refresh; яка cursor persistence policy?
 - Яка correctness/completeness semantics глобальних queries у `lazy` mode?
@@ -64,3 +62,15 @@ Updated: 2026-07-12
 - U-23: exact `Asset.data` depth/node/container/string/canonical UTF-8 limits fixed; schema evolution remains P7-WP1.
 - U-24: internal create staged-only; replacement retains old committed payload; active upload blocks Resource delete.
 - Still open: application bytes transport, executable driver upload adapter/performance/certification, P5 global indexes/sync and P7 API/schema freeze.
+
+## Закритий filesystem-native design gate
+
+- `filesystem-native` умовно здійсненний через native helper + immutable graph + one `HEAD`; чистий `node:fs`, PID-time і sidecar-only lock відхилені.
+- Жоден profile не certified. `linux-local-ext4-v1` є candidate; process-crash і destructive power-loss evidence мають окремі certificate classes.
+- Лишаються відкритими: implementation packaging/limits, exact Linux certificate, Windows/NTFS durability primitive, XFS/APFS profiles і compaction/GC reader safety.
+
+## Закритий client-server transactional design gate
+
+- Один semantic family contract і separate PostgreSQL/MySQL physical profiles; runtime-lifetime full/readonly/migrator advisory gate + transactional control-row lock, one metadata/payload/journal transaction.
+- Ambiguous commit має durable operation-ID + lineage reconciliation; changed-lineage absence, unavailable/unknown primary лишають settlement suspended без exact history-preservation certificate; blind retry і false reject заборонені.
+- PostgreSQL 16–18 і MySQL 8.4 LTS є uncertified candidates; залишаються відкритими shared conformance foundation, vendor dependency/implementation/certificates, performance limits і optional HA topology certificates.

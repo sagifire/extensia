@@ -1,20 +1,20 @@
 # TASK-07.26-0040: P4-DG2 Asset contracts
 
-Task Status: review
+Task Status: done
 Type: design
 Created: 2026-07-12
 Owner Role: Agent Architect
-Current Run: RUN-002
+Current Run: RUN-003
 
 ## Поточний стан
 
-Run Status: review-ready
-Progress: RUN-001/FIX-001 approved and applied; corrective RUN-002/FIX-002 passed repeated independent audit.
-Acceptance: 4/4 corrective
+Run Status: completed
+Progress: FIX-001/FIX-002/FIX-003 approved and applied; final post-application audit `PASS`.
+Acceptance: 4/4 final corrective
 Blockers: none
 Blocked Phase: n/a
-Pending Decisions: corrective RUN-002 whole-task review and separate required FIX-002 approval
-Next Action: Human decision `approve | request changes | cancel` plus fixation-specific `approve | reject` for FIX-002.
+Pending Decisions: none
+Next Action: none; any downstream P4 slice requires separate activation.
 
 ## Мета
 
@@ -86,7 +86,8 @@ Phase 3 завершила journal-backed Resource writes на deterministic ful
 ## Прогони
 
 - [RUN-001](RUN-001/index.md) — changes-requested — exact FIX-001 applied; post-application findings transferred to RUN-002.
-- [RUN-002](RUN-002/index.md) — review-ready — corrective domain upward-consistency fixation; repeated independent audit `REVIEW_READY`.
+- [RUN-002](RUN-002/index.md) — changes-requested — approved FIX-002 applied exactly; final audit findings transferred to RUN-003.
+- [RUN-003](RUN-003/index.md) — completed — approved FIX-003 applied exactly; final post-application audit `PASS`.
 
 ## Дослідження
 
@@ -95,7 +96,8 @@ Phase 3 завершила journal-backed Resource writes на deterministic ful
 ## Фіксації
 
 - [FIX-001](FIX-001.md) — required, applied 2026-07-15; exact mechanical application verified, corrective upward consistency owned by FIX-002.
-- [FIX-002](FIX-002.md) — required, proposed; corrective exact domain wording/timestamp closure, not applied.
+- [FIX-002](FIX-002.md) — required, approved and applied 2026-07-15; corrective exact domain wording/timestamp closure.
+- [FIX-003](FIX-003.md) — required, approved and applied 2026-07-15; final corrective summary wording and lifecycle dashboard sync.
 
 ## Запити на рішення
 
@@ -107,18 +109,18 @@ Phase 3 завершила journal-backed Resource writes на deterministic ful
 
 ## Human Review
 
-Status: requested
-Requested: 2026-07-15 (corrective RUN-002 re-review)
-Reviewed: pending corrective decision; RUN-001 approved 2026-07-15
-Approval Source: pending corrective decision; retained RUN-001 user decision 2026-07-15 (`Task: approve`)
-Approved Fixations: FIX-001 (`Required FIX-001: approve`)
+Status: approved-completed
+Requested: 2026-07-15 (corrective RUN-003 re-review)
+Reviewed: RUN-003 approved 2026-07-15; RUN-001/RUN-002 approvals retained
+Approval Source: user decision 2026-07-15 (`Task: approve`)
+Approved Fixations: FIX-001 (`Required FIX-001: approve`); FIX-002 (`Required FIX-002: approve`); FIX-003 (`Required FIX-003: approve`)
 Rejected Fixations: none
 Follow-up Decisions: none
-Decision Notes: Whole-task/FIX-001 approval retained and FIX-001 applied. Corrective RUN-002 passed repeated independent audit; new whole-task review and separate FIX-002 decision requested.
+Decision Notes: RUN-001/RUN-002 approvals retained. RUN-003 and FIX-003 approved; all three fixations applied exactly; final repeated post-application audit `PASS`.
 
 ## Фінальний результат
 
-Completed: pending
-Final Run: pending
-Summary: pending
-Residual Risks: pending
+Completed: 2026-07-15
+Final Run: RUN-003
+Summary: Exact P4-DG2 Asset semantic contract accepted and applied through FIX-001/FIX-002/FIX-003; final independent audit `PASS`; downstream not activated.
+Residual Risks: Current permissive Asset validator, internal generation recovery and URL/data conformance remain implementation work owned by separately activated P4-VS2/P4-VS3.

@@ -6,8 +6,10 @@ Canonical research/design task для майбутньої сім’ї client-se
 
 ## Папки
 
-- [RUN-001](RUN-001/index.md) - Підготовлений перший run порівняльного дослідження й дизайну.
+- [RUN-001](RUN-001/index.md) - Completed research/design run, approved FIX-001 application і final post-application audit.
 
 ## Файли
 
 - [Task](task.md) - Контракт, dashboard і реєстр артефактів задачі.
+- [RSCH-001](RSCH-001.md) - Formal PostgreSQL/MySQL family research і design verdict.
+- [FIX-001](FIX-001.md) - Required exact canonical contract/ADR, approved і applied 2026-07-15.

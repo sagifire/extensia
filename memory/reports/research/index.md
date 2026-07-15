@@ -22,3 +22,5 @@ Detailed reports для formal research, planning і design усередині t
 - [Concrete storage protocol Extensia](2026-07-12-extensia-concrete-storage-protocol.md) - Evidence-backed P4-DG1 single-SQLite durability domain, recovery і proof matrix.
 - [Taxonomy storage driver families Extensia](2026-07-12-extensia-storage-driver-taxonomy.md) - RUN-002 framing filesystem-native, embedded-transactional і client-server transactional profiles.
 - [Exact Asset semantic contract Extensia](2026-07-15-extensia-asset-contracts.md) - P4-DG2 field, lineage, primary, ownership, staged upload і pipeline design для P4-VS2/P4-VS3.
+- [Filesystem-native Storage Driver Extensia](2026-07-15-extensia-filesystem-native-storage-driver-design.md) - Умовна native-helper feasibility, immutable graph/one-HEAD protocol і profile certification boundary.
+- [Client-server transactional Storage Driver family](2026-07-15-extensia-client-server-sql-storage-driver-design.md) - PostgreSQL/MySQL semantic family, vendor profiles, ambiguous-commit reconciliation і certification design.

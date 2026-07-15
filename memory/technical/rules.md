@@ -13,6 +13,17 @@ Updated: 2026-07-10
 6. Filesystem sidecar records не вважаються lock/directory durability primitive без verified native/platform guarantee.
 7. Client-server profiles reconcile-ять network-ambiguous COMMIT за durable `operation_id` і не маскують unknown як reject.
 8. Vendor profiles не зводяться до lowest-common-denominator, якщо це послаблює semantic guarantees.
+9. Filesystem-native profile потребує native shared/exclusive OS locks і verified directory durability; чистий `node:fs`, PID/time lease або sidecar-only lock не можуть бути writer authority.
+10. Filesystem-native committed authority є один atomic `HEAD` над immutable content-addressed graph; readonly snapshot не перетинає unsettled writer publication, а independent journal, mutable multi-file commit і success до directory durability заборонені.
+11. Takeover дозволений лише після OS-lock acquisition; clocks/PID не fencing. Advisory profile охоплює лише cooperating drivers і fail-close-ить mount/profile/tampering mismatch.
+12. Immutable hash publication використовує cross-directory atomic no-replace; після success або byte-equal `EEXIST` destination shard sync-иться до використання digest, mismatch ніколи не overwrite-иться.
+13. Genesis initialization використовує durable fixed parent init-lock inode і checksum completion slots: shared inspect, release, bounded exclusive acquire і mandatory recheck без lock upgrade, потім повністю synced sibling root, atomic no-replace final-root publication, parent directory sync, in-place completion-slot write та init-lock fsync; readonly без valid slot працює fail-close, partial final root не repair-иться.
+14. Process-crash certification не дорівнює power-loss certification; остання потребує destructive environmental evidence і exact OS/filesystem/mount/device certificate.
+15. Client-server family має shared logical/semantic contract і separate PostgreSQL/MySQL physical profiles; один lowest-common-denominator SQL implementation заборонений.
+16. Client-server V1 `open()` pin-ить control connection і exclusive vendor advisory gate до `close()` для full/readonly/migrator lifecycle exclusion; рівно один runtime active на storage, lock loss fail-close-ить readiness, а reset/pool handoff/auto-reconnect заборонені while open. Clean close: stop intake → drain → explicit release/verify → reset → return. Кожна write transaction додатково lock-ить singleton control row.
+17. Metadata, payload actions/chunks, journal head і рівно один operation journal row commit-яться однією vendor transaction; nontransactional sequence/auto-increment не є semantic journal authority.
+18. Ambiguous `COMMIT` reconcile-иться за operation ID/fingerprint і verified durability lineage: match = committed; absence = not committed лише на same server lineage/incarnation або під exact history-preservation certificate; changed/unproved lineage, unavailable/role-unknown = unsettled/suspended. Blind retry і false reject заборонені.
+19. Client-server baseline потребує externally fenced single writable primary, offline migration під runtime-lifetime gate, exact durability-lineage/session/migration certificate і separate runtime/migrator privileges; fencing не доводить history continuity, а time lease, multi-primary та replica reconciliation не є writer authority без окремого gate.
 
 ## Source і версії
 
@@ -94,7 +105,7 @@ Updated: 2026-07-10
 ## Applied P4-DG2 rules
 
 - Asset fields/URL/data use exact descriptor-safe bounded contract; only UUID and WHATWG HTTP(S) URL canonicalize.
-- Lineage same-Resource, ready-target, no self/cycle/dangling; primary explicit; reassign lineage-free/non-primary/no-active-upload.
+- Lineage same-Resource, ready-representation-target, no self/cycle/dangling; primary explicit; reassign lineage-free/non-primary/no-active-upload.
 - Initial internal lifecycle staged-only; replacement exposes only last committed payload; Resource delete conflicts on active upload.
 - Every effective transition uses common Asset/Resource Timestamp, exact frozen locks/prepared Resources/payload action, one semantic commit/journal and post-commit atomic index swap.
 - Readonly precedes input/staging; no-change/failure has no persisted timestamp/journal mutation; proven Asset integrity fail-close maps to `STORAGE_INTEGRITY_FAILED`.

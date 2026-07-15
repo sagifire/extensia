@@ -1,6 +1,6 @@
 # TASK-07.26-0042: Client-server SQL Storage Driver design
 
-Task Status: backlog
+Task Status: done
 Type: design/research
 Created: 2026-07-12
 Owner Role: Agent Architect
@@ -8,13 +8,13 @@ Current Run: RUN-001
 
 ## Поточний стан
 
-Run Status: prepared
-Progress: Контракт дослідження client-server transactional driver family і RUN-001 підготовлені; виконання не активоване.
-Acceptance: 0/8
+Run Status: completed
+Progress: Whole-task і FIX-001 approved; FIX-001 applied exactly; final repeated post-application audit `PASS`; downstream tasks skipped.
+Acceptance: 8/8
 Blockers: none
 Blocked Phase: n/a
-Pending Decisions: shared family contract проти vendor profiles; PostgreSQL/MySQL sequencing; transaction/journal/idempotency model; lock/lease strategy; network outcome ambiguity; schema migration і capability boundary.
-Next Action: Окремим explicit рішенням активувати RUN-001 після завершення owner gate P4-DG1; до activation не обирати implementation dependency або конкретний vendor як production target.
+Pending Decisions: none
+Next Action: Немає; будь-яка downstream activation потребує окремого owner decision.
 
 ## Мета
 
@@ -79,38 +79,39 @@ P4-DG1 уточнює taxonomy Storage Driver: перша реалізація �
 
 ## Прогони
 
-- [RUN-001](RUN-001/index.md) - prepared - PostgreSQL/MySQL family research/design.
+- [RUN-001](RUN-001/index.md) - completed - approved result; FIX-001 applied; final repeated post-audit `PASS`.
 
 ## Дослідження
 
-Немає; `RSCH-001` створюється після активації RUN-001.
+- [RSCH-001](RSCH-001.md) - completed, disposition `final-result`; detailed report published у `memory/reports/research/`.
 
 ## Фіксації
 
-Немає; exact proposals створюються під час RUN-001 і не застосовуються без human approval.
+- [FIX-001](FIX-001.md) - required, approved і applied exactly 2026-07-15; final post-application audit `PASS`.
 
 ## Запити на рішення
 
-Немає на етапі підготовки.
+- Немає: whole-task і FIX-001 approved, downstream decision `skip`; FIX-001 applied exactly.
 
 ## Запропоновані follow-up задачі
 
 - Після accepted family design: окремі bounded PostgreSQL і/або MySQL driver owner/implementation tasks згідно з прийнятим sequencing; не створюються й не активуються цією задачею.
+- Рекомендована decomposition: `CS-WP0` shared reconciliation foundation → окремий PostgreSQL owner/implementation/certificate → окремий MySQL 8.4 LTS owner/implementation/certificate; створення потребує окремого рішення.
 
 ## Human Review
 
-Status: not-ready
-Requested: n/a
-Reviewed: pending
-Approval Source: n/a
-Approved Fixations: none
+Status: approved
+Requested: 2026-07-15
+Reviewed: 2026-07-15
+Approval Source: user decision in task conversation
+Approved Fixations: FIX-001
 Rejected Fixations: none
-Follow-up Decisions: pending
-Decision Notes: RUN-001 не активований.
+Follow-up Decisions: downstream tasks skipped
+Decision Notes: Whole-task `approve`; FIX-001 `approve`; downstream task `skip`. Reviewed content frozen; exact application і final repeated post-application audit completed.
 
 ## Фінальний результат
 
-Completed: pending
-Final Run: pending
-Summary: pending
-Residual Risks: pending
+Completed: 2026-07-15
+Final Run: RUN-001
+Summary: PostgreSQL/MySQL client-server transactional family design accepted; FIX-001 applied exactly; final independent post-application audit `PASS` без open P0-P3; downstream tasks skipped.
+Residual Risks: executable vendor certification не виконувалася через відсутність server/client tools; topology/durability certification і payload performance лишаються майбутніми vendor-specific gates; persistent outage може лишати settlement suspended.

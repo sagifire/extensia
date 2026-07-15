@@ -69,11 +69,23 @@ Activation order completed: `Phase 2 gate -> BP3-01 -> TASK-0024 -> BP3-01A -> B
 
 - [x] **[Done]** [TASK-07.26-0038](TASK-07.26-0038-prepare-phase-4-owner-gates/index.md) - Phase 4 owner-gate plan і canonical P4-DG1/P4-DG2 packages прийняті whole-task human review; design tasks не активовані.
 - [x] **[Done]** [P4-DG1 / TASK-07.26-0039](TASK-07.26-0039-p4-dg1-concrete-storage-protocol/index.md) - FIX-001/FIX-002 applied, final post-application audit `PASS`, APP-07.26-0039-001 published; downstream не активовано.
-- [ ] **[Review]** [P4-DG2 / TASK-07.26-0040](TASK-07.26-0040-p4-dg2-asset-contracts/index.md) - FIX-001 applied; corrective RUN-002/FIX-002 repeated independent audit `REVIEW_READY`, human decisions pending.
-- [ ] **[Backlog]** [TASK-07.26-0041](TASK-07.26-0041-filesystem-native-storage-driver-design/index.md) - Filesystem-native driver feasibility/design для game-development: native lock/directory-sync primitives, exact sidecar formats і certification boundary; RUN-001 prepared.
-- [ ] **[Backlog]** [TASK-07.26-0042](TASK-07.26-0042-client-server-sql-storage-driver-design/index.md) - PostgreSQL/MySQL client-server transactional driver family design; RUN-001 prepared.
+- [x] **[Done]** [P4-DG2 / TASK-07.26-0040](TASK-07.26-0040-p4-dg2-asset-contracts/index.md) - FIX-001/FIX-002/FIX-003 approved and applied; final repeated post-application audit `PASS`, downstream не активовано.
+- [x] **[Done]** [TASK-07.26-0041](TASK-07.26-0041-filesystem-native-storage-driver-design/index.md) - Filesystem-native design прийнятий: native helper + immutable graph/one-HEAD protocol; FIX-001 applied, zero certified profiles, п'ять follow-up tasks підготовлено без activation.
+- [x] **[Done]** [TASK-07.26-0042](TASK-07.26-0042-client-server-sql-storage-driver-design/index.md) - PostgreSQL/MySQL family design і FIX-001 approved/applied exactly; final repeated post-application audit `PASS`, downstream skipped.
 
-Allowed parallelism: P4-DG1 і P4-DG2 можуть активуватися окремими рішеннями й досліджуватися паралельно. TASK-0041/TASK-0042 є future family design gates і потребують окремої activation. Downstream `P4-WP1`, `P4-VS1`…`P4-VS3` і `P4-STAB` не створюються до відповідних approved/applied owner gates.
+Allowed parallelism: P4-DG1 і P4-DG2 могли активуватися окремими рішеннями й досліджуватися паралельно. TASK-0041 завершена, а TASK-0042 лишається future family design gate й потребує окремої activation. Downstream `P4-WP1`, `P4-VS1`…`P4-VS3` і `P4-STAB` не створюються до відповідних approved/applied owner gates.
+
+## Майбутня фаза FN — Filesystem-native Storage Driver
+
+Стан: planned. Усі задачі створені як `backlog/prepared`; жодну не активовано.
+
+- [ ] **[Backlog]** [FN-WP1 / TASK-07.26-0044](TASK-07.26-0044-filesystem-native-linux-helper-spike/index.md) - Research-only native Linux helper spike, exact primitive/profile proof і `NAME_MAX` gate.
+- [ ] **[Backlog]** [FN-VS1 / TASK-07.26-0045](TASK-07.26-0045-filesystem-native-driver-implementation/index.md) - Internal filesystem-native Storage Driver implementation після accepted FN-WP1.
+- [ ] **[Backlog]** [FN-CERT1 / TASK-07.26-0046](TASK-07.26-0046-filesystem-native-linux-process-crash-certification/index.md) - Exact `linux-local-ext4-v1` process-crash certificate після FN-WP1/FN-VS1.
+- [ ] **[Backlog]** [FN-CERT2 / TASK-07.26-0047](TASK-07.26-0047-filesystem-native-linux-power-loss-certification/index.md) - Optional destructive power-loss certificate після FN-CERT1 та окремого environment approval.
+- [ ] **[Backlog]** [FN-DG2 / TASK-07.26-0048](TASK-07.26-0048-filesystem-native-windows-ntfs-research/index.md) - Паралельний research-only Windows/NTFS feasibility gate.
+
+Основна послідовність: `FN-WP1 -> FN-VS1 -> FN-CERT1 -> optional FN-CERT2`. `FN-DG2` може активуватися окремо після TASK-0041/FIX-001. Кожна activation потребує окремого explicit рішення.
 
 ## Фаза 5 — Повний read model і синхронізація кількох instances
 

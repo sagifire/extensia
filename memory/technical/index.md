@@ -21,3 +21,7 @@
 - [ADR-0010: Local SQLite storage protocol](decisions/ADR-0010-local-sqlite-storage-protocol.md) - First concrete embedded-transactional profile, physical protocol і proof gate.
 - [Asset Semantic Contract](asset-contract.md) - Accepted P4-DG2 fields, lineage, primary, ownership, staged lifecycle і one-commit boundary.
 - [ADR-0011: Asset semantic lifecycle](decisions/ADR-0011-asset-semantic-lifecycle.md) - Same-Resource lineage, explicit primary, staged-only initial state і Resource-delete upload conflict.
+- [Filesystem-native Storage Profile](filesystem-native-storage-profile.md) - Native-helper, immutable graph/one-HEAD protocol і exact certification boundary.
+- [ADR-0012: Filesystem-native Storage Driver protocol](decisions/ADR-0012-filesystem-native-storage-protocol.md) - Умовна feasibility, native lock і single-HEAD publication decision.
+- [Client-server Transactional Storage Profile](client-server-transactional-storage-profile.md) - PostgreSQL/MySQL shared semantics, vendor boundaries, reconciliation і certification.
+- [ADR-0013: Client-server transactional Storage Driver family](decisions/ADR-0013-client-server-transactional-storage.md) - Separate vendor profiles поверх одного indeterminate-safe semantic contract.

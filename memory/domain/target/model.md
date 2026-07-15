@@ -44,7 +44,7 @@ Resource може мати не більше одного parent. Сукупні
 - `type` і `role` є відкритими класифікаційними рядками.
 - `mime` та `extension` можуть бути `null`.
 - `is_primary` позначає основний asset Resource; одночасно дозволений не більше ніж один primary asset.
-- `derived_from` є слабким lineage relation до іншого Asset й не змінює ownership.
+- `derived_from` є hard same-Resource lineage relation до existing Asset з ready representation (external-ready, internal ready або replacement-uploading); self-link, cross-Resource, cycle і dangling relation заборонені; relation не змінює ownership.
 - `data` містить asset-local metadata й не замінює Marks або resource-level KV.
 
 Internal asset може переходити з `is_on_uploading = true` до `false` після успішної фіналізації file. External asset не використовує upload lifecycle.
@@ -69,11 +69,11 @@ Mark використовується для компактної classification
 - `Resource 0..1 -> 0..* Resource` через `parent_id`; children є reverse lookup projection.
 - `Resource 1 -> 0..* Mark` із unique `type + name`.
 - `Resource 1 -> 0..* KV namespaces` із unique key у namespace.
-- `Asset 0..1 -> Asset` через weak `derived_from` relation.
+- `Asset 0..1 -> Asset` через hard same-Resource ready-representation-target `derived_from` relation без self/cycles/dangling links.
 
 ## Семантика стану
 
-Resource і Asset не мають складних state machines у базовій предметній моделі. Їхній стан задається незалежними flags із кількома обов'язковими combinations. Lifecycle transitions і persistence guarantees є відповідальністю runtime/API layer, а не чистої domain model.
+Resource не має складної state machine у базовій предметній моделі. Accepted Asset lifecycle має external-ready, initial-uploading, ready і replacement-uploading semantic states; public snapshot flags показують лише external/uploading envelope, а internal durable generation state розрізняє initial-uploading і replacement-uploading. Exact transitions визначає applied P4-DG2 Asset lifecycle, а physical persistence mechanism лишається відповідальністю runtime/driver layer.
 
 ## Канонічні data contracts
 
@@ -120,4 +120,4 @@ Applied [order/delete/Mark/KV contract](../../technical/order-delete-mark-kv-con
 
 ## Applied P4-DG2 Asset lifecycle
 
-Canonical exact field, relation, primary, ownership і lifecycle semantics визначає [Asset semantic contract](../../technical/asset-contract.md). Same-Resource ready-target lineage є hard invariant. Internal lifecycle: initial-uploading → ready та ready → replacement-uploading → ready; abort initial removes Asset, abort replacement restores old ready state. Upload generation state internal і не розширює `AssetSnapshot`. Physical driver mechanics не є domain model.
+Canonical exact field, relation, primary, ownership і lifecycle semantics визначає [Asset semantic contract](../../technical/asset-contract.md). Same-Resource ready-representation-target lineage є hard invariant. Internal lifecycle: initial-uploading → ready та ready → replacement-uploading → ready; abort initial removes Asset, abort replacement restores old ready state. Upload generation state internal і не розширює `AssetSnapshot`. Physical driver mechanics не є domain model.

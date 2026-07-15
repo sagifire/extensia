@@ -46,9 +46,14 @@
 - [TASK-07.26-0038-prepare-phase-4-owner-gates](TASK-07.26-0038-prepare-phase-4-owner-gates/index.md) - Done Phase 4 owner-gate decomposition; P4-DG1/P4-DG2 prepared without activation.
 - [TASK-07.26-0039-p4-dg1-concrete-storage-protocol](TASK-07.26-0039-p4-dg1-concrete-storage-protocol/index.md) - Done P4-DG1; ADR-0010/taxonomy applied, APP-07.26-0039-001 published after PASS.
 - [TASK-07.26-0040-p4-dg2-asset-contracts](TASK-07.26-0040-p4-dg2-asset-contracts/index.md) - Backlog/prepared P4-DG2 exact Asset contracts owner gate.
-- [TASK-07.26-0041-filesystem-native-storage-driver-design](TASK-07.26-0041-filesystem-native-storage-driver-design/index.md) - Backlog/prepared filesystem-native feasibility, native primitives і sidecar protocol design.
+- [TASK-07.26-0041-filesystem-native-storage-driver-design](TASK-07.26-0041-filesystem-native-storage-driver-design/index.md) - Done filesystem-native feasibility/design; FIX-001 applied, п'ять future-phase tasks підготовлено без activation.
 - [TASK-07.26-0042-client-server-sql-storage-driver-design](TASK-07.26-0042-client-server-sql-storage-driver-design/index.md) - Backlog/prepared PostgreSQL/MySQL client-server transactional family design.
 - [TASK-07.26-0043-introduce-specification-memory-artifact](TASK-07.26-0043-introduce-specification-memory-artifact/index.md) - Canceled memory-update; FIX-001 rejected, canonical memory unchanged.
+- [TASK-07.26-0044-filesystem-native-linux-helper-spike](TASK-07.26-0044-filesystem-native-linux-helper-spike/index.md) - Backlog/prepared research spike для native Linux helper і exact primitive proof.
+- [TASK-07.26-0045-filesystem-native-driver-implementation](TASK-07.26-0045-filesystem-native-driver-implementation/index.md) - Backlog/prepared filesystem-native Storage Driver implementation після успішного helper spike.
+- [TASK-07.26-0046-filesystem-native-linux-process-crash-certification](TASK-07.26-0046-filesystem-native-linux-process-crash-certification/index.md) - Backlog/prepared exact-profile Linux process-crash certification.
+- [TASK-07.26-0047-filesystem-native-linux-power-loss-certification](TASK-07.26-0047-filesystem-native-linux-power-loss-certification/index.md) - Backlog/prepared optional destructive Linux power-loss certification.
+- [TASK-07.26-0048-filesystem-native-windows-ntfs-research](TASK-07.26-0048-filesystem-native-windows-ntfs-research/index.md) - Backlog/prepared research-only Windows/NTFS feasibility gate.
 
 ## Файли
 
