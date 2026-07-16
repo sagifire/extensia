@@ -53,7 +53,7 @@ Updated: 2026-07-15
 
 - Перший concrete profile — `embedded-transactional/local-sqlite-v1`; одна SQLite durability domain, rollback journal, exclusive connection lease, canonical TEXT sequence і recovery/readonly/integrity gates прийняті в ADR-0010.
 - Canonical driver families: `filesystem-native`, `embedded-transactional`, `client-server-transactional`. Shared semantic port не стандартизує family-specific physical layout, SQL або locks.
-- P4-WP1 реалізувала internal `local-sqlite-v1` і bounded Windows local fixed NTFS process-crash/lock/readonly/corruption/payload-seam evidence. Public/default driver surface, broader Node/OS/filesystem profiles, performance envelopes і destructive power-loss certificates лишаються окремими gates.
+- P4-WP1 реалізувала internal `local-sqlite-v1`, а P4-VS1 довела повну Phase 3 Resource parity через shared production composition з bounded Windows local fixed NTFS process-crash/restart, readonly/corruption і packed evidence. Public/default driver surface, Asset persistence/upload, broader Node/OS/filesystem profiles, performance envelopes і destructive power-loss certificates лишаються окремими gates.
 
 ## Закритий P4-DG2 baseline
 

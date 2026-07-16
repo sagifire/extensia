@@ -55,6 +55,10 @@
 - [TASK-07.26-0047-filesystem-native-linux-power-loss-certification](TASK-07.26-0047-filesystem-native-linux-power-loss-certification/index.md) - Backlog/prepared optional destructive Linux power-loss certification.
 - [TASK-07.26-0048-filesystem-native-windows-ntfs-research](TASK-07.26-0048-filesystem-native-windows-ntfs-research/index.md) - Backlog/prepared research-only Windows/NTFS feasibility gate.
 - [TASK-07.26-0049-p4-wp1-local-sqlite-driver](TASK-07.26-0049-p4-wp1-local-sqlite-driver/index.md) - Done `P4-WP1`: internal `embedded-transactional/local-sqlite-v1`, bounded physical proof і required FIX-001 accepted/applied; downstream не активований.
+- [TASK-07.26-0050-p4-vs1-concrete-resource-durability](TASK-07.26-0050-p4-vs1-concrete-resource-durability/index.md) - Done `P4-VS1`: full SQLite Resource parity accepted, required FIX-001 applied exactly, final post-application audit `PASS`; P4-VS2 not activated.
+- [TASK-07.26-0051-p4-vs2-asset-metadata-lifecycle](TASK-07.26-0051-p4-vs2-asset-metadata-lifecycle/index.md) - Backlog/prepared `P4-VS2` для accepted Asset metadata lifecycle після P4-VS1; не активована.
+- [TASK-07.26-0052-p4-vs3-internal-asset-upload](TASK-07.26-0052-p4-vs3-internal-asset-upload/index.md) - Backlog/prepared `P4-VS3` для internal upload generations після P4-VS2 і executable capability gate; не активована.
+- [TASK-07.26-0053-p4-stab-phase-4](TASK-07.26-0053-p4-stab-phase-4/index.md) - Backlog/prepared no-feature `P4-STAB` після accepted VS1–VS3; не активована.
 
 ## Файли
 

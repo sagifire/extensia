@@ -69,6 +69,10 @@ try {
     "dist/composition/inspection.d.ts.map",
     "dist/composition/inspection.js",
     "dist/composition/inspection.js.map",
+    "dist/composition/local-sqlite-runtime.d.ts",
+    "dist/composition/local-sqlite-runtime.d.ts.map",
+    "dist/composition/local-sqlite-runtime.js",
+    "dist/composition/local-sqlite-runtime.js.map",
     "dist/composition/root.d.ts",
     "dist/composition/root.d.ts.map",
     "dist/composition/root.js",
@@ -413,6 +417,55 @@ export type { PublicContract };
     cwd: consumer,
     timeout: 5_000,
   });
+  const packedInternalProbe = `
+    import assert from "node:assert/strict";
+    import { mkdtempSync, rmSync } from "node:fs";
+    import { tmpdir } from "node:os";
+    import { join } from "node:path";
+
+    const rootEntry = import.meta.resolve("@sagifire/extensia");
+    const internalUrl = new URL("./composition/local-sqlite-runtime.js", rootEntry);
+    const { createLocalSqliteExtensia } = await import(internalUrl);
+    const storageRoot = mkdtempSync(join(tmpdir(), "extensia-packed-sqlite-"));
+    try {
+      const config = {
+        mode: "full",
+        storage: {
+          profile: "candidate-local-filesystem",
+          rootPath: storageRoot,
+          timeoutMs: 100,
+        },
+      };
+      const first = createLocalSqliteExtensia(config);
+      assert.deepEqual(await first.start(), { ok: true, value: undefined });
+      const created = await first.storage().createResource({ title: "packed-durable" });
+      assert.equal(created.ok, true);
+      assert.deepEqual(await first.stop(), { ok: true, value: undefined });
+
+      const second = createLocalSqliteExtensia(config);
+      assert.deepEqual(await second.start(), { ok: true, value: undefined });
+      const readBack = await second.query().getResource(created.value.resource.data.id);
+      assert.equal(readBack.ok, true);
+      assert.equal(readBack.value.data.title, "packed-durable");
+      const observable = JSON.stringify({
+        created,
+        inspection: second.inspect(),
+        readBack,
+      });
+      assert.equal(observable.includes(storageRoot), false);
+      assert.equal(observable.includes("extensia.sqlite3"), false);
+      assert.equal(observable.includes("connection"), false);
+      assert.equal(observable.includes("session"), false);
+      assert.deepEqual(await second.stop(), { ok: true, value: undefined });
+    } finally {
+      rmSync(storageRoot, { force: true, recursive: true });
+    }
+  `;
+  run(
+    process.execPath,
+    ["--input-type=module", "--eval", packedInternalProbe],
+    { cwd: consumer, timeout: 10_000 },
+  );
   run(
     process.execPath,
     [
