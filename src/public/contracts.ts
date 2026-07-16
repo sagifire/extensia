@@ -60,7 +60,24 @@ export type ExtensiaErrorCode =
   | "RESOURCE_MOVE_CYCLE"
   | "RESOURCE_ORDER_OUT_OF_RANGE"
   | "RESOURCE_HAS_CHILDREN"
-  | "RESOURCE_ALREADY_DELETED";
+  | "RESOURCE_ALREADY_DELETED"
+  | "RESOURCE_ASSET_UPLOAD_ACTIVE"
+  | "INVALID_ASSET_ID"
+  | "ASSET_INPUT_INVALID"
+  | "ASSET_URL_INVALID"
+  | "ASSET_DATA_INVALID"
+  | "ASSET_NOT_FOUND"
+  | "ASSET_NO_CHANGES"
+  | "ASSET_ID_GENERATION_FAILED"
+  | "ASSET_PRIMARY_CONFLICT"
+  | "ASSET_NOT_READY"
+  | "ASSET_LINEAGE_INVALID"
+  | "ASSET_LINEAGE_CONFLICT"
+  | "ASSET_HAS_DERIVATIVES"
+  | "ASSET_UPLOAD_ALREADY_ACTIVE"
+  | "ASSET_UPLOAD_NOT_ACTIVE"
+  | "ASSET_UPLOAD_INCOMPLETE"
+  | "ASSET_FILE_NOT_READY";
 
 export interface ExtensiaError<
   TCode extends ExtensiaErrorCode = ExtensiaErrorCode,
@@ -123,6 +140,39 @@ export interface SetMarkInput {
   readonly value: number | null;
 }
 
+interface CreateAssetBaseInput {
+  readonly type: string;
+  readonly role: string;
+  readonly mime: string | null;
+  readonly extension: string | null;
+  readonly derived_from?: string | null;
+  readonly data?: JSONObject | null;
+}
+
+export interface CreateExternalAssetInput extends CreateAssetBaseInput {
+  readonly kind: "external";
+  readonly url: string;
+  readonly is_primary?: boolean;
+}
+
+export interface CreateInternalAssetInput extends CreateAssetBaseInput {
+  readonly kind: "internal";
+  readonly is_primary?: false;
+}
+
+export type CreateAssetInput =
+  CreateExternalAssetInput | CreateInternalAssetInput;
+
+export interface UpdateAssetInput {
+  readonly type?: string;
+  readonly role?: string;
+  readonly mime?: string | null;
+  readonly extension?: string | null;
+  readonly url?: string;
+  readonly derived_from?: string | null;
+  readonly data?: JSONObject | null;
+}
+
 export type ResourceWriteWarningCode =
   "LOCAL_INDEX_PUBLICATION_FAILED" | "POST_COMMIT_CLEANUP_FAILED";
 
@@ -135,6 +185,14 @@ export interface ResourceWriteSuccess {
   readonly committed: true;
   readonly operation_id: IDString;
   readonly resource: ResourceSnapshot;
+  readonly warnings: readonly ResourceWriteWarning[];
+}
+
+export interface AssetWriteSuccess {
+  readonly committed: true;
+  readonly operation_id: IDString;
+  readonly asset: AssetSnapshot | null;
+  readonly resources: readonly ResourceSnapshot[];
   readonly warnings: readonly ResourceWriteWarning[];
 }
 
@@ -175,6 +233,7 @@ export type ResourceDeleteError =
   | ResourceNotFoundError
   | ExtensiaError<"RESOURCE_HAS_CHILDREN">
   | ExtensiaError<"RESOURCE_ALREADY_DELETED">
+  | ExtensiaError<"RESOURCE_ASSET_UPLOAD_ACTIVE">
   | ExtensiaError<"STORAGE_LOCK_FAILED">
   | ExtensiaError<"STORAGE_WRITE_FAILED">
   | ExtensiaError<"STORAGE_INTEGRITY_FAILED">;
@@ -202,6 +261,67 @@ export type ResourceKVResult = ExtensiaResult<
   ResourceKVError
 >;
 
+type AssetInfrastructureError =
+  | ModuleNotReadyError
+  | StorageReadonlyError
+  | InvalidResourceIDError
+  | ResourceNotFoundError
+  | ExtensiaError<"STORAGE_LOCK_FAILED">
+  | ExtensiaError<"STORAGE_WRITE_FAILED">
+  | ExtensiaError<"STORAGE_INTEGRITY_FAILED">;
+type AssetExistingError =
+  | AssetInfrastructureError
+  | ExtensiaError<"INVALID_ASSET_ID">
+  | ExtensiaError<"ASSET_NOT_FOUND">;
+export type AssetCreateError =
+  | AssetInfrastructureError
+  | ExtensiaError<"INVALID_ASSET_ID">
+  | ExtensiaError<"ASSET_INPUT_INVALID">
+  | ExtensiaError<"ASSET_URL_INVALID">
+  | ExtensiaError<"ASSET_DATA_INVALID">
+  | ExtensiaError<"ASSET_ID_GENERATION_FAILED">
+  | ExtensiaError<"ASSET_PRIMARY_CONFLICT">
+  | ExtensiaError<"ASSET_LINEAGE_INVALID">;
+export type AssetUpdateError =
+  | AssetExistingError
+  | ExtensiaError<"ASSET_INPUT_INVALID">
+  | ExtensiaError<"ASSET_URL_INVALID">
+  | ExtensiaError<"ASSET_DATA_INVALID">
+  | ExtensiaError<"ASSET_NO_CHANGES">
+  | ExtensiaError<"ASSET_LINEAGE_INVALID">;
+export type AssetPrimaryError =
+  | AssetExistingError
+  | ExtensiaError<"ASSET_NO_CHANGES">
+  | ExtensiaError<"ASSET_NOT_READY">;
+export type AssetReassignError =
+  | AssetExistingError
+  | ExtensiaError<"ASSET_NO_CHANGES">
+  | ExtensiaError<"ASSET_LINEAGE_CONFLICT">
+  | ExtensiaError<"ASSET_UPLOAD_ALREADY_ACTIVE">;
+export type AssetDeleteError =
+  AssetExistingError | ExtensiaError<"ASSET_HAS_DERIVATIVES">;
+
+export type AssetCreateResult = ExtensiaResult<
+  AssetWriteSuccess,
+  AssetCreateError
+>;
+export type AssetUpdateResult = ExtensiaResult<
+  AssetWriteSuccess,
+  AssetUpdateError
+>;
+export type AssetPrimaryResult = ExtensiaResult<
+  AssetWriteSuccess,
+  AssetPrimaryError
+>;
+export type AssetReassignResult = ExtensiaResult<
+  AssetWriteSuccess,
+  AssetReassignError
+>;
+export type AssetDeleteResult = ExtensiaResult<
+  AssetWriteSuccess,
+  AssetDeleteError
+>;
+
 type ModuleNotReadyError = ExtensiaError<"MODULE_NOT_READY">;
 type InvalidResourceIDError = ExtensiaError<"INVALID_RESOURCE_ID">;
 type ResourceNotFoundError = ExtensiaError<"RESOURCE_NOT_FOUND">;
@@ -227,6 +347,25 @@ export interface QueryFacade {
 }
 
 export interface StorageFacade {
+  createAsset(
+    resourceId: string,
+    input: CreateAssetInput,
+  ): Promise<AssetCreateResult>;
+  updateAsset(
+    resourceId: string,
+    assetId: string,
+    patch: UpdateAssetInput,
+  ): Promise<AssetUpdateResult>;
+  setPrimaryAsset(
+    resourceId: string,
+    assetId: string | null,
+  ): Promise<AssetPrimaryResult>;
+  reassignAsset(
+    sourceResourceId: string,
+    assetId: string,
+    destinationResourceId: string,
+  ): Promise<AssetReassignResult>;
+  deleteAsset(resourceId: string, assetId: string): Promise<AssetDeleteResult>;
   createResource(
     input: CreateResourceInput,
   ): Promise<ExtensiaResult<ResourceWriteSuccess, ResourceWriteError>>;

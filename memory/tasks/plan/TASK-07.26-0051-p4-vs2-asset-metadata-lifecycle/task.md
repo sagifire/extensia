@@ -1,6 +1,6 @@
 # P4-VS2 / TASK-07.26-0051: Asset metadata lifecycle
 
-Task Status: backlog
+Task Status: done
 Type: implementation
 Created: 2026-07-15
 Owner Role: Agent Implementer
@@ -8,13 +8,13 @@ Current Run: RUN-001
 
 ## Поточний стан
 
-Run Status: prepared
-Progress: Canonical package підготовлено; run не активований.
-Acceptance: 0/9; verification не розпочата.
-Blockers: activation заблокована до completed/accepted P4-VS1.
-Blocked Phase: activation gate
-Pending Decisions: підтвердження predecessor gate й explicit activation RUN-001.
-Next Action: після gate реалізувати metadata slice exact `technical/asset-contract.md` sections 4–10.
+Run Status: completed
+Progress: RUN-001 implementation/final gates/repeated independent audit accepted whole-task human review; required FIX-001 separately approved, applied і post-audited `PASS`.
+Acceptance: 9/9 gates passed and whole-task approval recorded.
+Blockers: none; completed/accepted P4-VS1 і applied P4-DG2 підтверджені.
+Blocked Phase: n/a
+Pending Decisions: none for TASK-0051.
+Next Action: none; P4-VS3 remains backlog and requires separate explicit activation.
 
 ## Мета
 
@@ -94,7 +94,7 @@ P4-DG2 задає exact Asset semantics, а P4-VS1 має спершу дове�
 
 ## Прогони
 
-- [RUN-001](RUN-001/index.md) - prepared; не активований.
+- [RUN-001](RUN-001/index.md) - completed/accepted; implementation, verification, independent audits і memory application завершені.
 
 ## Дослідження
 
@@ -102,11 +102,11 @@ P4-DG2 задає exact Asset semantics, а P4-VS1 має спершу дове�
 
 ## Фіксації
 
-Немає; canonical fixation proposals ще не готувалися.
+- [FIX-001](FIX-001.md) - required / approved / applied; independent post-application audit `PASS`.
 
 ## Запити на рішення
 
-- Після completed/accepted P4-VS1 — explicit activation RUN-001.
+- Немає; whole-task і FIX-001 decisions recorded.
 
 ## Запропоновані follow-up задачі
 
@@ -114,19 +114,18 @@ P4-DG2 задає exact Asset semantics, а P4-VS1 має спершу дове�
 
 ## Human Review
 
-Status: not-ready
-Requested: n/a
-Reviewed: n/a
-Approval Source: n/a
-Approved Fixations: none
+Status: accepted
+Requested: 2026-07-16
+Reviewed: 2026-07-16
+Approval Source: explicit user decision `TASK-07.26-0051: approve`
+Approved Fixations: FIX-001
 Rejected Fixations: none
 Follow-up Decisions: none
-Decision Notes: Package preparation не є activation або approval.
+Decision Notes: Whole-task result approved separately from FIX-001; FIX-001 applied and post-audited `PASS`. P4-VS3 was not activated.
 
 ## Фінальний результат
 
-Completed: n/a
-Final Run: n/a
-Summary: n/a
-Residual Risks: n/a
-
+Completed: 2026-07-16
+Final Run: RUN-001
+Summary: Exact P4-VS2 Asset metadata lifecycle, staged-generation persistence, SQLite schema `user_version=2`/strict `1 → 2` migration, full gates and independent audits accepted; required FIX-001 applied.
+Residual Risks: P4-VS3 bytes/finalization, P5 indexes/sync, P7 compatibility freeze, broader platform/performance and destructive power-loss certification remain deferred.

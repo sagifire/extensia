@@ -1,10 +1,12 @@
 import { defineModule, type Token } from "@sagifire/ioc";
 
 import { createExtensiaInternalNamespace } from "../composition/tokens.js";
+import { validateAssetSnapshotStorageInvariants } from "../domain/asset-metadata.js";
 import type {
   ResourceSnapshot,
   ResourceTreeViewSnapshot,
 } from "../domain/snapshots.js";
+import { buildResourceSnapshot } from "../domain/snapshots.js";
 import {
   LIFECYCLE_CONTRIBUTIONS,
   lifecycleContribution,
@@ -27,7 +29,15 @@ export interface ReadonlyResourceDriver {
   open(): Promise<void>;
   close(): Promise<void>;
   listResources(): AsyncIterable<ResourceSnapshot>;
+  [READONLY_ASSET_READINESS_PROOF]?(): AsyncIterable<{
+    readonly asset_id: import("../domain/scalars.js").IDString;
+    readonly has_committed_representation: boolean;
+  }>;
 }
+
+export const READONLY_ASSET_READINESS_PROOF: unique symbol = Symbol(
+  "extensia.internal.readonly-asset-readiness-proof",
+);
 
 interface ResourceReadRuntime {
   readonly port: CoreResourceReadPort;
@@ -107,7 +117,33 @@ function createResourceReadRuntime(
       async start(): Promise<void> {
         try {
           await driver.open();
-          await index.initialize(driver.listResources());
+          const resources: ResourceSnapshot[] = [];
+          for await (const resource of driver.listResources()) {
+            resources.push(buildResourceSnapshot(resource));
+          }
+          const readiness = new Map<
+            import("../domain/scalars.js").IDString,
+            boolean
+          >();
+          for await (const proof of driver[
+            READONLY_ASSET_READINESS_PROOF
+          ]?.() ?? []) {
+            if (
+              readiness.has(proof.asset_id) ||
+              typeof proof.has_committed_representation !== "boolean"
+            ) {
+              throw new Error("Readonly Asset readiness proof is invalid");
+            }
+            readiness.set(proof.asset_id, proof.has_committed_representation);
+          }
+          if (!validateAssetSnapshotStorageInvariants(resources, readiness)) {
+            throw new Error("Readonly Asset storage invariants are invalid");
+          }
+          await index.initialize(
+            (async function* () {
+              yield* resources;
+            })(),
+          );
         } catch {
           await closeAfterRejectedStart();
           throw new Error("Readonly Resource initialization failed");

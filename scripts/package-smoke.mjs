@@ -81,6 +81,10 @@ try {
     "dist/composition/tokens.d.ts.map",
     "dist/composition/tokens.js",
     "dist/composition/tokens.js.map",
+    "dist/core/asset-write-runtime.d.ts",
+    "dist/core/asset-write-runtime.d.ts.map",
+    "dist/core/asset-write-runtime.js",
+    "dist/core/asset-write-runtime.js.map",
     "dist/core/resource-index-write-contracts.d.ts",
     "dist/core/resource-index-write-contracts.d.ts.map",
     "dist/core/resource-index-write-contracts.js",
@@ -97,6 +101,10 @@ try {
     "dist/core/resource-write-runtime.d.ts.map",
     "dist/core/resource-write-runtime.js",
     "dist/core/resource-write-runtime.js.map",
+    "dist/domain/asset-metadata.d.ts",
+    "dist/domain/asset-metadata.d.ts.map",
+    "dist/domain/asset-metadata.js",
+    "dist/domain/asset-metadata.js.map",
     "dist/domain/json.d.ts",
     "dist/domain/json.d.ts.map",
     "dist/domain/json.js",
@@ -181,6 +189,14 @@ try {
     "dist/storage/resource-write-protocol.d.ts.map",
     "dist/storage/resource-write-protocol.js",
     "dist/storage/resource-write-protocol.js.map",
+    "dist/system-extensions/default-api/asset-input.d.ts",
+    "dist/system-extensions/default-api/asset-input.d.ts.map",
+    "dist/system-extensions/default-api/asset-input.js",
+    "dist/system-extensions/default-api/asset-input.js.map",
+    "dist/system-extensions/default-api/asset-write-port.d.ts",
+    "dist/system-extensions/default-api/asset-write-port.d.ts.map",
+    "dist/system-extensions/default-api/asset-write-port.js",
+    "dist/system-extensions/default-api/asset-write-port.js.map",
     "dist/system-extensions/default-api/facades.d.ts",
     "dist/system-extensions/default-api/facades.d.ts.map",
     "dist/system-extensions/default-api/facades.js",
@@ -227,7 +243,21 @@ try {
     join(consumer, "consumer.ts"),
     `import { createExtensia, defineFullResourceDriver } from "@sagifire/extensia";
 import type {
+  AssetCreateError,
+  AssetCreateResult,
+  AssetDeleteError,
+  AssetDeleteResult,
+  AssetPrimaryError,
+  AssetPrimaryResult,
+  AssetReassignError,
+  AssetReassignResult,
   AssetSnapshot,
+  AssetUpdateError,
+  AssetUpdateResult,
+  AssetWriteSuccess,
+  CreateAssetInput,
+  CreateExternalAssetInput,
+  CreateInternalAssetInput,
   ExtensiaConfig,
   ExtensiaError,
   ExtensiaErrorCode,
@@ -269,6 +299,7 @@ import type {
   SafeDiagnostic,
   StorageFacade,
   Timestamp,
+  UpdateAssetInput,
 } from "@sagifire/extensia";
 
 declare const config: ExtensiaConfig;
@@ -284,7 +315,21 @@ const classDriverModule: ExtensiaModule = createExtensia({
   storage: { driver: new TypeDriver() },
 });
 type PublicContract = readonly [
+  AssetCreateError,
+  AssetCreateResult,
+  AssetDeleteError,
+  AssetDeleteResult,
+  AssetPrimaryError,
+  AssetPrimaryResult,
+  AssetReassignError,
+  AssetReassignResult,
   AssetSnapshot,
+  AssetUpdateError,
+  AssetUpdateResult,
+  AssetWriteSuccess,
+  CreateAssetInput,
+  CreateExternalAssetInput,
+  CreateInternalAssetInput,
   ExtensiaError,
   ExtensiaErrorCode,
   ExtensiaInspection,
@@ -310,6 +355,7 @@ type PublicContract = readonly [
   SafeDiagnostic,
   StorageFacade,
   Timestamp,
+  UpdateAssetInput,
   CreateResourceInput,
   MoveResourceInput,
   UpdateResourceInput,
@@ -440,6 +486,33 @@ export type { PublicContract };
       assert.deepEqual(await first.start(), { ok: true, value: undefined });
       const created = await first.storage().createResource({ title: "packed-durable" });
       assert.equal(created.ok, true);
+      const external = await first.storage().createAsset(
+        created.value.resource.data.id,
+        {
+          kind: "external",
+          type: "image",
+          role: "source",
+          mime: "image/png",
+          extension: "png",
+          url: "https://example.test/media/../source.png",
+          is_primary: true,
+        },
+      );
+      assert.equal(external.ok, true);
+      assert.equal(external.value.asset.url, "https://example.test/source.png");
+      const internal = await first.storage().createAsset(
+        created.value.resource.data.id,
+        {
+          kind: "internal",
+          type: "image",
+          role: "preview",
+          mime: "image/webp",
+          extension: "webp",
+          derived_from: external.value.asset.id,
+        },
+      );
+      assert.equal(internal.ok, true);
+      assert.equal(internal.value.asset.is_on_uploading, true);
       assert.deepEqual(await first.stop(), { ok: true, value: undefined });
 
       const second = createLocalSqliteExtensia(config);
@@ -447,15 +520,40 @@ export type { PublicContract };
       const readBack = await second.query().getResource(created.value.resource.data.id);
       assert.equal(readBack.ok, true);
       assert.equal(readBack.value.data.title, "packed-durable");
+      assert.equal(readBack.value.assets.length, 2);
+      assert.deepEqual(
+        readBack.value.assets
+          .map(({ is_on_uploading, role, url }) => ({
+            is_on_uploading,
+            role,
+            url,
+          }))
+          .sort((left, right) => left.role.localeCompare(right.role)),
+        [
+          {
+            is_on_uploading: true,
+            role: "preview",
+            url: null,
+          },
+          {
+            is_on_uploading: false,
+            role: "source",
+            url: "https://example.test/source.png",
+          },
+        ],
+      );
       const observable = JSON.stringify({
         created,
+        external,
         inspection: second.inspect(),
+        internal,
         readBack,
       });
       assert.equal(observable.includes(storageRoot), false);
       assert.equal(observable.includes("extensia.sqlite3"), false);
       assert.equal(observable.includes("connection"), false);
       assert.equal(observable.includes("session"), false);
+      assert.equal(observable.includes("upload_id"), false);
       assert.deepEqual(await second.stop(), { ok: true, value: undefined });
     } finally {
       rmSync(storageRoot, { force: true, recursive: true });

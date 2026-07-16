@@ -155,7 +155,10 @@ export function prepareResourceMove(
 }
 
 export type ResourceDeletePreparation =
-  | { readonly kind: "missing" | "already-deleted" | "has-children" }
+  | {
+      readonly kind:
+        "missing" | "already-deleted" | "has-children" | "active-upload";
+    }
   | {
       readonly kind: "success";
       readonly resources: readonly ResourceSnapshot[];
@@ -177,6 +180,9 @@ export function prepareResourceDelete(
     )
   )
     return { kind: "has-children" };
+  if (target.assets.some((asset) => asset.is_on_uploading)) {
+    return { kind: "active-upload" };
+  }
   const changed = [
     buildResourceSnapshot({
       ...target,

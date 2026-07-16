@@ -17,7 +17,10 @@ export interface CreateResourceWriteRequest {
 }
 
 export type RuntimeIntegrityFailureHandler = (input: {
-  readonly code: "RESOURCE_STORAGE_INTEGRITY" | "RESOURCE_INDEX_INTEGRITY";
+  readonly code:
+    | "RESOURCE_STORAGE_INTEGRITY"
+    | "RESOURCE_INDEX_INTEGRITY"
+    | "ASSET_STORAGE_INTEGRITY";
   readonly operation_id: IDString;
 }) => void;
 
@@ -73,6 +76,7 @@ export type CoreResourceWriteFailureCode =
   | "RESOURCE_ORDER_OUT_OF_RANGE"
   | "RESOURCE_HAS_CHILDREN"
   | "RESOURCE_ALREADY_DELETED"
+  | "RESOURCE_ASSET_UPLOAD_ACTIVE"
   | "RESOURCE_ID_GENERATION_FAILED"
   | "STORAGE_LOCK_FAILED"
   | "STORAGE_WRITE_FAILED"

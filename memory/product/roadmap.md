@@ -2,7 +2,7 @@
 
 Status: accepted implementation sequence
 Target Release: `0.1.0`
-Updated: 2026-07-10
+Updated: 2026-07-16
 
 Цей roadmap задає компактну послідовність залежностей і decision gates без календарних обіцянок. Детальний rolling-wave backlog, complexity rubric і dependency register зберігаються в [planning report TASK-07.26-0003](../reports/research/2026-07-09-extensia-v0-1-0-delivery-plan.md); implementation tasks створюються поступово після gate попередньої хвилі.
 
@@ -62,11 +62,11 @@ Gate: жодна write-операція не може повернути success
 
 ## Фаза 3 — Перший journal-backed Resource write slice
 
-Стан: P3-DG1/create/update/P3-STAB1 done; P3-DG2 canonical package published as `APP-07.26-0032-001`, TASK-0032 review-ready. Backlog P3-VS3/TASK-0033 → P3-VS4/TASK-0034 → P3-VS5/TASK-0035 → final P3-STAB/TASK-0036 prepared with pending runs, not activated.
+Стан: Phase 3 завершена й прийнята whole-task human review: P3-DG1/P3-DG2 applied, P3-WP1/P3-WP2, Resource create/update, P3-VS3 hierarchy/order/move, P3-VS4 Marks/KV, P3-VS5 leaf soft delete і final P3-STAB виконані; restore лишається deferred.
 
 Wave IDs: `P3-DG1` -> `BP3-01A` -> parallel `P3-WP1/P3-WP2` -> `P3-VS1` -> `P3-VS2` -> `P3-STAB1` -> `P3-DG2` -> sequential `P3-VS3` move/foundation -> `P3-VS4` Mark/KV -> `P3-VS5` leaf delete -> final `P3-STAB`. Restore deferred.
 
-Application gate: write contract/ADR-0008/APP-0024 and order-delete-Mark-KV contract/ADR-0009/APP-0032 published. Next possible activation is P3-VS3 only, then sequential gates VS4, VS5 and final stabilization.
+Application gate: write contract/ADR-0008/APP-0024 та order-delete-Mark-KV contract/ADR-0009/APP-0032 published; sequential P3-VS3, P3-VS4, P3-VS5 і final P3-STAB gates completed/accepted.
 
 - Розширити deterministic fake Storage Driver до full capability model для failure-injection tests.
 - Реалізувати Async Lock Queue, operation scopes, Operation Engine, storage-level write lock, мінімальний Operation Journal і recovery path до ready state.
@@ -77,13 +77,13 @@ Gate: кожний Resource write journal-backed; committed entry є publication
 
 ## Фаза 4 — Assets і перший concrete durable Storage Driver
 
-Стан: P4-DG1 і P4-DG2 approved/applied target designs; concrete driver/Asset implementation ще не створена/активована.
+Стан: P4-DG1/P4-DG2 approved/applied; P4-WP1 concrete driver, P4-VS1 Resource durability і P4-VS2 Asset metadata lifecycle accepted. P4-VS3 upload bytes/finalization та P4-STAB лишаються pending.
 
 Wave IDs: паралельні `P4-DG1` concrete storage protocol і `P4-DG2` Asset contracts; `P4-DG1 -> P4-WP1` concrete driver -> `P4-VS1` Resource durability, після чого гілка приєднує погоджений `P4-DG2` перед `P4-VS2/VS3` Asset metadata/upload -> `P4-STAB`.
 
-- Реалізувати first/default `embedded-transactional/local-sqlite-v1` profile з atomic SQLite persistence, committed journal, exclusive storage session і recovery primitives після окремого P4-WP1 gate.
-- Реалізувати Asset invariants, internal/external assets, primary asset і staged upload lifecycle.
-- Перевірити crash/recovery matrix для metadata, files, upload staging і journal publication на concrete driver.
+- Реалізовано first/default internal `embedded-transactional/local-sqlite-v1` profile з atomic SQLite persistence, committed journal, exclusive storage session і recovery primitives у P4-WP1.
+- Реалізовано повну Resource durability parity у P4-VS1 та Asset metadata invariants, internal/external assets, primary/reassign/delete й staged generation persistence у P4-VS2.
+- Лишаються P4-VS3 bytes transport/finalization та P4-STAB повна crash/recovery stabilization; current evidence не розширюється до destructive power-loss або universal-platform claim.
 
 Gate: successful operation означає durable committed state на concrete storage; incomplete artifacts не стають visible; restart recovery та `readonly` behavior покриті tests.
 

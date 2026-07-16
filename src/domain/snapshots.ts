@@ -1,15 +1,18 @@
-import {
-  cloneJSONObject,
-  isJSONArray,
-  isJSONObject,
-  type JSONObject,
-} from "./json.js";
+import { cloneJSONObject, isJSONArray, type JSONObject } from "./json.js";
 import {
   isIDString,
   isTimestamp,
   type IDString,
   type Timestamp,
 } from "./scalars.js";
+import {
+  hasValidAssetArrayInvariants,
+  isAssetClassifier,
+  isAssetData,
+  isAssetExtension,
+  isAssetMime,
+  isCanonicalAssetURL,
+} from "./asset-metadata.js";
 
 export interface MarkSnapshot {
   readonly type: string;
@@ -205,10 +208,10 @@ export function isAssetSnapshot(value: unknown): value is AssetSnapshot {
 
   if (
     !isIDString(value["id"]) ||
-    typeof value["type"] !== "string" ||
-    typeof value["role"] !== "string" ||
-    !isNullableString(value["mime"]) ||
-    !isNullableString(value["extension"]) ||
+    !isAssetClassifier(value["type"]) ||
+    !isAssetClassifier(value["role"]) ||
+    !isAssetMime(value["mime"]) ||
+    !isAssetExtension(value["extension"]) ||
     typeof isExternal !== "boolean" ||
     typeof value["is_primary"] !== "boolean" ||
     typeof isUploading !== "boolean" ||
@@ -216,12 +219,13 @@ export function isAssetSnapshot(value: unknown): value is AssetSnapshot {
     !isNullableIDString(value["derived_from"]) ||
     !isTimestamp(value["created_at"]) ||
     !isTimestamp(value["updated_at"]) ||
-    !(value["data"] === null || isJSONObject(value["data"]))
+    !isAssetData(value["data"]) ||
+    value["updated_at"] < value["created_at"]
   ) {
     return false;
   }
 
-  return isExternal ? url !== null && !isUploading : url === null;
+  return isExternal ? isCanonicalAssetURL(url) && !isUploading : url === null;
 }
 
 export function isResourceDataSnapshot(
@@ -246,22 +250,7 @@ function hasValidAggregateInvariants(
   assets: readonly AssetSnapshot[],
   marks: readonly MarkSnapshot[],
 ): boolean {
-  const assetIDs = new Set<IDString>();
-  let primaryCount = 0;
-
-  for (const asset of assets) {
-    if (assetIDs.has(asset.id)) {
-      return false;
-    }
-
-    assetIDs.add(asset.id);
-    if (asset.is_primary) {
-      primaryCount += 1;
-      if (primaryCount > 1) {
-        return false;
-      }
-    }
-  }
+  if (!hasValidAssetArrayInvariants(assets)) return false;
 
   const marksByType = new Map<string, Set<string>>();
   for (const mark of marks) {

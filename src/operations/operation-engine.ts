@@ -9,6 +9,10 @@ import {
   type AsyncLockLease,
 } from "./async-lock-queue.js";
 import { ResourceRuntimeIntegrityError } from "../storage/resource-runtime-integrity.js";
+import type {
+  AssetOperationType,
+  ResourceOperationType,
+} from "../storage/resource-write-protocol.js";
 
 export type OperationPipelineState =
   | "admitted"
@@ -24,13 +28,7 @@ export type OperationPipelineState =
 export interface ResourceOperationPlan {
   readonly operation_id: IDString;
   readonly actor_id: IDString;
-  readonly type:
-    | "resource.create"
-    | "resource.update"
-    | "resource.move"
-    | "resource.delete"
-    | "resource.marks.set"
-    | "resource.kv.set";
+  readonly type: ResourceOperationType | AssetOperationType;
   readonly resource_hints: readonly IDString[];
   readonly lock_keys: readonly string[];
 }
@@ -80,7 +78,10 @@ export interface OperationRequest {
   readonly signal?: AbortSignal;
   readonly identity?: ResourceOperationIdentity;
   readonly fail_integrity?: (input: {
-    readonly code: "RESOURCE_STORAGE_INTEGRITY" | "RESOURCE_INDEX_INTEGRITY";
+    readonly code:
+      | "RESOURCE_STORAGE_INTEGRITY"
+      | "RESOURCE_INDEX_INTEGRITY"
+      | "ASSET_STORAGE_INTEGRITY";
     readonly operation_id: IDString;
   }) => void;
 }

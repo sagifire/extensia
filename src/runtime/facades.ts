@@ -38,7 +38,10 @@ export interface FacadeFactoryContext {
   readonly dependencies: FacadeDependencyAccess;
   readonly operations: FacadeOperationGate;
   failClose(
-    code?: "RESOURCE_STORAGE_INTEGRITY" | "RESOURCE_INDEX_INTEGRITY",
+    code?:
+      | "RESOURCE_STORAGE_INTEGRITY"
+      | "RESOURCE_INDEX_INTEGRITY"
+      | "ASSET_STORAGE_INTEGRITY",
     operationId?: string,
   ): void;
 }

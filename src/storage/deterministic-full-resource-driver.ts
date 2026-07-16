@@ -1,10 +1,16 @@
 import {
+  validateAssetStorageInvariants,
+  type AssetPayloadState,
+} from "../domain/asset-metadata.js";
+import {
   buildResourceSnapshot,
   type ResourceSnapshot,
 } from "../domain/snapshots.js";
 import type { IDString } from "../domain/scalars.js";
 import type { FullResourceDriverAdapter } from "./full-resource-driver-adapter.js";
 import {
+  cloneAssetLogicalChange,
+  canonicalResourceStorageJson,
   cloneCommittedOperationDraft,
   cloneCommittedOperationEntry,
   computeResourceWriteSetFingerprint,
@@ -15,6 +21,7 @@ import {
   validateContiguousJournal,
 } from "./resource-journal-integrity.js";
 import type {
+  AssetLogicalChange,
   CommittedOperationDraft,
   CommittedOperationEntry,
   ResourceRecoveryReport,
@@ -53,18 +60,25 @@ export class DeterministicDriverCrashError extends Error {
 interface StagingManifest {
   readonly operationId: IDString;
   readonly resources: ResourceSnapshot[];
+  readonly assetChanges: AssetLogicalChange[];
   draft: CommittedOperationDraft | null;
   phase: "active" | "committed-needs-finalization";
 }
 
 export interface DeterministicFullDriverBacking {
+  readonly assetPayloadStates: Map<IDString, AssetPayloadState>;
   readonly resources: Map<IDString, ResourceSnapshot>;
   readonly journal: CommittedOperationEntry[];
   readonly staging: Map<IDString, StagingManifest>;
 }
 
 export function createDeterministicFullDriverBacking(): DeterministicFullDriverBacking {
-  return { journal: [], resources: new Map(), staging: new Map() };
+  return {
+    assetPayloadStates: new Map(),
+    journal: [],
+    resources: new Map(),
+    staging: new Map(),
+  };
 }
 
 type Failure =
@@ -154,6 +168,7 @@ export interface DeterministicFullDriverFixture {
   failNext(point: DeterministicFullDriverCutPoint, error?: Error): void;
   crashNext(point: DeterministicFullDriverCutPoint): void;
   inspect(): Readonly<{
+    asset_payload_states: readonly AssetPayloadState[];
     resources: readonly ResourceSnapshot[];
     journal: readonly CommittedOperationEntry[];
     staging_operations: readonly IDString[];
@@ -212,8 +227,12 @@ export function createDeterministicFullResourceDriver(
           return committedResource;
         });
         if (
-          computeResourceWriteSetFingerprint(committedResources) !==
-          manifest.draft.write_set_fingerprint
+          computeResourceWriteSetFingerprint(
+            committedResources,
+            "asset_changes" in manifest.draft
+              ? manifest.assetChanges
+              : undefined,
+          ) !== manifest.draft.write_set_fingerprint
         ) {
           throw new ResourceStorageIntegrityError(
             "Committed staging does not match durable Resources",
@@ -300,6 +319,7 @@ export function createDeterministicFullResourceDriver(
     injectUnknownStaging(operationId) {
       backing.staging.set(operationId, {
         draft: null,
+        assetChanges: [],
         operationId,
         phase: "committed-needs-finalization",
         resources: [],
@@ -307,6 +327,9 @@ export function createDeterministicFullResourceDriver(
     },
     inspect() {
       return {
+        asset_payload_states: [...backing.assetPayloadStates.values()].map(
+          cloneAssetPayloadState,
+        ),
         journal: backing.journal.map(cloneCommittedOperationEntry),
         resources: [...backing.resources.values()].map(buildResourceSnapshot),
         staging_operations: [...backing.staging.keys()],
@@ -326,6 +349,16 @@ function validateBacking(backing: DeterministicFullDriverBacking): void {
       }
     }
   }
+  if (
+    !validateAssetStorageInvariants(
+      [...backing.resources.values()],
+      [...backing.assetPayloadStates.values()],
+    )
+  ) {
+    throw new ResourceStorageIntegrityError(
+      "Deterministic Asset storage state is invalid",
+    );
+  }
 }
 
 function validateDraftDescribesWriteSet(
@@ -333,7 +366,11 @@ function validateDraftDescribesWriteSet(
   resources: readonly ResourceSnapshot[],
 ): void {
   const resourceIDs = resources.map((resource) => resource.data.id);
+  const assetChanges =
+    "asset_changes" in draft ? draft.asset_changes : undefined;
   if (
+    computeResourceWriteSetFingerprint(resources, assetChanges) !==
+      draft.write_set_fingerprint ||
     draft.affected_resources.length !== resourceIDs.length ||
     draft.changes.length !== resourceIDs.length ||
     resourceIDs.some(
@@ -380,6 +417,13 @@ function createSession(
       const resource = backing.resources.get(id);
       return resource === undefined ? null : buildResourceSnapshot(resource);
     },
+    async *listAssetPayloadStates() {
+      assertActive();
+      for (const state of backing.assetPayloadStates.values()) {
+        assertActive();
+        yield cloneAssetPayloadState(state);
+      }
+    },
     async begin(operationId) {
       assertActive();
       failures.hit("transaction.begin");
@@ -389,6 +433,7 @@ function createSession(
           "Operation already has private staging",
         );
       const manifest: StagingManifest = {
+        assetChanges: [],
         draft: null,
         operationId,
         phase: "active",
@@ -446,6 +491,29 @@ function createTransaction(
       else manifest.resources.push(detached);
       failures.hit("transaction.stage.after");
     },
+    async stageAssetChange(change) {
+      assertSessionActive();
+      if (aborted || committed !== null) {
+        throw new Error("Transaction is no longer active");
+      }
+      if (
+        manifest.assetChanges.some(
+          (candidate) => candidate.asset_id === change.asset_id,
+        )
+      ) {
+        throw new ResourceStorageIntegrityError(
+          "Asset change is staged more than once",
+        );
+      }
+      manifest.assetChanges.push(cloneAssetLogicalChange(change));
+      manifest.assetChanges.sort((left, right) =>
+        left.asset_id < right.asset_id
+          ? -1
+          : left.asset_id > right.asset_id
+            ? 1
+            : 0,
+      );
+    },
     async commit(draft) {
       assertSessionActive();
       if (aborted) throw new Error("Transaction is aborted");
@@ -466,13 +534,25 @@ function createTransaction(
           "Transaction has no staged Resource",
         );
       if (
-        computeResourceWriteSetFingerprint(manifest.resources) !==
-        draft.write_set_fingerprint
+        computeResourceWriteSetFingerprint(
+          manifest.resources,
+          "asset_changes" in draft ? manifest.assetChanges : undefined,
+        ) !== draft.write_set_fingerprint
       )
         throw new ResourceStorageIntegrityError(
           "Write-set fingerprint mismatch",
         );
       validateDraftDescribesWriteSet(draft, manifest.resources);
+      if (
+        "asset_changes" in draft !== manifest.assetChanges.length > 0 ||
+        ("asset_changes" in draft &&
+          canonicalAssetChanges(draft.asset_changes) !==
+            canonicalAssetChanges(manifest.assetChanges))
+      ) {
+        throw new ResourceStorageIntegrityError(
+          "Staged Asset changes do not match the draft",
+        );
+      }
       const existing = backing.journal.find(
         (entry) => entry.operation_id === draft.operation_id,
       );
@@ -490,11 +570,30 @@ function createTransaction(
         sequence: journalSequence(BigInt(backing.journal.length + 1)),
       };
       manifest.draft = cloneCommittedOperationDraft(draft);
-      for (const resource of manifest.resources)
-        backing.resources.set(
-          resource.data.id,
-          buildResourceSnapshot(resource),
+      const nextResources = new Map(backing.resources);
+      for (const resource of manifest.resources) {
+        nextResources.set(resource.data.id, buildResourceSnapshot(resource));
+      }
+      const nextPayloadStates = prepareAssetPayloadStates(
+        backing.assetPayloadStates,
+        manifest.assetChanges,
+      );
+      if (
+        !validateAssetStorageInvariants(
+          [...nextResources.values()],
+          [...nextPayloadStates.values()],
+        )
+      ) {
+        throw new ResourceStorageIntegrityError(
+          "Committed Asset state would violate storage invariants",
         );
+      }
+      backing.resources.clear();
+      nextResources.forEach((value, key) => backing.resources.set(key, value));
+      backing.assetPayloadStates.clear();
+      nextPayloadStates.forEach((value, key) =>
+        backing.assetPayloadStates.set(key, value),
+      );
       backing.journal.push(entry);
       manifest.phase = "committed-needs-finalization";
       committed = entry;
@@ -510,4 +609,102 @@ function createTransaction(
       backing.staging.delete(manifest.operationId);
     },
   };
+}
+
+function cloneAssetPayloadState(state: AssetPayloadState): AssetPayloadState {
+  return {
+    active_upload:
+      state.active_upload === null ? null : { ...state.active_upload },
+    asset_id: state.asset_id,
+    committed: state.committed,
+  };
+}
+
+function canonicalAssetChanges(changes: readonly AssetLogicalChange[]): string {
+  return canonicalResourceStorageJson(changes.map(cloneAssetLogicalChange));
+}
+
+function prepareAssetPayloadStates(
+  current: ReadonlyMap<IDString, AssetPayloadState>,
+  changes: readonly AssetLogicalChange[],
+): Map<IDString, AssetPayloadState> {
+  const next = new Map<IDString, AssetPayloadState>();
+  current.forEach((value, key) => next.set(key, cloneAssetPayloadState(value)));
+  for (const change of changes) {
+    const state = next.get(change.asset_id);
+    switch (change.payload_action.kind) {
+      case "none":
+        break;
+      case "generation.create": {
+        const replacement = change.state_after === "replacement-uploading";
+        if (
+          (replacement &&
+            (state === undefined ||
+              !state.committed ||
+              state.active_upload !== null)) ||
+          (!replacement && state !== undefined)
+        ) {
+          throw new ResourceStorageIntegrityError(
+            "Asset generation create state is invalid",
+          );
+        }
+        next.set(change.asset_id, {
+          active_upload: {
+            replaces_committed: replacement,
+            upload_id: change.payload_action.upload_id,
+          },
+          asset_id: change.asset_id,
+          committed: replacement,
+        });
+        break;
+      }
+      case "generation.discard":
+        if (
+          state?.active_upload?.upload_id !== change.payload_action.upload_id
+        ) {
+          throw new ResourceStorageIntegrityError(
+            "Asset generation discard state is invalid",
+          );
+        }
+        if (state.committed) {
+          next.set(change.asset_id, {
+            active_upload: null,
+            asset_id: change.asset_id,
+            committed: true,
+          });
+        } else {
+          next.delete(change.asset_id);
+        }
+        break;
+      case "payload.delete":
+        if (
+          state === undefined ||
+          !state.committed ||
+          state.active_upload !== null
+        ) {
+          throw new ResourceStorageIntegrityError(
+            "Asset payload delete state is invalid",
+          );
+        }
+        next.delete(change.asset_id);
+        break;
+      case "payload.delete-and-generation.discard":
+        if (
+          state === undefined ||
+          !state.committed ||
+          state.active_upload?.upload_id !== change.payload_action.upload_id
+        ) {
+          throw new ResourceStorageIntegrityError(
+            "Asset payload and generation delete state is invalid",
+          );
+        }
+        next.delete(change.asset_id);
+        break;
+      case "generation.publish":
+        throw new ResourceStorageIntegrityError(
+          "Asset generation publication is not implemented in P4-VS2",
+        );
+    }
+  }
+  return next;
 }

@@ -2,6 +2,7 @@
 
 Status: accepted target design
 Date: 2026-07-12
+Updated: 2026-07-16
 Decision Owner: P4-DG1 / TASK-07.26-0039
 Evidence: `memory/reports/research/2026-07-12-extensia-concrete-storage-protocol.md`
 
@@ -20,7 +21,7 @@ Phase 3 довела semantic commit на deterministic fake, але не physic
 - COMMIT error класифікується через connection `isTransaction`, rollback/retry та exact query by `operation_id`. Settled resolve = proven committed; settled reject = proven absent. Persistent unclassifiable storage failure закриває intake й може лишити promise pending до відновлення доступу або external process termination: safety гарантується, liveness ні.
 - Full startup виконує recovery-before-ready. Readonly open не виконує hidden recovery/cleanup writes і fail-close, якщо ready потребує mutation.
 - Physical root містить driver-owned `extensia.sqlite3` і SQLite-private rollback journal. Logical IDs не стають paths; symlink/reparse/non-regular DB target відхиляється.
-- `application_id`, `user_version=1`, singleton format marker, schema/quick-check, canonical JSON/fingerprint/sequence/payload integrity перевіряються до ready. Unknown/corrupt state fail-close; automatic repair заборонений.
+- `application_id`, current `user_version=2`, singleton format marker, exact schema/quick-check, canonical JSON/fingerprint/sequence/payload/generation integrity перевіряються до ready. Version `1` є єдиним accepted legacy input: full owner після повної validation й доказу порожнього legacy payload seam атомарно додає `asset_upload_generations` та оновлює обидва version markers; readonly валідовує version `1` без mutation. Unknown/corrupt або nonempty unsupported legacy state fail-close; deterministic schema migration не є automatic repair.
 - Device power-loss за dishonest cache, network filesystem і uncertified filesystem guarantees не заявляються.
 
 ## Implementation gate
@@ -35,4 +36,4 @@ P4-WP1 має довести child-process cut points, fault injection, dual-pla
 
 ## Наслідки
 
-`local-sqlite-v1` є first/default concrete profile `0.1.0`, але не universal physical model Storage Driver. Production capability ще не реалізована й не сертифікована.
+`local-sqlite-v1` є first/default concrete profile `0.1.0`, але не universal physical model Storage Driver. P4-WP1, P4-VS1 і P4-VS2 реалізували internal production capability для Resource parity, Asset metadata та staged-generation persistence з bounded current-host Windows local NTFS process-crash evidence. Public/default driver surface, broader platform/performance certification і destructive power-loss guarantee не заявлені.

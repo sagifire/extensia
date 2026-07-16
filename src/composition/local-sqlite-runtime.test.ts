@@ -375,6 +375,96 @@ describe("internal local SQLite production composition", () => {
     expect(state.resources).toEqual([]);
   });
 
+  it.each([
+    {
+      committed: false,
+      point: "transaction.after-journal-write" as const,
+    },
+    { committed: true, point: "transaction.after-commit" as const },
+  ])(
+    "keeps internal Asset metadata/generation/journal atomic at $point",
+    async ({ committed, point }) => {
+      const root = createRoot();
+      const seed = createLocalSqliteExtensia({
+        mode: "full",
+        storage: sqliteOptions(root),
+      });
+      await seed.start();
+      const owner = mustWrite(
+        await seed.storage()!.createResource({ title: "asset-cut-point" }),
+      );
+      await seed.stop();
+
+      let pending = true;
+      const extensia = createLocalSqliteExtensia({
+        mode: "full",
+        storage: sqliteOptions(root, {
+          faults: {
+            hit(candidate) {
+              if (candidate === point && pending) {
+                pending = false;
+                throw new Error(`Asset cut point: ${point}`);
+              }
+            },
+          },
+        }),
+      });
+      await extensia.start();
+      const created = await extensia
+        .storage()!
+        .createAsset(owner.resource.data.id, {
+          extension: "bin",
+          kind: "internal",
+          mime: "application/octet-stream",
+          role: "cut-point",
+          type: "binary",
+        });
+      expect(created.ok).toBe(committed);
+      if (!committed) {
+        expect(created).toMatchObject({
+          error: { code: "STORAGE_WRITE_FAILED" },
+          ok: false,
+        });
+      }
+      await expect(
+        extensia.query()!.getResource(owner.resource.data.id),
+      ).resolves.toMatchObject({
+        ok: true,
+        value: { assets: committed ? [{ is_on_uploading: true }] : [] },
+      });
+      await extensia.stop();
+
+      const databasePath = inspectLocalSqliteProfile(root).databasePath;
+      const raw = new DatabaseSync(databasePath, { readOnly: true });
+      expect(
+        raw
+          .prepare("SELECT count(*) AS count FROM asset_upload_generations")
+          .get(),
+      ).toEqual({ count: committed ? 1 : 0 });
+      expect(
+        raw
+          .prepare(
+            "SELECT count(*) AS count FROM journal WHERE type = 'asset.create'",
+          )
+          .get(),
+      ).toEqual({ count: committed ? 1 : 0 });
+      raw.close();
+
+      const restarted = createLocalSqliteExtensia({
+        mode: "full",
+        storage: sqliteOptions(root),
+      });
+      await restarted.start();
+      await expect(
+        restarted.query()!.getResource(owner.resource.data.id),
+      ).resolves.toMatchObject({
+        ok: true,
+        value: { assets: committed ? [{ is_on_uploading: true }] : [] },
+      });
+      await restarted.stop();
+    },
+  );
+
   it("fails the ready runtime closed on concrete Resource/journal corruption", async () => {
     const root = createRoot();
     const extensia = createLocalSqliteExtensia({
@@ -417,5 +507,97 @@ describe("internal local SQLite production composition", () => {
     ).toEqual({ count: 0 });
     raw.close();
     await extensia.stop();
+  });
+
+  it("persists Asset metadata, exact generation state and journal across restart", async () => {
+    const root = createRoot();
+    const first = createLocalSqliteExtensia({
+      mode: "full",
+      storage: sqliteOptions(root),
+    });
+    await first.start();
+    const owner = mustWrite(
+      await first.storage()!.createResource({ title: "asset-owner" }),
+    );
+    const external = await first
+      .storage()!
+      .createAsset(owner.resource.data.id, {
+        data: { source: "remote" },
+        extension: "jpg",
+        kind: "external",
+        mime: "image/jpeg",
+        role: "preview",
+        type: "image",
+        url: "HTTPS://EXAMPLE.test:443/a.jpg",
+      });
+    const internal = await first
+      .storage()!
+      .createAsset(owner.resource.data.id, {
+        extension: "bin",
+        kind: "internal",
+        mime: "application/octet-stream",
+        role: "original",
+        type: "binary",
+      });
+    if (
+      !external.ok ||
+      external.value.asset === null ||
+      !internal.ok ||
+      internal.value.asset === null
+    ) {
+      throw new Error("Asset create failed");
+    }
+    const internalID = internal.value.asset.id;
+    await first.stop();
+
+    const second = createLocalSqliteExtensia({
+      mode: "full",
+      storage: sqliteOptions(root),
+    });
+    await second.start();
+    await expect(
+      second.query()!.getResource(owner.resource.data.id),
+    ).resolves.toMatchObject({
+      ok: true,
+      value: {
+        assets: [{ id: expect.any(String) }, { id: expect.any(String) }],
+      },
+    });
+    const db = new DatabaseSync(inspectLocalSqliteProfile(root).databasePath, {
+      readOnly: true,
+    });
+    expect(
+      db
+        .prepare(
+          "SELECT asset_id, replaces_committed FROM asset_upload_generations",
+        )
+        .all(),
+    ).toEqual([{ asset_id: internalID, replaces_committed: 0 }]);
+    expect(
+      db
+        .prepare(
+          "SELECT type FROM journal ORDER BY sequence_length, sequence_text",
+        )
+        .all()
+        .slice(-2),
+    ).toEqual([{ type: "asset.create" }, { type: "asset.create" }]);
+    db.close();
+
+    await expect(
+      second.storage()!.deleteAsset(owner.resource.data.id, internalID),
+    ).resolves.toMatchObject({ ok: true, value: { asset: null } });
+    await second.stop();
+    const third = createLocalSqliteExtensia({
+      mode: "full",
+      storage: sqliteOptions(root),
+    });
+    await third.start();
+    await expect(
+      third.query()!.getResource(owner.resource.data.id),
+    ).resolves.toMatchObject({
+      ok: true,
+      value: { assets: [{ is_external: true }] },
+    });
+    await third.stop();
   });
 });

@@ -34,6 +34,7 @@ import {
   type LocalSqliteFaultInjector,
 } from "./local-sqlite-resource-driver.js";
 import type { CommittedOperationDraft } from "./resource-write-protocol.js";
+import { AssetStorageIntegrityError } from "./resource-runtime-integrity.js";
 
 const ACTOR_ID = "20000000-0000-4000-8000-000000000001" as IDString;
 const OPERATION_ID = "30000000-0000-4000-8000-000000000001" as IDString;
@@ -634,7 +635,7 @@ describe("local SQLite Resource driver", () => {
 
   it("fails closed for format, schema and canonical content corruption", async () => {
     const mutators: Array<(db: DatabaseSync) => void> = [
-      (db) => db.exec("PRAGMA user_version = 2"),
+      (db) => db.exec("PRAGMA user_version = 3"),
       (db) => db.exec("CREATE TABLE unexpected(value TEXT) STRICT"),
       (db) => db.exec("CREATE INDEX unexpected_index ON resources(revision)"),
       (db) =>
@@ -690,6 +691,118 @@ describe("local SQLite Resource driver", () => {
       );
       await corrupt.close();
     }
+  });
+
+  it("migrates the accepted version-1 Resource schema without changing durable state", async () => {
+    const root = createRoot();
+    const adapter = await commitOne(root);
+    await adapter.close();
+    const databasePath = inspectLocalSqliteProfile(root).databasePath;
+    const legacy = new DatabaseSync(databasePath);
+    legacy.exec(`
+      DROP TABLE asset_upload_generations;
+      UPDATE storage_format SET version = 1 WHERE singleton = 1;
+      PRAGMA user_version = 1;
+    `);
+    legacy.close();
+
+    const legacyHash = fileHash(databasePath);
+    const readonly = createLocalSqliteReadonlyResourceDriver({
+      profile: "candidate-local-filesystem",
+      rootPath: root,
+      timeoutMs: 100,
+    });
+    await readonly.open();
+    const readonlyResources = [];
+    for await (const snapshot of readonly.listResources()) {
+      readonlyResources.push(snapshot);
+    }
+    expect(readonlyResources).toHaveLength(1);
+    await readonly.close();
+    expect(fileHash(databasePath)).toBe(legacyHash);
+    const stillLegacy = new DatabaseSync(databasePath, { readOnly: true });
+    expect(stillLegacy.prepare("PRAGMA user_version").get()).toEqual({
+      user_version: 1,
+    });
+    expect(
+      stillLegacy
+        .prepare(
+          "SELECT name FROM sqlite_schema WHERE type = 'table' AND name = 'asset_upload_generations'",
+        )
+        .get(),
+    ).toBeUndefined();
+    stillLegacy.close();
+
+    const migrated = driver(root);
+    await migrated.open();
+    const session = await migrated.acquireStorageSession();
+    const resources = [];
+    for await (const resource of session.listResources())
+      resources.push(resource);
+    const journal = [];
+    for await (const entry of session.readCommittedOperationsAfter(null)) {
+      journal.push(entry);
+    }
+    expect(resources).toHaveLength(1);
+    expect(journal).toHaveLength(1);
+    const payloadStates = [];
+    for await (const state of session.listAssetPayloadStates!()) {
+      payloadStates.push(state);
+    }
+    expect(payloadStates).toEqual([]);
+    await session.release();
+    await migrated.close();
+
+    const verified = new DatabaseSync(databasePath, { readOnly: true });
+    expect(verified.prepare("PRAGMA user_version").get()).toEqual({
+      user_version: 2,
+    });
+    expect(
+      verified
+        .prepare(
+          "SELECT name FROM sqlite_schema WHERE type = 'table' AND name = 'asset_upload_generations'",
+        )
+        .get(),
+    ).toEqual({ name: "asset_upload_generations" });
+    verified.close();
+  });
+
+  it("classifies malformed persisted Asset generation as ASSET_STORAGE_INTEGRITY", async () => {
+    const root = createRoot();
+    const adapter = driver(root);
+    const extensia = createExtensia({
+      storage: { driver: defineFullResourceDriver(adapter) },
+    });
+    await extensia.start();
+    const owner = await extensia
+      .storage()!
+      .createResource({ title: "asset-corruption" });
+    if (!owner.ok) throw new Error("Resource create failed");
+    const asset = await extensia
+      .storage()!
+      .createAsset(owner.value.resource.data.id, {
+        extension: "bin",
+        kind: "internal",
+        mime: "application/octet-stream",
+        role: "source",
+        type: "binary",
+      });
+    if (!asset.ok) throw new Error("Asset create failed");
+    await extensia.stop();
+
+    const databasePath = inspectLocalSqliteProfile(root).databasePath;
+    const corrupt = new DatabaseSync(databasePath);
+    corrupt
+      .prepare("UPDATE asset_upload_generations SET upload_id = 'invalid'")
+      .run();
+    corrupt.close();
+
+    const reopened = driver(root);
+    await reopened.open();
+    await expect(reopened.acquireStorageSession()).rejects.toBeInstanceOf(
+      AssetStorageIntegrityError,
+    );
+    await reopened.close();
   });
 
   it.each([

@@ -2,7 +2,7 @@
 
 ## Призначення
 
-Prepared run для P4-VS2; активація потребує completed/accepted P4-VS1 та окремого explicit рішення.
+Completed/accepted run для P4-VS2: implementation, final gates, pressure evidence, whole-task approval, FIX-001 application і independent audits завершені.
 
 ## Папки
 
@@ -10,5 +10,6 @@ Prepared run для P4-VS2; активація потребує completed/accept
 
 ## Файли
 
-- [Context](context.md) - Snapshot accepted Asset metadata requirements і verification до активації.
-
+- [Context](context.md) - Frozen snapshot accepted Asset metadata requirements і verification.
+- [Result](result.md) - Completed execution, verification, self-review, approval та audit report.
+- [Asset scan pressure probe](asset-scan-pressure-probe.mjs) - Rerunnable bounded current-host measurement для storage-wide startup/coherent Asset scan.

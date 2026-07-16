@@ -1,5 +1,7 @@
 export type ResourceRuntimeIntegrityCode =
-  "RESOURCE_STORAGE_INTEGRITY" | "RESOURCE_INDEX_INTEGRITY";
+  | "RESOURCE_STORAGE_INTEGRITY"
+  | "RESOURCE_INDEX_INTEGRITY"
+  | "ASSET_STORAGE_INTEGRITY";
 
 export class ResourceRuntimeIntegrityError extends Error {
   readonly code: ResourceRuntimeIntegrityCode;
@@ -17,5 +19,12 @@ export class ResourceCommittedIntegrityError extends ResourceRuntimeIntegrityErr
   constructor(message: string) {
     super("RESOURCE_STORAGE_INTEGRITY", message);
     this.name = "ResourceCommittedIntegrityError";
+  }
+}
+
+export class AssetStorageIntegrityError extends ResourceRuntimeIntegrityError {
+  constructor(message: string) {
+    super("ASSET_STORAGE_INTEGRITY", message);
+    this.name = "AssetStorageIntegrityError";
   }
 }

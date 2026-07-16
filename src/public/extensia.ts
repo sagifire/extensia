@@ -179,6 +179,40 @@ function messageFor(code: ExtensiaErrorCode): string {
       return "Resource has active children";
     case "RESOURCE_ALREADY_DELETED":
       return "Resource is already deleted";
+    case "RESOURCE_ASSET_UPLOAD_ACTIVE":
+      return "Resource has an active Asset upload";
+    case "INVALID_ASSET_ID":
+      return "Asset ID is invalid";
+    case "ASSET_INPUT_INVALID":
+      return "Asset input is invalid";
+    case "ASSET_URL_INVALID":
+      return "Asset URL is invalid";
+    case "ASSET_DATA_INVALID":
+      return "Asset data is invalid";
+    case "ASSET_NOT_FOUND":
+      return "Asset was not found";
+    case "ASSET_NO_CHANGES":
+      return "Asset update has no changes";
+    case "ASSET_ID_GENERATION_FAILED":
+      return "Asset ID generation failed";
+    case "ASSET_PRIMARY_CONFLICT":
+      return "Resource already has a primary Asset";
+    case "ASSET_NOT_READY":
+      return "Asset has no ready representation";
+    case "ASSET_LINEAGE_INVALID":
+      return "Asset lineage is invalid";
+    case "ASSET_LINEAGE_CONFLICT":
+      return "Asset lineage prevents reassignment";
+    case "ASSET_HAS_DERIVATIVES":
+      return "Asset has derivatives";
+    case "ASSET_UPLOAD_ALREADY_ACTIVE":
+      return "Asset upload is already active";
+    case "ASSET_UPLOAD_NOT_ACTIVE":
+      return "Asset upload is not active";
+    case "ASSET_UPLOAD_INCOMPLETE":
+      return "Asset upload is incomplete";
+    case "ASSET_FILE_NOT_READY":
+      return "Asset file is not ready";
   }
 }
 

@@ -2,24 +2,37 @@ import { existsSync, lstatSync, realpathSync, statSync } from "node:fs";
 import { isAbsolute, join, relative, resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 
+import {
+  hasValidAssetArrayInvariants,
+  validateAssetStorageInvariants,
+  type AssetPayloadState,
+} from "../domain/asset-metadata.js";
 import { isIDString, isTimestamp, type IDString } from "../domain/scalars.js";
 import {
   buildResourceSnapshot,
+  isAssetSnapshot,
   type ResourceSnapshot,
 } from "../domain/snapshots.js";
-import type { ReadonlyResourceDriver } from "../public/contracts.js";
+import {
+  READONLY_ASSET_READINESS_PROOF,
+  type ReadonlyResourceDriver,
+} from "../core/resource-read-runtime.js";
 import type { FullResourceDriverAdapter } from "./full-resource-driver-adapter.js";
 import {
   canonicalResourceStorageJson,
+  cloneAssetLogicalChange,
+  cloneCommittedOperationDraft,
   cloneCommittedOperationEntry,
   computeResourceWriteSetFingerprint,
   equalCommittedOperationDrafts,
+  hasCanonicalAssetChanges,
   journalSequence,
   parseJournalSequence,
   ResourceStorageIntegrityError,
   validateContiguousJournal,
 } from "./resource-journal-integrity.js";
 import type {
+  AssetLogicalChange,
   CommittedOperationDraft,
   CommittedOperationEntry,
   JournalSequence,
@@ -27,10 +40,14 @@ import type {
   ResourceStorageSession,
   ResourceWriteTransaction,
 } from "./resource-write-protocol.js";
+import {
+  AssetStorageIntegrityError,
+  ResourceRuntimeIntegrityError,
+} from "./resource-runtime-integrity.js";
 
 const APPLICATION_ID = 1_163_416_625;
 const FORMAT = "extensia-local-sqlite";
-const FORMAT_VERSION = 1;
+const FORMAT_VERSION = 2;
 const DATABASE_FILE = "extensia.sqlite3";
 const JOURNAL_FILE = `${DATABASE_FILE}-journal`;
 const DEFAULT_TIMEOUT_MS = 1_000;
@@ -43,6 +60,11 @@ const OPERATION_TYPES = new Set<CommittedOperationEntry["type"]>([
   "resource.delete",
   "resource.marks.set",
   "resource.kv.set",
+  "asset.create",
+  "asset.update",
+  "asset.primary.set",
+  "asset.reassign",
+  "asset.delete",
 ]);
 
 const SCHEMA = `
@@ -78,6 +100,11 @@ CREATE TABLE payload_chunks (
   bytes BLOB NOT NULL,
   PRIMARY KEY (payload_id, chunk_index)
 ) STRICT, WITHOUT ROWID;
+CREATE TABLE asset_upload_generations (
+  asset_id TEXT PRIMARY KEY,
+  upload_id TEXT NOT NULL UNIQUE,
+  replaces_committed INTEGER NOT NULL CHECK (replaces_committed IN (0, 1))
+) STRICT, WITHOUT ROWID;
 INSERT INTO storage_format(singleton, format, version)
 VALUES (1, '${FORMAT}', ${FORMAT_VERSION});
 PRAGMA application_id = ${APPLICATION_ID};
@@ -85,6 +112,14 @@ PRAGMA user_version = ${FORMAT_VERSION};
 `;
 
 const EXPECTED_TABLES = new Map<string, readonly ColumnSpec[]>([
+  [
+    "asset_upload_generations",
+    [
+      ["asset_id", "TEXT", 1, 1],
+      ["upload_id", "TEXT", 1, 0],
+      ["replaces_committed", "INTEGER", 1, 0],
+    ],
+  ],
   [
     "storage_format",
     [
@@ -135,6 +170,10 @@ const EXPECTED_TABLES = new Map<string, readonly ColumnSpec[]>([
 
 const EXPECTED_TABLE_SQL = new Map<string, string>([
   [
+    "asset_upload_generations",
+    "CREATE TABLE asset_upload_generations (asset_id TEXT PRIMARY KEY, upload_id TEXT NOT NULL UNIQUE, replaces_committed INTEGER NOT NULL CHECK (replaces_committed IN (0, 1))) STRICT, WITHOUT ROWID",
+  ],
+  [
     "storage_format",
     "CREATE TABLE storage_format (singleton INTEGER PRIMARY KEY CHECK (singleton = 1), format TEXT NOT NULL, version INTEGER NOT NULL) STRICT",
   ],
@@ -155,6 +194,15 @@ const EXPECTED_TABLE_SQL = new Map<string, string>([
     "CREATE TABLE payload_chunks (payload_id TEXT NOT NULL REFERENCES payloads(payload_id) ON DELETE CASCADE, chunk_index INTEGER NOT NULL CHECK (chunk_index >= 0), bytes BLOB NOT NULL, PRIMARY KEY (payload_id, chunk_index)) STRICT, WITHOUT ROWID",
   ],
 ]);
+
+const LEGACY_EXPECTED_TABLES = new Map(
+  [...EXPECTED_TABLES].filter(([name]) => name !== "asset_upload_generations"),
+);
+const LEGACY_EXPECTED_TABLE_SQL = new Map(
+  [...EXPECTED_TABLE_SQL].filter(
+    ([name]) => name !== "asset_upload_generations",
+  ),
+);
 
 type ColumnSpec = readonly [
   name: string,
@@ -233,6 +281,12 @@ interface JournalRow extends Record<string, unknown> {
   readonly committed_at: unknown;
   readonly write_set_fingerprint: unknown;
   readonly entry_json: unknown;
+}
+
+interface AssetGenerationRow extends Record<string, unknown> {
+  readonly asset_id: unknown;
+  readonly upload_id: unknown;
+  readonly replaces_committed: unknown;
 }
 
 interface ConnectionState {
@@ -320,7 +374,7 @@ export function createLocalSqliteReadonlyResourceDriver(
         candidate.exec("PRAGMA trusted_schema = OFF; PRAGMA query_only = ON;");
         assertPragma(candidate, "query_only", 1);
         options.faults?.hit("readonly.after-open");
-        validateDatabase(candidate);
+        validateDatabase(candidate, true);
         db = candidate;
       } catch (error) {
         candidate?.close();
@@ -338,6 +392,18 @@ export function createLocalSqliteReadonlyResourceDriver(
       for (const resource of loadResources(db)) {
         if (db === null) throw new Error("Driver is not open");
         yield resource;
+      }
+    },
+    async *[READONLY_ASSET_READINESS_PROOF]() {
+      if (db === null || root === null) throw new Error("Driver is not open");
+      for (const state of loadAssetPayloadStates(db)) {
+        if (db === null) throw new Error("Driver is not open");
+        if (state.active_upload !== null) {
+          yield {
+            asset_id: state.asset_id,
+            has_committed_representation: state.committed,
+          };
+        }
       }
     },
   });
@@ -486,6 +552,7 @@ function openFullConnection(
     configureFullConnection(db);
     if (!databaseExisted) initializeDatabase(db);
     acquireExclusiveLease(db);
+    migrateLegacyDatabase(db);
     validateDatabase(db);
     const recovered = journalExisted && !existsSync(root.journalPath);
     return {
@@ -552,14 +619,91 @@ function assertPragma(
   }
 }
 
-function validateDatabase(db: DatabaseSync): void {
+function validateDatabase(db: DatabaseSync, allowLegacy = false): void {
   try {
-    validateDatabaseState(db);
+    const version = readDatabaseVersion(db);
+    if (allowLegacy && version === 1) validateLegacyDatabaseState(db);
+    else validateDatabaseState(db);
   } catch (error) {
-    if (error instanceof ResourceStorageIntegrityError) throw error;
+    if (error instanceof ResourceRuntimeIntegrityError) throw error;
     throw new ResourceStorageIntegrityError(
       "SQLite profile state cannot be validated",
     );
+  }
+}
+
+function readDatabaseVersion(db: DatabaseSync): number {
+  assertPragma(db, "application_id", APPLICATION_ID);
+  const row = db.prepare("PRAGMA user_version").get();
+  const version = row?.["user_version"];
+  if (!Number.isSafeInteger(version)) {
+    throw new ResourceStorageIntegrityError(
+      "SQLite storage version is invalid",
+    );
+  }
+  return version as number;
+}
+
+function validateLegacyDatabaseState(db: DatabaseSync): void {
+  if (readDatabaseVersion(db) !== 1) {
+    throw new ResourceStorageIntegrityError(
+      "SQLite legacy storage version is invalid",
+    );
+  }
+  const quickCheck = db.prepare("PRAGMA quick_check").get();
+  if (quickCheck?.["quick_check"] !== "ok") {
+    throw new ResourceStorageIntegrityError("SQLite quick_check failed");
+  }
+  const format = db
+    .prepare(
+      "SELECT singleton, format, version FROM storage_format ORDER BY singleton",
+    )
+    .all();
+  if (
+    format.length !== 1 ||
+    format[0]?.["singleton"] !== 1 ||
+    format[0]?.["format"] !== FORMAT ||
+    format[0]?.["version"] !== 1
+  ) {
+    throw new ResourceStorageIntegrityError(
+      "SQLite legacy storage marker is invalid",
+    );
+  }
+  validateSchema(db, LEGACY_EXPECTED_TABLES, LEGACY_EXPECTED_TABLE_SQL);
+  assertLegacyPayloadSeamEmpty(db);
+  const resources = loadResources(db);
+  if (!validateAssetStorageInvariants(resources, [])) {
+    throw new AssetStorageIntegrityError(
+      "SQLite legacy Asset state cannot be migrated",
+    );
+  }
+  const journal = loadJournal(db);
+  if (journal.some((entry) => entry.type.startsWith("asset."))) {
+    throw new ResourceStorageIntegrityError(
+      "SQLite legacy journal contains unsupported Asset operations",
+    );
+  }
+  validateContiguousJournal(journal);
+}
+
+function migrateLegacyDatabase(db: DatabaseSync): void {
+  if (readDatabaseVersion(db) !== 1) return;
+  validateLegacyDatabaseState(db);
+  db.exec("BEGIN IMMEDIATE");
+  try {
+    db.exec(`
+      CREATE TABLE asset_upload_generations (
+        asset_id TEXT PRIMARY KEY,
+        upload_id TEXT NOT NULL UNIQUE,
+        replaces_committed INTEGER NOT NULL CHECK (replaces_committed IN (0, 1))
+      ) STRICT, WITHOUT ROWID;
+      UPDATE storage_format SET version = ${FORMAT_VERSION} WHERE singleton = 1;
+      PRAGMA user_version = ${FORMAT_VERSION};
+    `);
+    db.exec("COMMIT");
+  } catch (error) {
+    if (db.isTransaction) db.exec("ROLLBACK");
+    throw error;
   }
 }
 
@@ -587,8 +731,13 @@ function validateDatabaseState(db: DatabaseSync): void {
     );
   }
   validateSchema(db);
-  assertPayloadSeamEmpty(db);
   const resources = loadResources(db);
+  const assetPayloadStates = loadAssetPayloadStates(db);
+  if (!validateAssetStorageInvariants(resources, assetPayloadStates)) {
+    throw new AssetStorageIntegrityError(
+      "SQLite Asset storage state is invalid",
+    );
+  }
   const journal = loadJournal(db);
   validateContiguousJournal(journal);
   const resourceIDs = new Set(resources.map((resource) => resource.data.id));
@@ -601,7 +750,11 @@ function validateDatabaseState(db: DatabaseSync): void {
   }
 }
 
-function validateSchema(db: DatabaseSync): void {
+function validateSchema(
+  db: DatabaseSync,
+  expectedTables = EXPECTED_TABLES,
+  expectedTableSql = EXPECTED_TABLE_SQL,
+): void {
   const schemaRows = db
     .prepare(
       "SELECT type, name, sql FROM sqlite_schema WHERE name NOT LIKE 'sqlite_%' ORDER BY type, name",
@@ -614,14 +767,14 @@ function validateSchema(db: DatabaseSync): void {
   }
   const tableRows = schemaRows;
   const tables = tableRows.map((row) => row["name"]);
-  const expectedNames = [...EXPECTED_TABLES.keys()].sort();
+  const expectedNames = [...expectedTables.keys()].sort();
   if (
     tables.length !== expectedNames.length ||
     tables.some((name, index) => name !== expectedNames[index])
   ) {
     throw new ResourceStorageIntegrityError("SQLite schema tables are invalid");
   }
-  for (const [table, expectedColumns] of EXPECTED_TABLES) {
+  for (const [table, expectedColumns] of expectedTables) {
     const columns = db.prepare(`PRAGMA table_info(${table})`).all();
     if (columns.length !== expectedColumns.length) {
       throw new ResourceStorageIntegrityError(
@@ -650,7 +803,7 @@ function validateSchema(db: DatabaseSync): void {
     }
     if (
       normalizeSchemaSql(schemaSql) !==
-      normalizeSchemaSql(EXPECTED_TABLE_SQL.get(table)!)
+      normalizeSchemaSql(expectedTableSql.get(table)!)
     ) {
       throw new ResourceStorageIntegrityError(
         `SQLite ${table} constraints are invalid`,
@@ -659,20 +812,66 @@ function validateSchema(db: DatabaseSync): void {
   }
 }
 
-function normalizeSchemaSql(sql: string): string {
-  return sql.toLowerCase().replaceAll(/\s+/g, "");
-}
-
-function assertPayloadSeamEmpty(db: DatabaseSync): void {
+function assertLegacyPayloadSeamEmpty(db: DatabaseSync): void {
   const payloads = db.prepare("SELECT count(*) AS count FROM payloads").get();
   const chunks = db
     .prepare("SELECT count(*) AS count FROM payload_chunks")
     .get();
   if (payloads?.["count"] !== 0 || chunks?.["count"] !== 0) {
     throw new ResourceStorageIntegrityError(
-      "SQLite opaque payload state is not active in P4-WP1",
+      "SQLite legacy opaque payload state cannot be migrated",
     );
   }
+}
+
+function normalizeSchemaSql(sql: string): string {
+  return sql.toLowerCase().replaceAll(/\s+/g, "");
+}
+
+function loadAssetPayloadStates(db: DatabaseSync): AssetPayloadState[] {
+  const states = new Map<IDString, AssetPayloadState>();
+  const payloadRows = db
+    .prepare("SELECT payload_id FROM payloads ORDER BY payload_id")
+    .all();
+  for (const row of payloadRows) {
+    const assetID = row["payload_id"];
+    if (!isIDString(assetID)) {
+      throw new AssetStorageIntegrityError(
+        "SQLite committed Asset payload identity is invalid",
+      );
+    }
+    states.set(assetID, {
+      active_upload: null,
+      asset_id: assetID,
+      committed: true,
+    });
+  }
+  const generationRows = db
+    .prepare(
+      "SELECT asset_id, upload_id, replaces_committed FROM asset_upload_generations ORDER BY asset_id",
+    )
+    .all() as AssetGenerationRow[];
+  for (const row of generationRows) {
+    if (
+      !isIDString(row.asset_id) ||
+      !isIDString(row.upload_id) ||
+      (row.replaces_committed !== 0 && row.replaces_committed !== 1)
+    ) {
+      throw new AssetStorageIntegrityError(
+        "SQLite Asset upload generation is invalid",
+      );
+    }
+    const committed = states.has(row.asset_id);
+    states.set(row.asset_id, {
+      active_upload: {
+        replaces_committed: row.replaces_committed === 1,
+        upload_id: row.upload_id,
+      },
+      asset_id: row.asset_id,
+      committed,
+    });
+  }
+  return [...states.values()];
 }
 
 function loadResources(db: DatabaseSync): ResourceSnapshot[] {
@@ -704,6 +903,9 @@ function decodeResourceRow(row: ResourceRow): ResourceSnapshot {
   try {
     resource = buildResourceSnapshot(parsed as ResourceSnapshot);
   } catch {
+    if (hasInvalidStoredAssetShape(parsed)) {
+      throw new AssetStorageIntegrityError("SQLite Asset snapshot is invalid");
+    }
     throw new ResourceStorageIntegrityError("SQLite Resource is invalid");
   }
   if (
@@ -716,6 +918,28 @@ function decodeResourceRow(row: ResourceRow): ResourceSnapshot {
     );
   }
   return resource;
+}
+
+function hasInvalidStoredAssetShape(value: unknown): boolean {
+  try {
+    if (typeof value !== "object" || value === null || Array.isArray(value)) {
+      return false;
+    }
+    const descriptor = Object.getOwnPropertyDescriptor(value, "assets");
+    if (
+      descriptor === undefined ||
+      !("value" in descriptor) ||
+      !Array.isArray(descriptor.value)
+    ) {
+      return false;
+    }
+    return (
+      !descriptor.value.every(isAssetSnapshot) ||
+      !hasValidAssetArrayInvariants(descriptor.value)
+    );
+  } catch {
+    return false;
+  }
 }
 
 function loadJournal(db: DatabaseSync): CommittedOperationEntry[] {
@@ -810,6 +1034,23 @@ function validateJournalEntry(value: unknown): CommittedOperationEntry {
   ) {
     throw new ResourceStorageIntegrityError("SQLite journal entry is invalid");
   }
+  const assetOperation = entry.type?.startsWith("asset.") === true;
+  const assetChanges = (
+    entry as Partial<
+      import("./resource-write-protocol.js").CommittedAssetOperationDraft
+    >
+  ).asset_changes;
+  if (
+    assetOperation
+      ? !Array.isArray(assetChanges) ||
+        assetChanges.length === 0 ||
+        !hasCanonicalAssetChanges(assetChanges)
+      : "asset_changes" in entry
+  ) {
+    throw new AssetStorageIntegrityError(
+      "SQLite journal Asset changes are invalid",
+    );
+  }
   if (
     entry.affected_resources.length === 0 ||
     entry.affected_resources.length !== entry.changes.length ||
@@ -879,6 +1120,19 @@ function createFullSession(
         )
         .get(id) as ResourceRow | undefined;
       return row === undefined ? null : decodeResourceRow(row);
+    },
+    async *listAssetPayloadStates() {
+      assertActive();
+      for (const state of loadAssetPayloadStates(connection.db)) {
+        assertActive();
+        yield {
+          active_upload:
+            state.active_upload === null ? null : { ...state.active_upload },
+          asset_id: state.asset_id,
+          committed: state.committed,
+        };
+      }
+      assertActive();
     },
     async begin(operationId) {
       assertActive();
@@ -951,6 +1205,7 @@ function createWriteTransaction(
   finish: () => void,
 ): ResourceWriteTransaction {
   const staged = new Map<IDString, ResourceSnapshot>();
+  const stagedAssetChanges = new Map<IDString, AssetLogicalChange>();
   let settled = false;
 
   return {
@@ -959,6 +1214,16 @@ function createWriteTransaction(
       if (settled) throw new Error("Transaction is no longer active");
       const detached = buildResourceSnapshot(resource);
       staged.set(detached.data.id, detached);
+    },
+    async stageAssetChange(change) {
+      assertSessionActive();
+      if (settled) throw new Error("Transaction is no longer active");
+      if (stagedAssetChanges.has(change.asset_id)) {
+        throw new AssetStorageIntegrityError(
+          "Asset change is staged more than once",
+        );
+      }
+      stagedAssetChanges.set(change.asset_id, cloneAssetLogicalChange(change));
     },
     async commit(draft) {
       assertSessionActive();
@@ -969,12 +1234,20 @@ function createWriteTransaction(
         );
       }
       const resources = [...staged.values()];
+      const assetChanges = [...stagedAssetChanges.values()].sort(
+        (left, right) =>
+          left.asset_id < right.asset_id
+            ? -1
+            : left.asset_id > right.asset_id
+              ? 1
+              : 0,
+      );
       if (resources.length === 0) {
         throw new ResourceStorageIntegrityError(
           "Transaction has no staged Resource",
         );
       }
-      validateDraftDescribesWriteSet(draft, resources);
+      validateDraftDescribesWriteSet(draft, resources, assetChanges);
       const db = currentDb();
       const existing = loadOperation(db, operationId);
       if (existing !== null) {
@@ -999,6 +1272,17 @@ function createWriteTransaction(
         options.faults?.hit("transaction.before-write");
         writeResources(db, resources);
         options.faults?.hit("transaction.after-resource-write");
+        writeAssetPayloadChanges(db, assetChanges);
+        if (
+          !validateAssetStorageInvariants(
+            loadResources(db),
+            loadAssetPayloadStates(db),
+          )
+        ) {
+          throw new AssetStorageIntegrityError(
+            "SQLite staged Asset state is invalid",
+          );
+        }
         writeJournal(db, entry);
         options.faults?.hit("transaction.after-journal-write");
         options.faults?.hit("transaction.before-commit");
@@ -1056,10 +1340,13 @@ function createWriteTransaction(
 function validateDraftDescribesWriteSet(
   draft: CommittedOperationDraft,
   resources: readonly ResourceSnapshot[],
+  stagedAssetChanges: readonly AssetLogicalChange[] = [],
 ): void {
   const ids = resources.map((resource) => resource.data.id);
+  const assetChanges =
+    "asset_changes" in draft ? draft.asset_changes : undefined;
   if (
-    computeResourceWriteSetFingerprint(resources) !==
+    computeResourceWriteSetFingerprint(resources, assetChanges) !==
       draft.write_set_fingerprint ||
     draft.affected_resources.length !== ids.length ||
     draft.changes.length !== ids.length ||
@@ -1068,7 +1355,13 @@ function validateDraftDescribesWriteSet(
         draft.affected_resources[index] !== id ||
         draft.changes[index]?.kind !== "resource.upsert" ||
         draft.changes[index]?.resource_id !== id,
-    )
+    ) ||
+    (assetChanges === undefined
+      ? stagedAssetChanges.length !== 0
+      : assetChanges.length === 0 ||
+        !hasCanonicalAssetChanges(assetChanges) ||
+        canonicalResourceStorageJson(assetChanges) !==
+          canonicalResourceStorageJson(stagedAssetChanges))
   ) {
     throw new ResourceStorageIntegrityError(
       "Committed draft does not describe the staged write-set",
@@ -1077,16 +1370,74 @@ function validateDraftDescribesWriteSet(
 }
 
 function cloneDraft(draft: CommittedOperationDraft): CommittedOperationDraft {
-  return {
-    actor_id: draft.actor_id,
-    affected_resources: [...draft.affected_resources],
-    changes: draft.changes.map((change) => ({ ...change })),
-    committed_at: draft.committed_at,
-    operation_id: draft.operation_id,
-    schema_version: 1,
-    type: draft.type,
-    write_set_fingerprint: draft.write_set_fingerprint,
-  };
+  return cloneCommittedOperationDraft(draft);
+}
+
+function writeAssetPayloadChanges(
+  db: DatabaseSync,
+  changes: readonly AssetLogicalChange[],
+): void {
+  for (const change of changes) {
+    switch (change.payload_action.kind) {
+      case "none":
+        break;
+      case "generation.create":
+        db.prepare(
+          `INSERT INTO asset_upload_generations(
+             asset_id, upload_id, replaces_committed
+           ) VALUES (?, ?, ?)`,
+        ).run(
+          change.asset_id,
+          change.payload_action.upload_id,
+          Number(change.state_after === "replacement-uploading"),
+        );
+        break;
+      case "generation.discard": {
+        const result = db
+          .prepare(
+            "DELETE FROM asset_upload_generations WHERE asset_id = ? AND upload_id = ?",
+          )
+          .run(change.asset_id, change.payload_action.upload_id);
+        if (result.changes !== 1) {
+          throw new AssetStorageIntegrityError(
+            "SQLite Asset generation discard did not match active state",
+          );
+        }
+        break;
+      }
+      case "payload.delete": {
+        const result = db
+          .prepare("DELETE FROM payloads WHERE payload_id = ?")
+          .run(change.asset_id);
+        if (result.changes !== 1) {
+          throw new AssetStorageIntegrityError(
+            "SQLite Asset payload delete did not match committed state",
+          );
+        }
+        break;
+      }
+      case "payload.delete-and-generation.discard": {
+        const generation = db
+          .prepare(
+            "DELETE FROM asset_upload_generations WHERE asset_id = ? AND upload_id = ?",
+          )
+          .run(change.asset_id, change.payload_action.upload_id);
+        const payload = db
+          .prepare("DELETE FROM payloads WHERE payload_id = ?")
+          .run(change.asset_id);
+        if (generation.changes !== 1 || payload.changes !== 1) {
+          throw new AssetStorageIntegrityError(
+            "SQLite Asset payload/generation delete did not match state",
+          );
+        }
+        break;
+      }
+      case "generation.publish":
+        throw new AssetStorageIntegrityError(
+          "SQLite Asset generation publication is not implemented in P4-VS2",
+        );
+    }
+  }
 }
 
 function nextSequence(db: DatabaseSync): JournalSequence {

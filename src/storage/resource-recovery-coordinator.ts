@@ -2,6 +2,10 @@ import {
   buildResourceSnapshot,
   type ResourceSnapshot,
 } from "../domain/snapshots.js";
+import {
+  validateAssetStorageInvariants,
+  type AssetPayloadState,
+} from "../domain/asset-metadata.js";
 import type { FullResourceDriverAdapter } from "./full-resource-driver-adapter.js";
 import {
   cloneCommittedOperationEntry,
@@ -12,6 +16,7 @@ import type {
   JournalSequence,
   ResourceRecoveryReport,
 } from "./resource-write-protocol.js";
+import { AssetStorageIntegrityError } from "./resource-runtime-integrity.js";
 
 export interface RecoveryCleanResourceState {
   readonly recovery: ResourceRecoveryReport;
@@ -30,6 +35,20 @@ export async function scanRecoveryCleanResourceState(
     const resources: ResourceSnapshot[] = [];
     for await (const resource of session.listResources()) {
       resources.push(buildResourceSnapshot(resource));
+    }
+    const payloadStates: AssetPayloadState[] = [];
+    for await (const state of session.listAssetPayloadStates?.() ?? []) {
+      payloadStates.push({
+        active_upload:
+          state.active_upload === null ? null : { ...state.active_upload },
+        asset_id: state.asset_id,
+        committed: state.committed,
+      });
+    }
+    if (!validateAssetStorageInvariants(resources, payloadStates)) {
+      throw new AssetStorageIntegrityError(
+        "Startup Asset storage invariants are invalid",
+      );
     }
 
     const journal: CommittedOperationEntry[] = [];

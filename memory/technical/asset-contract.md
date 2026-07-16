@@ -423,7 +423,7 @@ P3-compatible ordering може створити operation ID/clock Timestamp д
 
 ### Current `AssetSnapshot`
 
-Shape зберігається. Current validator допускає порожні strings/URL і не перевіряє bounded data/lineage; P4-VS2 має посилити pure validators і startup aggregate validation. Це intentional target tightening під `experimental-phase-4`, не current implementation claim.
+Shape збережено. `P4-VS2 / TASK-07.26-0051 / RUN-001` materialize-ила це intentional tightening під `experimental-phase-4`: pure validators тепер перевіряють exact nonempty classifiers, canonical URL, bounded data й local aggregate shape, а coherent command/startup scan — global ownership/lifecycle/timestamp/primary/lineage invariants. Readiness proof concrete SQLite driver передає лише через internal symbol capability; public readonly DTO/method не додається. Bytes transport і upload finalization лишаються P4-VS3; P7 compatibility freeze не заявлений.
 
 ### P3 pipeline
 

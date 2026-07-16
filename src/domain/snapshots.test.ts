@@ -74,6 +74,15 @@ describe("pure domain validators", () => {
       isAssetSnapshot(
         createAsset({ is_external: true, url: "", is_on_uploading: false }),
       ),
+    ).toBe(false);
+    expect(
+      isAssetSnapshot(
+        createAsset({
+          is_external: true,
+          url: "https://example.test/file",
+          is_on_uploading: false,
+        }),
+      ),
     ).toBe(true);
 
     expect(isAssetSnapshot(createAsset({ url: "file://unexpected" }))).toBe(

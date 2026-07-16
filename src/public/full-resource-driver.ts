@@ -1,13 +1,18 @@
 import type { FullResourceDriverAdapter } from "../storage/full-resource-driver-adapter.js";
 import { isIDString, isTimestamp } from "../domain/scalars.js";
-import { buildResourceSnapshot } from "../domain/snapshots.js";
+import { hasValidAssetArrayInvariants } from "../domain/asset-metadata.js";
+import { buildResourceSnapshot, isAssetSnapshot } from "../domain/snapshots.js";
 import {
   cloneCommittedOperationEntry,
   equalCommittedOperationDrafts,
+  hasCanonicalAssetChanges,
   parseJournalSequence,
 } from "../storage/resource-journal-integrity.js";
 import { ResourceStorageIntegrityError } from "../storage/resource-journal-integrity.js";
-import { ResourceCommittedIntegrityError } from "../storage/resource-runtime-integrity.js";
+import {
+  AssetStorageIntegrityError,
+  ResourceCommittedIntegrityError,
+} from "../storage/resource-runtime-integrity.js";
 import type {
   CommittedOperationDraft,
   CommittedOperationEntry,
@@ -78,6 +83,140 @@ function captureMethod(value: object, key: PropertyKey) {
   return (...args: unknown[]) => Reflect.apply(method, value, args);
 }
 
+function invalidStoredAssetShape(value: unknown): boolean {
+  try {
+    if (typeof value !== "object" || value === null || Array.isArray(value)) {
+      return false;
+    }
+    const descriptor = Object.getOwnPropertyDescriptor(value, "assets");
+    if (
+      descriptor === undefined ||
+      !("value" in descriptor) ||
+      !Array.isArray(descriptor.value)
+    ) {
+      return false;
+    }
+    return (
+      !descriptor.value.every(isAssetSnapshot) ||
+      !hasValidAssetArrayInvariants(descriptor.value)
+    );
+  } catch {
+    return false;
+  }
+}
+
+function cloneAssetPayloadState(
+  state: unknown,
+): import("../domain/asset-metadata.js").AssetPayloadState {
+  try {
+    if (
+      typeof state !== "object" ||
+      state === null ||
+      Array.isArray(state) ||
+      (Object.getPrototypeOf(state) !== Object.prototype &&
+        Object.getPrototypeOf(state) !== null)
+    ) {
+      throw new AssetStorageIntegrityError(
+        "Full Resource driver returned invalid Asset payload state",
+      );
+    }
+    const keys = Reflect.ownKeys(state);
+    if (
+      keys.length !== 3 ||
+      keys.some(
+        (key) =>
+          typeof key !== "string" ||
+          !["asset_id", "committed", "active_upload"].includes(key),
+      )
+    ) {
+      throw new AssetStorageIntegrityError(
+        "Full Resource driver returned invalid Asset payload state",
+      );
+    }
+    const descriptors = Object.fromEntries(
+      keys.map((key) => [key, Object.getOwnPropertyDescriptor(state, key)]),
+    );
+    if (
+      Object.values(descriptors).some(
+        (descriptor) =>
+          descriptor === undefined ||
+          descriptor.enumerable !== true ||
+          !("value" in descriptor),
+      )
+    ) {
+      throw new AssetStorageIntegrityError(
+        "Full Resource driver returned invalid Asset payload state",
+      );
+    }
+    const assetID = descriptors["asset_id"]!.value;
+    const committed = descriptors["committed"]!.value;
+    const active = descriptors["active_upload"]!.value;
+    if (!isIDString(assetID) || typeof committed !== "boolean") {
+      throw new AssetStorageIntegrityError(
+        "Full Resource driver returned invalid Asset payload state",
+      );
+    }
+    if (active === null) {
+      return { active_upload: null, asset_id: assetID, committed };
+    }
+    if (
+      typeof active !== "object" ||
+      Array.isArray(active) ||
+      (Object.getPrototypeOf(active) !== Object.prototype &&
+        Object.getPrototypeOf(active) !== null)
+    ) {
+      throw new AssetStorageIntegrityError(
+        "Full Resource driver returned invalid Asset payload state",
+      );
+    }
+    const activeKeys = Reflect.ownKeys(active);
+    if (
+      activeKeys.length !== 2 ||
+      activeKeys.some(
+        (key) =>
+          typeof key !== "string" ||
+          !["upload_id", "replaces_committed"].includes(key),
+      )
+    ) {
+      throw new AssetStorageIntegrityError(
+        "Full Resource driver returned invalid Asset payload state",
+      );
+    }
+    const upload = Object.getOwnPropertyDescriptor(active, "upload_id");
+    const replaces = Object.getOwnPropertyDescriptor(
+      active,
+      "replaces_committed",
+    );
+    if (
+      upload === undefined ||
+      upload.enumerable !== true ||
+      !("value" in upload) ||
+      !isIDString(upload.value) ||
+      replaces === undefined ||
+      replaces.enumerable !== true ||
+      !("value" in replaces) ||
+      typeof replaces.value !== "boolean"
+    ) {
+      throw new AssetStorageIntegrityError(
+        "Full Resource driver returned invalid Asset payload state",
+      );
+    }
+    return {
+      active_upload: {
+        replaces_committed: replaces.value,
+        upload_id: upload.value,
+      },
+      asset_id: assetID,
+      committed,
+    };
+  } catch (error) {
+    if (error instanceof AssetStorageIntegrityError) throw error;
+    throw new AssetStorageIntegrityError(
+      "Full Resource driver returned invalid Asset payload state",
+    );
+  }
+}
+
 async function validateSession(candidate: unknown) {
   if (
     typeof candidate !== "object" ||
@@ -114,6 +253,10 @@ async function validateSession(candidate: unknown) {
   }
   const listResources = captureMethod(candidate, "listResources");
   const readResource = captureMethod(candidate, "readResource");
+  const listAssetPayloadStates = inheritedDataMethod(
+    candidate,
+    "listAssetPayloadStates",
+  );
   const begin = captureMethod(candidate, "begin");
   const readCommittedOperationsAfter = captureMethod(
     candidate,
@@ -132,6 +275,11 @@ async function validateSession(candidate: unknown) {
         try {
           yield buildResourceSnapshot(resource as never);
         } catch {
+          if (invalidStoredAssetShape(resource)) {
+            throw new AssetStorageIntegrityError(
+              "Full Resource driver returned an invalid Asset",
+            );
+          }
           throw new ResourceStorageIntegrityError(
             "Full Resource driver returned an invalid Resource",
           );
@@ -144,9 +292,25 @@ async function validateSession(candidate: unknown) {
       try {
         return buildResourceSnapshot(resource as never);
       } catch {
+        if (invalidStoredAssetShape(resource)) {
+          throw new AssetStorageIntegrityError(
+            "Full Resource driver returned an invalid Asset",
+          );
+        }
         throw new ResourceStorageIntegrityError(
           "Full Resource driver returned an invalid Resource",
         );
+      }
+    },
+    async *listAssetPayloadStates() {
+      if (listAssetPayloadStates === null) return;
+      const stream = Reflect.apply(
+        listAssetPayloadStates,
+        candidate,
+        [],
+      ) as AsyncIterable<unknown>;
+      for await (const state of stream) {
+        yield cloneAssetPayloadState(state);
       }
     },
     async begin(id: import("../domain/scalars.js").IDString) {
@@ -160,12 +324,28 @@ async function validateSession(candidate: unknown) {
           "Full Resource driver transaction is invalid",
         );
       const stageResource = captureMethod(transaction, "stageResource");
+      const stageAssetChange = inheritedDataMethod(
+        transaction,
+        "stageAssetChange",
+      );
       const commit = captureMethod(transaction, "commit");
       const abort = captureMethod(transaction, "abort");
       return {
         stageResource: (
           resource: import("../domain/snapshots.js").ResourceSnapshot,
         ) => stageResource(resource) as Promise<void>,
+        stageAssetChange: (
+          change: import("../storage/resource-write-protocol.js").AssetLogicalChange,
+        ) => {
+          if (stageAssetChange === null) {
+            return Promise.reject(
+              new Error("Full Resource driver lacks Asset metadata support"),
+            );
+          }
+          return Reflect.apply(stageAssetChange, transaction, [
+            change,
+          ]) as Promise<void>;
+        },
         async commit(draft: CommittedOperationDraft) {
           return validateCommittedEntry(await commit(draft), draft);
         },
@@ -225,7 +405,12 @@ function validateStoredEntry(candidate: unknown): CommittedOperationEntry {
       entry.type !== "resource.move" &&
       entry.type !== "resource.delete" &&
       entry.type !== "resource.marks.set" &&
-      entry.type !== "resource.kv.set") ||
+      entry.type !== "resource.kv.set" &&
+      entry.type !== "asset.create" &&
+      entry.type !== "asset.update" &&
+      entry.type !== "asset.primary.set" &&
+      entry.type !== "asset.reassign" &&
+      entry.type !== "asset.delete") ||
     !isTimestamp(entry.committed_at) ||
     typeof entry.sequence !== "string" ||
     parseJournalSequence(entry.sequence as never) < 1n ||
@@ -244,6 +429,23 @@ function validateStoredEntry(candidate: unknown): CommittedOperationEntry {
   ) {
     throw new ResourceStorageIntegrityError(
       "Full Resource driver committed entry is invalid",
+    );
+  }
+  const assetOperation = entry.type.startsWith("asset.");
+  const candidateAssetChanges = (
+    entry as Partial<
+      import("../storage/resource-write-protocol.js").CommittedAssetOperationDraft
+    >
+  ).asset_changes;
+  if (
+    assetOperation
+      ? !Array.isArray(candidateAssetChanges) ||
+        candidateAssetChanges.length === 0 ||
+        !hasCanonicalAssetChanges(candidateAssetChanges)
+      : "asset_changes" in entry
+  ) {
+    throw new AssetStorageIntegrityError(
+      "Full Resource driver committed Asset changes are invalid",
     );
   }
   const detached = cloneCommittedOperationEntry(

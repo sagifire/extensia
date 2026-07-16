@@ -1,6 +1,7 @@
 import { defineModule, type Token } from "@sagifire/ioc";
 
 import { createExtensiaInternalNamespace } from "../composition/tokens.js";
+import { validateAssetStorageInvariants } from "../domain/asset-metadata.js";
 import {
   generateIDString,
   parseTimestamp,
@@ -39,6 +40,7 @@ import {
 } from "../storage/resource-journal-integrity.js";
 import type { FullResourceDriverAdapter } from "../storage/full-resource-driver-adapter.js";
 import {
+  AssetStorageIntegrityError,
   ResourceCommittedIntegrityError,
   ResourceRuntimeIntegrityError,
 } from "../storage/resource-runtime-integrity.js";
@@ -47,6 +49,10 @@ import type {
   CommittedOperationDraft,
   ResourceWriteTransaction,
 } from "../storage/resource-write-protocol.js";
+import {
+  CORE_ASSET_WRITE_PORT,
+  type CoreAssetWritePort,
+} from "../system-extensions/default-api/asset-write-port.js";
 import {
   CORE_RESOURCE_READ_PORT,
   type CoreReadResult,
@@ -61,6 +67,7 @@ import {
 } from "../system-extensions/default-api/resource-write-port.js";
 import { createGreedyResourceIndex } from "./resource-index.js";
 import type { MutableGreedyResourceIndex } from "./resource-index-write-contracts.js";
+import { createAssetWritePort } from "./asset-write-runtime.js";
 
 const tokens = createExtensiaInternalNamespace("core.resource-write-runtime");
 export const FULL_RESOURCE_DRIVER: Token<FullResourceDriverAdapter> =
@@ -68,6 +75,7 @@ export const FULL_RESOURCE_DRIVER: Token<FullResourceDriverAdapter> =
 const RUNTIME: Token<FullResourceRuntime> = tokens.token("runtime");
 
 interface FullResourceRuntime {
+  readonly assetWritePort: CoreAssetWritePort;
   readonly readPort: CoreResourceReadPort;
   readonly writePort: CoreResourceWritePort;
   readonly lifecycle: LifecycleContribution;
@@ -91,6 +99,7 @@ type Attempt =
   | { readonly kind: "range" }
   | { readonly kind: "already-deleted" }
   | { readonly kind: "has-children" }
+  | { readonly kind: "active-upload" }
   | { readonly kind: "integrity" }
   | { readonly kind: "lock-failed" }
   | { readonly kind: "write-failed" };
@@ -149,6 +158,22 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
     return result;
   }
 
+  async function validateCoherentStorageState(
+    session: import("../storage/resource-write-protocol.js").ResourceStorageSession,
+    resources: readonly ResourceSnapshot[],
+  ): Promise<void> {
+    validateResourceHierarchy(coherentResourceMap(resources));
+    const payloadStates = [];
+    for await (const state of session.listAssetPayloadStates?.() ?? []) {
+      payloadStates.push(state);
+    }
+    if (!validateAssetStorageInvariants(resources, payloadStates)) {
+      throw new AssetStorageIntegrityError(
+        "Asset storage invariants are invalid",
+      );
+    }
+  }
+
   async function attemptCreate(
     resource: ResourceSnapshot,
     scope: OperationScope<BaseAttempt>,
@@ -172,7 +197,7 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
           }
           const current: ResourceSnapshot[] = [];
           for await (const item of session.listResources()) current.push(item);
-          validateResourceHierarchy(coherentResourceMap(current));
+          await validateCoherentStorageState(session, current);
           const nextResource = buildResourceSnapshot({
             ...resource,
             data: {
@@ -264,7 +289,7 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
     try {
       const all: ResourceSnapshot[] = [];
       for await (const item of session.listResources()) all.push(item);
-      coherentResourceMap(all);
+      await validateCoherentStorageState(session, all);
       const preparation = prepareResourceMove(
         all,
         request.id,
@@ -355,7 +380,7 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
     try {
       const all: ResourceSnapshot[] = [];
       for await (const item of session.listResources()) all.push(item);
-      coherentResourceMap(all);
+      await validateCoherentStorageState(session, all);
       const preparation = prepareResourceDelete(all, request.id, now);
       if (preparation.kind !== "success")
         return Object.freeze({ kind: preparation.kind });
@@ -441,7 +466,7 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
       const coherentResources: ResourceSnapshot[] = [];
       for await (const item of session.listResources())
         coherentResources.push(item);
-      validateResourceHierarchy(coherentResourceMap(coherentResources));
+      await validateCoherentStorageState(session, coherentResources);
       const current = coherentResources.find(
         (item) => item.data.id === request.id,
       );
@@ -538,7 +563,7 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
     try {
       const all: ResourceSnapshot[] = [];
       for await (const item of session.listResources()) all.push(item);
-      validateResourceHierarchy(coherentResourceMap(all));
+      await validateCoherentStorageState(session, all);
       const current = all.find((item) => item.data.id === request.id);
       if (current === undefined || current.data.is_deleted)
         return Object.freeze({ kind: "missing" as const });
@@ -725,6 +750,11 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
           ok: false,
           error: Object.freeze({ code: "RESOURCE_HAS_CHILDREN" }),
         });
+      if (attempt.kind === "active-upload")
+        return Object.freeze({
+          ok: false,
+          error: Object.freeze({ code: "RESOURCE_ASSET_UPLOAD_ACTIVE" }),
+        });
       if (attempt.kind === "cycle")
         return Object.freeze({
           ok: false,
@@ -762,6 +792,7 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
   });
 
   return Object.freeze({
+    assetWritePort: createAssetWritePort({ driver, engine, identities, index }),
     readPort: createReadPort(index),
     writePort,
     lifecycle: lifecycleContribution({
@@ -805,6 +836,7 @@ export const FULL_RESOURCE_CORE_MODULE: ReturnType<typeof defineModule> =
     provides: [
       { token: CORE_RESOURCE_READ_PORT, kind: "public-api" },
       { token: CORE_RESOURCE_WRITE_PORT, kind: "public-api" },
+      { token: CORE_ASSET_WRITE_PORT, kind: "public-api" },
       {
         token: LIFECYCLE_CONTRIBUTIONS,
         kind: "admin-contribution",
@@ -815,6 +847,10 @@ export const FULL_RESOURCE_CORE_MODULE: ReturnType<typeof defineModule> =
       context
         .bind(RUNTIME)
         .toFactory(({ get }) => createRuntime(get(FULL_RESOURCE_DRIVER)))
+        .singleton();
+      context
+        .bind(CORE_ASSET_WRITE_PORT)
+        .toFactory(({ get }) => get(RUNTIME).assetWritePort)
         .singleton();
       context
         .bind(CORE_RESOURCE_READ_PORT)

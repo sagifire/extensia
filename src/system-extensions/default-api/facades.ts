@@ -9,6 +9,23 @@ import {
   synchronousContributionToken,
 } from "../../composition/tokens.js";
 import { parseIDString } from "../../domain/scalars.js";
+import type {
+  AssetCreateResult,
+  AssetDeleteResult,
+  AssetPrimaryResult,
+  AssetReassignResult,
+  AssetUpdateResult,
+} from "../../public/contracts.js";
+import {
+  CORE_ASSET_WRITE_PORT,
+  type CoreAssetWriteFailureCode,
+  type CoreAssetWritePort,
+} from "./asset-write-port.js";
+import {
+  parseCreateAssetInput,
+  parseUpdateAssetInput,
+  type AssetInputFailureCode,
+} from "./asset-input.js";
 import {
   parseKVNamespace,
   parseMarks,
@@ -55,6 +72,11 @@ export type DefaultApiFailureCode =
   | "INVALID_RESOURCE_ID"
   | "RESOURCE_NOT_FOUND"
   | "STORAGE_READONLY"
+  | "INVALID_ASSET_ID"
+  | "ASSET_URL_INVALID"
+  | "ASSET_DATA_INVALID"
+  | AssetInputFailureCode
+  | CoreAssetWriteFailureCode
   | CoreResourceWriteFailureCode;
 
 export interface DefaultApiFailure<
@@ -96,6 +118,22 @@ export interface QueryFacade {
 }
 
 export interface StorageFacade {
+  createAsset(resourceId: string, input: unknown): Promise<AssetCreateResult>;
+  updateAsset(
+    resourceId: string,
+    assetId: string,
+    patch: unknown,
+  ): Promise<AssetUpdateResult>;
+  setPrimaryAsset(
+    resourceId: string,
+    assetId: string | null,
+  ): Promise<AssetPrimaryResult>;
+  reassignAsset(
+    sourceResourceId: string,
+    assetId: string,
+    destinationResourceId: string,
+  ): Promise<AssetReassignResult>;
+  deleteAsset(resourceId: string, assetId: string): Promise<AssetDeleteResult>;
   createResource(
     input: unknown,
   ): Promise<
@@ -184,6 +222,7 @@ type DeleteResourceFailure =
   | ResourceNotFoundFailure
   | DefaultApiFailure<"RESOURCE_HAS_CHILDREN">
   | DefaultApiFailure<"RESOURCE_ALREADY_DELETED">
+  | DefaultApiFailure<"RESOURCE_ASSET_UPLOAD_ACTIVE">
   | DefaultApiFailure<"STORAGE_LOCK_FAILED">
   | DefaultApiFailure<"STORAGE_WRITE_FAILED">
   | DefaultApiFailure<"STORAGE_INTEGRITY_FAILED">;
@@ -439,11 +478,386 @@ function writeSuccess(
   });
 }
 
+function invalidAssetID() {
+  return failure("INVALID_ASSET_ID", "Asset ID is invalid");
+}
+
+function assetMessage(code: DefaultApiFailureCode): string {
+  switch (code) {
+    case "ASSET_INPUT_INVALID":
+      return "Asset input is invalid";
+    case "ASSET_URL_INVALID":
+      return "Asset URL is invalid";
+    case "ASSET_DATA_INVALID":
+      return "Asset data is invalid";
+    case "ASSET_NOT_FOUND":
+      return "Asset was not found";
+    case "ASSET_NO_CHANGES":
+      return "Asset update has no changes";
+    case "ASSET_ID_GENERATION_FAILED":
+      return "Asset ID generation failed";
+    case "ASSET_PRIMARY_CONFLICT":
+      return "Resource already has a primary Asset";
+    case "ASSET_NOT_READY":
+      return "Asset has no ready representation";
+    case "ASSET_LINEAGE_INVALID":
+      return "Asset lineage is invalid";
+    case "ASSET_LINEAGE_CONFLICT":
+      return "Asset lineage prevents reassignment";
+    case "ASSET_HAS_DERIVATIVES":
+      return "Asset has derivatives";
+    case "ASSET_UPLOAD_ALREADY_ACTIVE":
+      return "Asset upload is already active";
+    case "RESOURCE_NOT_FOUND":
+      return "Resource was not found";
+    case "STORAGE_LOCK_FAILED":
+      return "Asset storage lock failed";
+    case "STORAGE_INTEGRITY_FAILED":
+      return "Asset storage integrity failed";
+    default:
+      return "Asset storage write failed";
+  }
+}
+
+function assetWriteSuccess(
+  result: Extract<
+    Awaited<ReturnType<CoreAssetWritePort["write"]>>,
+    { ok: true }
+  >,
+  context: FacadeFactoryContext,
+) {
+  if (result.value.warnings.length > 0) context.failClose();
+  return Object.freeze({
+    ok: true as const,
+    value: Object.freeze({
+      asset: result.value.asset,
+      committed: true as const,
+      operation_id: result.value.operation_id,
+      resources: result.value.resources,
+      warnings: Object.freeze(
+        result.value.warnings.map((code) =>
+          Object.freeze({
+            code,
+            message:
+              code === "LOCAL_INDEX_PUBLICATION_FAILED"
+                ? "Committed Asset state could not be published to the local index"
+                : "Committed Asset cleanup failed",
+          }),
+        ),
+      ),
+    }),
+  });
+}
+
+function createAssetCoreFailure(
+  code: CoreAssetWriteFailureCode,
+): AssetCreateResult {
+  switch (code) {
+    case "RESOURCE_NOT_FOUND":
+    case "ASSET_INPUT_INVALID":
+    case "ASSET_ID_GENERATION_FAILED":
+    case "ASSET_PRIMARY_CONFLICT":
+    case "ASSET_LINEAGE_INVALID":
+    case "STORAGE_LOCK_FAILED":
+    case "STORAGE_WRITE_FAILED":
+    case "STORAGE_INTEGRITY_FAILED":
+      return failure(code, assetMessage(code));
+    default:
+      return failure(
+        "STORAGE_WRITE_FAILED",
+        assetMessage("STORAGE_WRITE_FAILED"),
+      );
+  }
+}
+
+function updateAssetCoreFailure(
+  code: CoreAssetWriteFailureCode,
+): AssetUpdateResult {
+  switch (code) {
+    case "RESOURCE_NOT_FOUND":
+    case "ASSET_INPUT_INVALID":
+    case "ASSET_NOT_FOUND":
+    case "ASSET_NO_CHANGES":
+    case "ASSET_LINEAGE_INVALID":
+    case "STORAGE_LOCK_FAILED":
+    case "STORAGE_WRITE_FAILED":
+    case "STORAGE_INTEGRITY_FAILED":
+      return failure(code, assetMessage(code));
+    default:
+      return failure(
+        "STORAGE_WRITE_FAILED",
+        assetMessage("STORAGE_WRITE_FAILED"),
+      );
+  }
+}
+
+function primaryAssetCoreFailure(
+  code: CoreAssetWriteFailureCode,
+): AssetPrimaryResult {
+  switch (code) {
+    case "RESOURCE_NOT_FOUND":
+    case "ASSET_NOT_FOUND":
+    case "ASSET_NO_CHANGES":
+    case "ASSET_NOT_READY":
+    case "STORAGE_LOCK_FAILED":
+    case "STORAGE_WRITE_FAILED":
+    case "STORAGE_INTEGRITY_FAILED":
+      return failure(code, assetMessage(code));
+    default:
+      return failure(
+        "STORAGE_WRITE_FAILED",
+        assetMessage("STORAGE_WRITE_FAILED"),
+      );
+  }
+}
+
+function reassignAssetCoreFailure(
+  code: CoreAssetWriteFailureCode,
+): AssetReassignResult {
+  switch (code) {
+    case "RESOURCE_NOT_FOUND":
+    case "ASSET_NOT_FOUND":
+    case "ASSET_NO_CHANGES":
+    case "ASSET_LINEAGE_CONFLICT":
+    case "ASSET_UPLOAD_ALREADY_ACTIVE":
+    case "STORAGE_LOCK_FAILED":
+    case "STORAGE_WRITE_FAILED":
+    case "STORAGE_INTEGRITY_FAILED":
+      return failure(code, assetMessage(code));
+    default:
+      return failure(
+        "STORAGE_WRITE_FAILED",
+        assetMessage("STORAGE_WRITE_FAILED"),
+      );
+  }
+}
+
+function deleteAssetCoreFailure(
+  code: CoreAssetWriteFailureCode,
+): AssetDeleteResult {
+  switch (code) {
+    case "RESOURCE_NOT_FOUND":
+    case "ASSET_NOT_FOUND":
+    case "ASSET_HAS_DERIVATIVES":
+    case "STORAGE_LOCK_FAILED":
+    case "STORAGE_WRITE_FAILED":
+    case "STORAGE_INTEGRITY_FAILED":
+      return failure(code, assetMessage(code));
+    default:
+      return failure(
+        "STORAGE_WRITE_FAILED",
+        assetMessage("STORAGE_WRITE_FAILED"),
+      );
+  }
+}
+
 function createStorageFacade(
   context: FacadeFactoryContext,
   port: CoreResourceWritePort | null,
+  assetPort: CoreAssetWritePort | null,
 ): StorageFacade {
   return Object.freeze({
+    async createAsset(
+      rawResourceID: string,
+      input: unknown,
+    ): ReturnType<StorageFacade["createAsset"]> {
+      const lease = context.operations.acquire();
+      if (lease === null) return notReady();
+      try {
+        if (assetPort === null) {
+          return failure(
+            "STORAGE_READONLY",
+            "Asset storage is readonly in this runtime",
+          );
+        }
+        let resourceID;
+        try {
+          resourceID = parseIDString(rawResourceID);
+        } catch {
+          return invalidResourceID();
+        }
+        const parsed = parseCreateAssetInput(input);
+        if (!parsed.ok) return failure(parsed.code, assetMessage(parsed.code));
+        const result = await assetPort.write({
+          fail_integrity: ({ code, operation_id }) =>
+            context.failClose(code, operation_id),
+          input: parsed.value,
+          resource_id: resourceID,
+          type: "asset.create",
+        });
+        return result.ok
+          ? assetWriteSuccess(result, context)
+          : createAssetCoreFailure(result.error.code);
+      } finally {
+        lease.release();
+      }
+    },
+    async updateAsset(
+      rawResourceID: string,
+      rawAssetID: string,
+      patch: unknown,
+    ): ReturnType<StorageFacade["updateAsset"]> {
+      const lease = context.operations.acquire();
+      if (lease === null) return notReady();
+      try {
+        if (assetPort === null) {
+          return failure(
+            "STORAGE_READONLY",
+            "Asset storage is readonly in this runtime",
+          );
+        }
+        let resourceID;
+        let assetID;
+        try {
+          resourceID = parseIDString(rawResourceID);
+        } catch {
+          return invalidResourceID();
+        }
+        try {
+          assetID = parseIDString(rawAssetID);
+        } catch {
+          return invalidAssetID();
+        }
+        const parsed = parseUpdateAssetInput(patch);
+        if (!parsed.ok) return failure(parsed.code, assetMessage(parsed.code));
+        const result = await assetPort.write({
+          asset_id: assetID,
+          fail_integrity: ({ code, operation_id }) =>
+            context.failClose(code, operation_id),
+          patch: parsed.value,
+          resource_id: resourceID,
+          type: "asset.update",
+        });
+        return result.ok
+          ? assetWriteSuccess(result, context)
+          : updateAssetCoreFailure(result.error.code);
+      } finally {
+        lease.release();
+      }
+    },
+    async setPrimaryAsset(
+      rawResourceID: string,
+      rawAssetID: string | null,
+    ): ReturnType<StorageFacade["setPrimaryAsset"]> {
+      const lease = context.operations.acquire();
+      if (lease === null) return notReady();
+      try {
+        if (assetPort === null) {
+          return failure(
+            "STORAGE_READONLY",
+            "Asset storage is readonly in this runtime",
+          );
+        }
+        let resourceID;
+        let assetID = null;
+        try {
+          resourceID = parseIDString(rawResourceID);
+        } catch {
+          return invalidResourceID();
+        }
+        if (rawAssetID !== null) {
+          try {
+            assetID = parseIDString(rawAssetID);
+          } catch {
+            return invalidAssetID();
+          }
+        }
+        const result = await assetPort.write({
+          asset_id: assetID,
+          fail_integrity: ({ code, operation_id }) =>
+            context.failClose(code, operation_id),
+          resource_id: resourceID,
+          type: "asset.primary.set",
+        });
+        return result.ok
+          ? assetWriteSuccess(result, context)
+          : primaryAssetCoreFailure(result.error.code);
+      } finally {
+        lease.release();
+      }
+    },
+    async reassignAsset(
+      rawSourceID: string,
+      rawAssetID: string,
+      rawDestinationID: string,
+    ): ReturnType<StorageFacade["reassignAsset"]> {
+      const lease = context.operations.acquire();
+      if (lease === null) return notReady();
+      try {
+        if (assetPort === null) {
+          return failure(
+            "STORAGE_READONLY",
+            "Asset storage is readonly in this runtime",
+          );
+        }
+        let sourceID;
+        let destinationID;
+        let assetID;
+        try {
+          sourceID = parseIDString(rawSourceID);
+          destinationID = parseIDString(rawDestinationID);
+        } catch {
+          return invalidResourceID();
+        }
+        try {
+          assetID = parseIDString(rawAssetID);
+        } catch {
+          return invalidAssetID();
+        }
+        const result = await assetPort.write({
+          asset_id: assetID,
+          destination_resource_id: destinationID,
+          fail_integrity: ({ code, operation_id }) =>
+            context.failClose(code, operation_id),
+          source_resource_id: sourceID,
+          type: "asset.reassign",
+        });
+        return result.ok
+          ? assetWriteSuccess(result, context)
+          : reassignAssetCoreFailure(result.error.code);
+      } finally {
+        lease.release();
+      }
+    },
+    async deleteAsset(
+      rawResourceID: string,
+      rawAssetID: string,
+    ): ReturnType<StorageFacade["deleteAsset"]> {
+      const lease = context.operations.acquire();
+      if (lease === null) return notReady();
+      try {
+        if (assetPort === null) {
+          return failure(
+            "STORAGE_READONLY",
+            "Asset storage is readonly in this runtime",
+          );
+        }
+        let resourceID;
+        let assetID;
+        try {
+          resourceID = parseIDString(rawResourceID);
+        } catch {
+          return invalidResourceID();
+        }
+        try {
+          assetID = parseIDString(rawAssetID);
+        } catch {
+          return invalidAssetID();
+        }
+        const result = await assetPort.write({
+          asset_id: assetID,
+          fail_integrity: ({ code, operation_id }) =>
+            context.failClose(code, operation_id),
+          resource_id: resourceID,
+          type: "asset.delete",
+        });
+        return result.ok
+          ? assetWriteSuccess(result, context)
+          : deleteAssetCoreFailure(result.error.code);
+      } finally {
+        lease.release();
+      }
+    },
     async createResource(
       input: unknown,
     ): ReturnType<StorageFacade["createResource"]> {
@@ -679,6 +1093,8 @@ function messageForWriteFailure(code: CoreResourceWriteFailureCode): string {
       return "Resource has active children";
     case "RESOURCE_ALREADY_DELETED":
       return "Resource is already deleted";
+    case "RESOURCE_ASSET_UPLOAD_ACTIVE":
+      return "Resource has an active Asset upload";
   }
 }
 
@@ -699,6 +1115,7 @@ function moveWriteFailure(
     case "RESOURCE_ID_GENERATION_FAILED":
     case "RESOURCE_HAS_CHILDREN":
     case "RESOURCE_ALREADY_DELETED":
+    case "RESOURCE_ASSET_UPLOAD_ACTIVE":
       return failure(
         "STORAGE_WRITE_FAILED",
         messageForWriteFailure("STORAGE_WRITE_FAILED"),
@@ -712,6 +1129,7 @@ function deleteWriteFailure(
     case "RESOURCE_NOT_FOUND":
     case "RESOURCE_HAS_CHILDREN":
     case "RESOURCE_ALREADY_DELETED":
+    case "RESOURCE_ASSET_UPLOAD_ACTIVE":
     case "STORAGE_LOCK_FAILED":
     case "STORAGE_WRITE_FAILED":
     case "STORAGE_INTEGRITY_FAILED":
@@ -763,6 +1181,7 @@ function createWriteFailure(
     case "RESOURCE_ORDER_OUT_OF_RANGE":
     case "RESOURCE_HAS_CHILDREN":
     case "RESOURCE_ALREADY_DELETED":
+    case "RESOURCE_ASSET_UPLOAD_ACTIVE":
       return failure(
         "STORAGE_WRITE_FAILED",
         messageForWriteFailure("STORAGE_WRITE_FAILED"),
@@ -787,6 +1206,7 @@ function updateWriteFailure(
     case "RESOURCE_ORDER_OUT_OF_RANGE":
     case "RESOURCE_HAS_CHILDREN":
     case "RESOURCE_ALREADY_DELETED":
+    case "RESOURCE_ASSET_UPLOAD_ACTIVE":
       return failure(
         "STORAGE_WRITE_FAILED",
         messageForWriteFailure("STORAGE_WRITE_FAILED"),
@@ -809,13 +1229,14 @@ function queryProvider(
 
 function storageProvider(
   port: CoreResourceWritePort | null,
+  assetPort: CoreAssetWritePort | null,
 ): FacadeProvider<StorageFacade> {
   return facadeProvider({
     handle: STORAGE_FACADE,
     owner: "extensia.default-api",
     dependencies: [],
     create(context): StorageFacade {
-      return createStorageFacade(context, port);
+      return createStorageFacade(context, port, assetPort);
     },
   });
 }
@@ -839,7 +1260,7 @@ export const DEFAULT_API_SYSTEM_EXTENSION_MODULE: ReturnType<
       .singleton();
     context
       .add(SYSTEM_FACADE_PROVIDER_CONTRIBUTIONS)
-      .toValue(storageProvider(null));
+      .toValue(storageProvider(null, null));
   },
 });
 
@@ -850,6 +1271,7 @@ export const FULL_DEFAULT_API_SYSTEM_EXTENSION_MODULE: ReturnType<
   requires: [
     { token: CORE_RESOURCE_READ_PORT },
     { token: CORE_RESOURCE_WRITE_PORT },
+    { token: CORE_ASSET_WRITE_PORT },
   ],
   provides: [
     {
@@ -865,7 +1287,12 @@ export const FULL_DEFAULT_API_SYSTEM_EXTENSION_MODULE: ReturnType<
       .singleton();
     context
       .add(SYSTEM_FACADE_PROVIDER_CONTRIBUTIONS)
-      .toFactory(({ get }) => storageProvider(get(CORE_RESOURCE_WRITE_PORT)))
+      .toFactory(({ get }) =>
+        storageProvider(
+          get(CORE_RESOURCE_WRITE_PORT),
+          get(CORE_ASSET_WRITE_PORT),
+        ),
+      )
       .singleton();
   },
 });
