@@ -94,7 +94,12 @@ Allowed parallelism: P4-DG1 і P4-DG2 могли активуватися окр
 
 ## Фаза 5 — Повний read model і синхронізація кількох instances
 
-Немає canonical tasks: rolling-wave деталізація не починається до owner gates Phase 4.
+- [x] **[Done]** [TASK-07.26-0054](TASK-07.26-0054-prepare-phase-5-task-set/index.md) - Evidence-backed Phase 5 task set і `AGENTS.md` sync accepted whole-task review; P5-RS1/P5-DG1/P5-DG2 remain backlog/prepared, no downstream activation.
+- [x] **[Done]** [P5-RS1 / TASK-07.26-0055](TASK-07.26-0055-p5-rs1-local-sqlite-multi-instance-feasibility/index.md) - Three-run executable `full/full`/`full/readonly` research accepted whole-task review; storage primitives conditionally feasible, live coherent runtime sync absent.
+- [ ] **[Backlog]** [P5-DG1 / TASK-07.26-0056](TASK-07.26-0056-p5-dg1-read-model-completeness-query-contract/index.md) - Exact `greedy`/`lazy` completeness, query/config і coherent projection owner gate; не активований.
+- [ ] **[Backlog]** [P5-DG2 / TASK-07.26-0057](TASK-07.26-0057-p5-dg2-cursor-refresh-multi-instance-sync-contract/index.md) - Refined research/design owner gate для process sync, refresh, cursor, retry/backoff, lock contention/fairness і downstream task map; P5-RS1 accepted, activation заборонена до accepted/applied P5-DG1.
+
+Canonical-now boundary: `P5-RS1` accepted/completed. `P5-DG1` лишається backlog/prepared і потребує окремої activation; refined `P5-DG2` активується лише після accepted/applied P5-DG1. Похідні implementation/stabilization/audit tasks визначить P5-DG2 research result і вони не створюються/активуються без explicit owner decisions.
 
 ## Фаза 6 — Базова extension ecosystem
 

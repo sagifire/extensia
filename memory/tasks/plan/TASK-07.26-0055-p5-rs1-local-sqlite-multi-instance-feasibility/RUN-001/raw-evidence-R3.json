@@ -1,0 +1,1145 @@
+{
+  "environment": {
+    "architecture": "x64",
+    "node": "v24.17.0",
+    "os_platform": "win32",
+    "os_release": "10.0.26200",
+    "sqlite": "3.53.0",
+    "storage_root": "D:\\work\\nodejs projects\\extensia\\.tmp\\p5-rs1-0l5hij",
+    "timeout_ms": 250
+  },
+  "source": {
+    "git_baseline": "9968a32b0951e44e706d385744a5f25fe961dfbe",
+    "files": {
+      "package-lock.json": "9855f95c1b9be2166cbca3cbde37cab6c667e036f50343f3b289b2c3fc39680c",
+      "src/composition/local-sqlite-runtime.ts": "6933753da3c499a58c579f01c1235700557477c338df88286b05fc9c576b4350",
+      "src/storage/local-sqlite-resource-driver.ts": "ffcf5db8d7694ac16e456ab09d43b176a02d06b34df533cb0eee589d774fc86d",
+      "src/storage/resource-write-protocol.ts": "3147e03c80c187ffb4bc6510744ca8733d708583f2cdf4fc90e776ce66cf8193"
+    },
+    "profile": "embedded-transactional/local-sqlite-v1"
+  },
+  "full_full": {
+    "alternating": [
+      {
+        "committed_by": "A",
+        "created": {
+          "id": "56dfa582-00c7-41d6-87f6-e4862006c947",
+          "ok": true,
+          "operation_id": "6885a981-a3ef-4f5d-a95a-fc7b178027c6",
+          "title": "ff-alternating-1",
+          "warnings": []
+        },
+        "observed_by": "B",
+        "observer_runtime_read": {
+          "code": "RESOURCE_NOT_FOUND",
+          "ok": false
+        },
+        "observer_storage_after_cursor": {
+          "acquired_ms": 4.577599999999961,
+          "elapsed_ms": null,
+          "journal": [
+            {
+              "actor_id": "2568dd57-e2d9-42ac-b9f5-b991350d4bd8",
+              "operation_id": "6885a981-a3ef-4f5d-a95a-fc7b178027c6",
+              "sequence": "1",
+              "type": "resource.create"
+            }
+          ],
+          "journal_supported": true,
+          "resource_count": 1,
+          "resource_titles": [
+            "ff-alternating-1"
+          ]
+        },
+        "prior_cursor": null
+      },
+      {
+        "committed_by": "B",
+        "created": {
+          "id": "7bbe8b92-ae17-475c-9860-dd809c9eec5e",
+          "ok": true,
+          "operation_id": "94c92a7b-3d9f-40b6-8e10-28e11c6521eb",
+          "title": "ff-alternating-2",
+          "warnings": []
+        },
+        "observed_by": "A",
+        "observer_runtime_read": {
+          "code": "RESOURCE_NOT_FOUND",
+          "ok": false
+        },
+        "observer_storage_after_cursor": {
+          "acquired_ms": 2.8169000000000324,
+          "elapsed_ms": null,
+          "journal": [
+            {
+              "actor_id": "4d117e21-0fdd-4b5d-a254-69be8378c3de",
+              "operation_id": "94c92a7b-3d9f-40b6-8e10-28e11c6521eb",
+              "sequence": "2",
+              "type": "resource.create"
+            }
+          ],
+          "journal_supported": true,
+          "resource_count": 2,
+          "resource_titles": [
+            "ff-alternating-1",
+            "ff-alternating-2"
+          ]
+        },
+        "prior_cursor": "1"
+      },
+      {
+        "committed_by": "A",
+        "created": {
+          "id": "7d86e653-8585-49d6-ace8-310c0a1b715c",
+          "ok": true,
+          "operation_id": "c9f1ae37-6a35-4f8a-a858-7159150fe628",
+          "title": "ff-alternating-3",
+          "warnings": []
+        },
+        "observed_by": "B",
+        "observer_runtime_read": {
+          "code": "RESOURCE_NOT_FOUND",
+          "ok": false
+        },
+        "observer_storage_after_cursor": {
+          "acquired_ms": 2.3722000000000207,
+          "elapsed_ms": null,
+          "journal": [
+            {
+              "actor_id": "2568dd57-e2d9-42ac-b9f5-b991350d4bd8",
+              "operation_id": "c9f1ae37-6a35-4f8a-a858-7159150fe628",
+              "sequence": "3",
+              "type": "resource.create"
+            }
+          ],
+          "journal_supported": true,
+          "resource_count": 3,
+          "resource_titles": [
+            "ff-alternating-1",
+            "ff-alternating-2",
+            "ff-alternating-3"
+          ]
+        },
+        "prior_cursor": "2"
+      },
+      {
+        "committed_by": "B",
+        "created": {
+          "id": "4b6a567a-4b6f-4ff4-b9b5-1a69293df46b",
+          "ok": true,
+          "operation_id": "f2067152-82ae-49a6-9ba6-3c1689b9ad12",
+          "title": "ff-alternating-4",
+          "warnings": []
+        },
+        "observed_by": "A",
+        "observer_runtime_read": {
+          "code": "RESOURCE_NOT_FOUND",
+          "ok": false
+        },
+        "observer_storage_after_cursor": {
+          "acquired_ms": 2.1124999999999545,
+          "elapsed_ms": null,
+          "journal": [
+            {
+              "actor_id": "4d117e21-0fdd-4b5d-a254-69be8378c3de",
+              "operation_id": "f2067152-82ae-49a6-9ba6-3c1689b9ad12",
+              "sequence": "4",
+              "type": "resource.create"
+            }
+          ],
+          "journal_supported": true,
+          "resource_count": 4,
+          "resource_titles": [
+            "ff-alternating-1",
+            "ff-alternating-2",
+            "ff-alternating-3",
+            "ff-alternating-4"
+          ]
+        },
+        "prior_cursor": "3"
+      },
+      {
+        "committed_by": "A",
+        "created": {
+          "id": "871dbf70-8d0c-4a1e-bed4-f64365f51613",
+          "ok": true,
+          "operation_id": "b7b61719-69d4-4df0-bbfd-c3d62a97069b",
+          "title": "ff-alternating-5",
+          "warnings": []
+        },
+        "observed_by": "B",
+        "observer_runtime_read": {
+          "code": "RESOURCE_NOT_FOUND",
+          "ok": false
+        },
+        "observer_storage_after_cursor": {
+          "acquired_ms": 1.8076000000000931,
+          "elapsed_ms": null,
+          "journal": [
+            {
+              "actor_id": "2568dd57-e2d9-42ac-b9f5-b991350d4bd8",
+              "operation_id": "b7b61719-69d4-4df0-bbfd-c3d62a97069b",
+              "sequence": "5",
+              "type": "resource.create"
+            }
+          ],
+          "journal_supported": true,
+          "resource_count": 5,
+          "resource_titles": [
+            "ff-alternating-1",
+            "ff-alternating-2",
+            "ff-alternating-3",
+            "ff-alternating-4",
+            "ff-alternating-5"
+          ]
+        },
+        "prior_cursor": "4"
+      },
+      {
+        "committed_by": "B",
+        "created": {
+          "id": "06ff1078-bf43-4d82-87be-6bebb8743c4d",
+          "ok": true,
+          "operation_id": "dcff6d35-0b9e-4b8c-b20e-542858d06695",
+          "title": "ff-alternating-6",
+          "warnings": []
+        },
+        "observed_by": "A",
+        "observer_runtime_read": {
+          "code": "RESOURCE_NOT_FOUND",
+          "ok": false
+        },
+        "observer_storage_after_cursor": {
+          "acquired_ms": 1.9940000000001419,
+          "elapsed_ms": null,
+          "journal": [
+            {
+              "actor_id": "4d117e21-0fdd-4b5d-a254-69be8378c3de",
+              "operation_id": "dcff6d35-0b9e-4b8c-b20e-542858d06695",
+              "sequence": "6",
+              "type": "resource.create"
+            }
+          ],
+          "journal_supported": true,
+          "resource_count": 6,
+          "resource_titles": [
+            "ff-alternating-1",
+            "ff-alternating-2",
+            "ff-alternating-3",
+            "ff-alternating-4",
+            "ff-alternating-5",
+            "ff-alternating-6"
+          ]
+        },
+        "prior_cursor": "5"
+      }
+    ],
+    "after_concurrent": {
+      "acquired_ms": 1.7690000000002328,
+      "elapsed_ms": null,
+      "journal": [
+        {
+          "actor_id": "2568dd57-e2d9-42ac-b9f5-b991350d4bd8",
+          "operation_id": "6885a981-a3ef-4f5d-a95a-fc7b178027c6",
+          "sequence": "1",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "4d117e21-0fdd-4b5d-a254-69be8378c3de",
+          "operation_id": "94c92a7b-3d9f-40b6-8e10-28e11c6521eb",
+          "sequence": "2",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "2568dd57-e2d9-42ac-b9f5-b991350d4bd8",
+          "operation_id": "c9f1ae37-6a35-4f8a-a858-7159150fe628",
+          "sequence": "3",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "4d117e21-0fdd-4b5d-a254-69be8378c3de",
+          "operation_id": "f2067152-82ae-49a6-9ba6-3c1689b9ad12",
+          "sequence": "4",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "2568dd57-e2d9-42ac-b9f5-b991350d4bd8",
+          "operation_id": "b7b61719-69d4-4df0-bbfd-c3d62a97069b",
+          "sequence": "5",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "4d117e21-0fdd-4b5d-a254-69be8378c3de",
+          "operation_id": "dcff6d35-0b9e-4b8c-b20e-542858d06695",
+          "sequence": "6",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "2568dd57-e2d9-42ac-b9f5-b991350d4bd8",
+          "operation_id": "222a680d-f28a-4899-b12b-699b24977ec8",
+          "sequence": "7",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "4d117e21-0fdd-4b5d-a254-69be8378c3de",
+          "operation_id": "5b56bccb-4850-4e43-a857-97df8e62aa7e",
+          "sequence": "8",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "4d117e21-0fdd-4b5d-a254-69be8378c3de",
+          "operation_id": "35f50c2d-95ab-4da2-8657-eced7bb8a192",
+          "sequence": "9",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "2568dd57-e2d9-42ac-b9f5-b991350d4bd8",
+          "operation_id": "4e5d7c37-c81f-4e20-b3f8-a3770db912d4",
+          "sequence": "10",
+          "type": "resource.create"
+        }
+      ],
+      "journal_supported": true,
+      "resource_count": 10,
+      "resource_titles": [
+        "ff-alternating-1",
+        "ff-alternating-2",
+        "ff-alternating-3",
+        "ff-alternating-4",
+        "ff-alternating-5",
+        "ff-alternating-6",
+        "ff-concurrent-a-1",
+        "ff-concurrent-a-2",
+        "ff-concurrent-b-1",
+        "ff-concurrent-b-2"
+      ]
+    },
+    "concurrent": [
+      {
+        "a": {
+          "id": "2ae46f88-1f58-485e-9ee2-5aad1f4f854f",
+          "ok": true,
+          "operation_id": "222a680d-f28a-4899-b12b-699b24977ec8",
+          "title": "ff-concurrent-a-1",
+          "warnings": []
+        },
+        "b": {
+          "id": "f942d0f8-b0a5-45c1-acf8-a54a2b22d46a",
+          "ok": true,
+          "operation_id": "5b56bccb-4850-4e43-a857-97df8e62aa7e",
+          "title": "ff-concurrent-b-1",
+          "warnings": []
+        }
+      },
+      {
+        "a": {
+          "id": "88f7a586-95d2-4ec1-b689-ba8504b4276d",
+          "ok": true,
+          "operation_id": "4e5d7c37-c81f-4e20-b3f8-a3770db912d4",
+          "title": "ff-concurrent-a-2",
+          "warnings": []
+        },
+        "b": {
+          "id": "81c830c6-af7f-4403-97f5-d979af24cb21",
+          "ok": true,
+          "operation_id": "35f50c2d-95ab-4da2-8657-eced7bb8a192",
+          "title": "ff-concurrent-b-2",
+          "warnings": []
+        }
+      },
+      {
+        "a": {
+          "ok": false,
+          "code": "STORAGE_LOCK_FAILED"
+        },
+        "b": {
+          "ok": false,
+          "code": "STORAGE_LOCK_FAILED"
+        }
+      },
+      {
+        "a": {
+          "ok": false,
+          "code": "STORAGE_LOCK_FAILED"
+        },
+        "b": {
+          "ok": false,
+          "code": "STORAGE_LOCK_FAILED"
+        }
+      },
+      {
+        "a": {
+          "ok": false,
+          "code": "STORAGE_LOCK_FAILED"
+        },
+        "b": {
+          "ok": false,
+          "code": "STORAGE_LOCK_FAILED"
+        }
+      }
+    ],
+    "final_a": {
+      "acquired_ms": 1.6936000000000604,
+      "elapsed_ms": null,
+      "journal": [
+        {
+          "actor_id": "2568dd57-e2d9-42ac-b9f5-b991350d4bd8",
+          "operation_id": "6885a981-a3ef-4f5d-a95a-fc7b178027c6",
+          "sequence": "1",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "4d117e21-0fdd-4b5d-a254-69be8378c3de",
+          "operation_id": "94c92a7b-3d9f-40b6-8e10-28e11c6521eb",
+          "sequence": "2",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "2568dd57-e2d9-42ac-b9f5-b991350d4bd8",
+          "operation_id": "c9f1ae37-6a35-4f8a-a858-7159150fe628",
+          "sequence": "3",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "4d117e21-0fdd-4b5d-a254-69be8378c3de",
+          "operation_id": "f2067152-82ae-49a6-9ba6-3c1689b9ad12",
+          "sequence": "4",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "2568dd57-e2d9-42ac-b9f5-b991350d4bd8",
+          "operation_id": "b7b61719-69d4-4df0-bbfd-c3d62a97069b",
+          "sequence": "5",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "4d117e21-0fdd-4b5d-a254-69be8378c3de",
+          "operation_id": "dcff6d35-0b9e-4b8c-b20e-542858d06695",
+          "sequence": "6",
+          "type": "resource.create"
+        }
+      ],
+      "journal_supported": true,
+      "resource_count": 6,
+      "resource_titles": [
+        "ff-alternating-1",
+        "ff-alternating-2",
+        "ff-alternating-3",
+        "ff-alternating-4",
+        "ff-alternating-5",
+        "ff-alternating-6"
+      ]
+    },
+    "final_b": {
+      "acquired_ms": 2.016800000000103,
+      "elapsed_ms": null,
+      "journal": [
+        {
+          "actor_id": "2568dd57-e2d9-42ac-b9f5-b991350d4bd8",
+          "operation_id": "6885a981-a3ef-4f5d-a95a-fc7b178027c6",
+          "sequence": "1",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "4d117e21-0fdd-4b5d-a254-69be8378c3de",
+          "operation_id": "94c92a7b-3d9f-40b6-8e10-28e11c6521eb",
+          "sequence": "2",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "2568dd57-e2d9-42ac-b9f5-b991350d4bd8",
+          "operation_id": "c9f1ae37-6a35-4f8a-a858-7159150fe628",
+          "sequence": "3",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "4d117e21-0fdd-4b5d-a254-69be8378c3de",
+          "operation_id": "f2067152-82ae-49a6-9ba6-3c1689b9ad12",
+          "sequence": "4",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "2568dd57-e2d9-42ac-b9f5-b991350d4bd8",
+          "operation_id": "b7b61719-69d4-4df0-bbfd-c3d62a97069b",
+          "sequence": "5",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "4d117e21-0fdd-4b5d-a254-69be8378c3de",
+          "operation_id": "dcff6d35-0b9e-4b8c-b20e-542858d06695",
+          "sequence": "6",
+          "type": "resource.create"
+        }
+      ],
+      "journal_supported": true,
+      "resource_count": 6,
+      "resource_titles": [
+        "ff-alternating-1",
+        "ff-alternating-2",
+        "ff-alternating-3",
+        "ff-alternating-4",
+        "ff-alternating-5",
+        "ff-alternating-6"
+      ]
+    },
+    "process_a": {
+      "pid": 10932,
+      "role": "full",
+      "timeout_ms": 250
+    },
+    "process_b": {
+      "pid": 30472,
+      "role": "full",
+      "timeout_ms": 250
+    },
+    "release_waits": [
+      {
+        "held": {
+          "acquired": true,
+          "acquired_ms": 2.454099999999926,
+          "held": true
+        },
+        "result": {
+          "acquired": true,
+          "acquired_ms": 43.831300000000056,
+          "held": false
+        }
+      },
+      {
+        "held": {
+          "acquired": true,
+          "acquired_ms": 1.8798000000001593,
+          "held": true
+        },
+        "result": {
+          "acquired": true,
+          "acquired_ms": 42.213700000000244,
+          "held": false
+        }
+      },
+      {
+        "held": {
+          "acquired": true,
+          "acquired_ms": 2.2042999999998756,
+          "held": true
+        },
+        "result": {
+          "acquired": true,
+          "acquired_ms": 57.89290000000028,
+          "held": false
+        }
+      },
+      {
+        "held": {
+          "acquired": true,
+          "acquired_ms": 1.5928000000003522,
+          "held": true
+        },
+        "result": {
+          "acquired": true,
+          "acquired_ms": 43.65990000000011,
+          "held": false
+        }
+      },
+      {
+        "held": {
+          "acquired": true,
+          "acquired_ms": 1.6830999999997402,
+          "held": true
+        },
+        "result": {
+          "acquired": true,
+          "acquired_ms": 42.8107,
+          "held": false
+        }
+      },
+      {
+        "held": {
+          "acquired": true,
+          "acquired_ms": 1.668500000000222,
+          "held": true
+        },
+        "result": {
+          "acquired": true,
+          "acquired_ms": 43.23270000000002,
+          "held": false
+        }
+      },
+      {
+        "held": {
+          "acquired": true,
+          "acquired_ms": 2.603900000000067,
+          "held": true
+        },
+        "result": {
+          "acquired": true,
+          "acquired_ms": 45.23189999999977,
+          "held": false
+        }
+      },
+      {
+        "held": {
+          "acquired": true,
+          "acquired_ms": 2.569499999999607,
+          "held": true
+        },
+        "result": {
+          "acquired": true,
+          "acquired_ms": 58.08209999999963,
+          "held": false
+        }
+      },
+      {
+        "held": {
+          "acquired": true,
+          "acquired_ms": 3.3027000000001863,
+          "held": true
+        },
+        "result": {
+          "acquired": true,
+          "acquired_ms": 58.07529999999997,
+          "held": false
+        }
+      },
+      {
+        "held": {
+          "acquired": true,
+          "acquired_ms": 3.0525000000002365,
+          "held": true
+        },
+        "result": {
+          "acquired": true,
+          "acquired_ms": 44.38740000000007,
+          "held": false
+        }
+      }
+    ],
+    "replay_after_2": {
+      "acquired_ms": 1.7278999999998632,
+      "elapsed_ms": null,
+      "journal": [
+        {
+          "actor_id": "2568dd57-e2d9-42ac-b9f5-b991350d4bd8",
+          "operation_id": "c9f1ae37-6a35-4f8a-a858-7159150fe628",
+          "sequence": "3",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "4d117e21-0fdd-4b5d-a254-69be8378c3de",
+          "operation_id": "f2067152-82ae-49a6-9ba6-3c1689b9ad12",
+          "sequence": "4",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "2568dd57-e2d9-42ac-b9f5-b991350d4bd8",
+          "operation_id": "b7b61719-69d4-4df0-bbfd-c3d62a97069b",
+          "sequence": "5",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "4d117e21-0fdd-4b5d-a254-69be8378c3de",
+          "operation_id": "dcff6d35-0b9e-4b8c-b20e-542858d06695",
+          "sequence": "6",
+          "type": "resource.create"
+        }
+      ],
+      "journal_supported": true,
+      "resource_count": 6,
+      "resource_titles": [
+        "ff-alternating-1",
+        "ff-alternating-2",
+        "ff-alternating-3",
+        "ff-alternating-4",
+        "ff-alternating-5",
+        "ff-alternating-6"
+      ]
+    },
+    "replay_at_head": {
+      "acquired_ms": 1.677500000000009,
+      "elapsed_ms": null,
+      "journal": [],
+      "journal_supported": true,
+      "resource_count": 6,
+      "resource_titles": [
+        "ff-alternating-1",
+        "ff-alternating-2",
+        "ff-alternating-3",
+        "ff-alternating-4",
+        "ff-alternating-5",
+        "ff-alternating-6"
+      ]
+    },
+    "timeout": {
+      "hold": {
+        "acquired": true,
+        "acquired_ms": 1.7114999999998872,
+        "held": true
+      },
+      "contender": {
+        "acquired": false,
+        "elapsed_ms": 317.7160000000001,
+        "error": {
+          "code": "ERR_SQLITE_ERROR",
+          "message": "database is locked",
+          "name": "Error"
+        }
+      }
+    }
+  },
+  "full_readonly": {
+    "created_for_readonly": {
+      "id": "0463012a-8692-4dc0-acc9-2716c66b5137",
+      "ok": true,
+      "operation_id": "b304adcc-aadf-4c53-b323-fe2867c37114",
+      "title": "fr-external-commit",
+      "warnings": []
+    },
+    "initial_readonly": {
+      "acquired_ms": null,
+      "elapsed_ms": 0.5893000000000086,
+      "journal": [],
+      "journal_supported": false,
+      "resource_count": 10,
+      "resource_titles": [
+        "ff-alternating-1",
+        "ff-alternating-2",
+        "ff-alternating-3",
+        "ff-alternating-4",
+        "ff-alternating-5",
+        "ff-alternating-6",
+        "ff-concurrent-a-1",
+        "ff-concurrent-a-2",
+        "ff-concurrent-b-1",
+        "ff-concurrent-b-2"
+      ]
+    },
+    "readonly_observed_before_restart": {
+      "acquired_ms": null,
+      "elapsed_ms": 0.3634999999999877,
+      "journal": [],
+      "journal_supported": false,
+      "resource_count": 11,
+      "resource_titles": [
+        "ff-alternating-1",
+        "ff-alternating-2",
+        "ff-alternating-3",
+        "ff-alternating-4",
+        "ff-alternating-5",
+        "ff-alternating-6",
+        "ff-concurrent-a-1",
+        "ff-concurrent-a-2",
+        "ff-concurrent-b-1",
+        "ff-concurrent-b-2",
+        "fr-external-commit"
+      ]
+    },
+    "readonly_after_release": {
+      "acquired_ms": null,
+      "elapsed_ms": 0.4561999999999671,
+      "journal": [],
+      "journal_supported": false,
+      "resource_count": 11,
+      "resource_titles": [
+        "ff-alternating-1",
+        "ff-alternating-2",
+        "ff-alternating-3",
+        "ff-alternating-4",
+        "ff-alternating-5",
+        "ff-alternating-6",
+        "ff-concurrent-a-1",
+        "ff-concurrent-a-2",
+        "ff-concurrent-b-1",
+        "ff-concurrent-b-2",
+        "fr-external-commit"
+      ]
+    },
+    "readonly_during_writer_lease": {
+      "message": "{\"code\":\"ERR_SQLITE_ERROR\",\"message\":\"database is locked\",\"name\":\"Error\"}",
+      "ok": false
+    },
+    "refreshed_runtime_read": {
+      "id": "0463012a-8692-4dc0-acc9-2716c66b5137",
+      "ok": true,
+      "title": "fr-external-commit"
+    },
+    "snapshots": {
+      "after_initial_read": {
+        "files": [
+          {
+            "path": "extensia.sqlite3",
+            "bytes": 45056,
+            "mtime_ms": 1784304043161.8384,
+            "sha256": "f09783a317f6892a9ba471125c2fbfcbbe9970a3b7eb139f3721112a02b96ec0"
+          }
+        ],
+        "sha256": "fa03faeee47c6ea53faf1dc2b18df34ad9b987205d9dd9f1394a5f485e281e6c"
+      },
+      "after_observe": {
+        "files": [
+          {
+            "path": "extensia.sqlite3",
+            "bytes": 45056,
+            "mtime_ms": 1784304044394.8625,
+            "sha256": "15f8972ecd3656b4c983e99668fc9a93112d10281e35ca2cfaf21db963f16304"
+          }
+        ],
+        "sha256": "ace6877b06abb60ec4d404fd11fd35641fab0fe48e737d83a6e4d8f58d65b633"
+      },
+      "after_start": {
+        "files": [
+          {
+            "path": "extensia.sqlite3",
+            "bytes": 45056,
+            "mtime_ms": 1784304043161.8384,
+            "sha256": "f09783a317f6892a9ba471125c2fbfcbbe9970a3b7eb139f3721112a02b96ec0"
+          }
+        ],
+        "sha256": "fa03faeee47c6ea53faf1dc2b18df34ad9b987205d9dd9f1394a5f485e281e6c"
+      },
+      "after_writer_contention": {
+        "files": [
+          {
+            "path": "extensia.sqlite3",
+            "bytes": 45056,
+            "mtime_ms": 1784304044394.8625,
+            "sha256": "15f8972ecd3656b4c983e99668fc9a93112d10281e35ca2cfaf21db963f16304"
+          }
+        ],
+        "sha256": "ace6877b06abb60ec4d404fd11fd35641fab0fe48e737d83a6e4d8f58d65b633"
+      },
+      "before_observe": {
+        "files": [
+          {
+            "path": "extensia.sqlite3",
+            "bytes": 45056,
+            "mtime_ms": 1784304044394.8625,
+            "sha256": "15f8972ecd3656b4c983e99668fc9a93112d10281e35ca2cfaf21db963f16304"
+          }
+        ],
+        "sha256": "ace6877b06abb60ec4d404fd11fd35641fab0fe48e737d83a6e4d8f58d65b633"
+      },
+      "before_start": {
+        "files": [
+          {
+            "path": "extensia.sqlite3",
+            "bytes": 45056,
+            "mtime_ms": 1784304043161.8384,
+            "sha256": "f09783a317f6892a9ba471125c2fbfcbbe9970a3b7eb139f3721112a02b96ec0"
+          }
+        ],
+        "sha256": "fa03faeee47c6ea53faf1dc2b18df34ad9b987205d9dd9f1394a5f485e281e6c"
+      },
+      "before_writer_contention": {
+        "files": [
+          {
+            "path": "extensia.sqlite3",
+            "bytes": 45056,
+            "mtime_ms": 1784304044394.8625,
+            "sha256": "15f8972ecd3656b4c983e99668fc9a93112d10281e35ca2cfaf21db963f16304"
+          }
+        ],
+        "sha256": "ace6877b06abb60ec4d404fd11fd35641fab0fe48e737d83a6e4d8f58d65b633"
+      }
+    },
+    "stale_runtime_read": {
+      "code": "RESOURCE_NOT_FOUND",
+      "ok": false
+    },
+    "writer_held": {
+      "acquired": true,
+      "acquired_ms": 2.2106999999999744,
+      "held": true
+    }
+  },
+  "crash_restart": {
+    "lock_owner_crash": {
+      "after": {
+        "acquired_ms": 2.7591999999999928,
+        "elapsed_ms": null,
+        "journal": [
+          {
+            "actor_id": "2568dd57-e2d9-42ac-b9f5-b991350d4bd8",
+            "operation_id": "6885a981-a3ef-4f5d-a95a-fc7b178027c6",
+            "sequence": "1",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "4d117e21-0fdd-4b5d-a254-69be8378c3de",
+            "operation_id": "94c92a7b-3d9f-40b6-8e10-28e11c6521eb",
+            "sequence": "2",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "2568dd57-e2d9-42ac-b9f5-b991350d4bd8",
+            "operation_id": "c9f1ae37-6a35-4f8a-a858-7159150fe628",
+            "sequence": "3",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "4d117e21-0fdd-4b5d-a254-69be8378c3de",
+            "operation_id": "f2067152-82ae-49a6-9ba6-3c1689b9ad12",
+            "sequence": "4",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "2568dd57-e2d9-42ac-b9f5-b991350d4bd8",
+            "operation_id": "b7b61719-69d4-4df0-bbfd-c3d62a97069b",
+            "sequence": "5",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "4d117e21-0fdd-4b5d-a254-69be8378c3de",
+            "operation_id": "dcff6d35-0b9e-4b8c-b20e-542858d06695",
+            "sequence": "6",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "2568dd57-e2d9-42ac-b9f5-b991350d4bd8",
+            "operation_id": "222a680d-f28a-4899-b12b-699b24977ec8",
+            "sequence": "7",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "4d117e21-0fdd-4b5d-a254-69be8378c3de",
+            "operation_id": "5b56bccb-4850-4e43-a857-97df8e62aa7e",
+            "sequence": "8",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "4d117e21-0fdd-4b5d-a254-69be8378c3de",
+            "operation_id": "35f50c2d-95ab-4da2-8657-eced7bb8a192",
+            "sequence": "9",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "2568dd57-e2d9-42ac-b9f5-b991350d4bd8",
+            "operation_id": "4e5d7c37-c81f-4e20-b3f8-a3770db912d4",
+            "sequence": "10",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "7a102010-446b-4acb-b216-cc6a310820c1",
+            "operation_id": "b304adcc-aadf-4c53-b323-fe2867c37114",
+            "sequence": "11",
+            "type": "resource.create"
+          }
+        ],
+        "journal_supported": true,
+        "resource_count": 11,
+        "resource_titles": [
+          "ff-alternating-1",
+          "ff-alternating-2",
+          "ff-alternating-3",
+          "ff-alternating-4",
+          "ff-alternating-5",
+          "ff-alternating-6",
+          "ff-concurrent-a-1",
+          "ff-concurrent-a-2",
+          "ff-concurrent-b-1",
+          "ff-concurrent-b-2",
+          "fr-external-commit"
+        ]
+      },
+      "before": {
+        "acquired_ms": 2.115699999999947,
+        "elapsed_ms": null,
+        "journal": [
+          {
+            "actor_id": "2568dd57-e2d9-42ac-b9f5-b991350d4bd8",
+            "operation_id": "6885a981-a3ef-4f5d-a95a-fc7b178027c6",
+            "sequence": "1",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "4d117e21-0fdd-4b5d-a254-69be8378c3de",
+            "operation_id": "94c92a7b-3d9f-40b6-8e10-28e11c6521eb",
+            "sequence": "2",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "2568dd57-e2d9-42ac-b9f5-b991350d4bd8",
+            "operation_id": "c9f1ae37-6a35-4f8a-a858-7159150fe628",
+            "sequence": "3",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "4d117e21-0fdd-4b5d-a254-69be8378c3de",
+            "operation_id": "f2067152-82ae-49a6-9ba6-3c1689b9ad12",
+            "sequence": "4",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "2568dd57-e2d9-42ac-b9f5-b991350d4bd8",
+            "operation_id": "b7b61719-69d4-4df0-bbfd-c3d62a97069b",
+            "sequence": "5",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "4d117e21-0fdd-4b5d-a254-69be8378c3de",
+            "operation_id": "dcff6d35-0b9e-4b8c-b20e-542858d06695",
+            "sequence": "6",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "2568dd57-e2d9-42ac-b9f5-b991350d4bd8",
+            "operation_id": "222a680d-f28a-4899-b12b-699b24977ec8",
+            "sequence": "7",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "4d117e21-0fdd-4b5d-a254-69be8378c3de",
+            "operation_id": "5b56bccb-4850-4e43-a857-97df8e62aa7e",
+            "sequence": "8",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "4d117e21-0fdd-4b5d-a254-69be8378c3de",
+            "operation_id": "35f50c2d-95ab-4da2-8657-eced7bb8a192",
+            "sequence": "9",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "2568dd57-e2d9-42ac-b9f5-b991350d4bd8",
+            "operation_id": "4e5d7c37-c81f-4e20-b3f8-a3770db912d4",
+            "sequence": "10",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "7a102010-446b-4acb-b216-cc6a310820c1",
+            "operation_id": "b304adcc-aadf-4c53-b323-fe2867c37114",
+            "sequence": "11",
+            "type": "resource.create"
+          }
+        ],
+        "journal_supported": true,
+        "resource_count": 11,
+        "resource_titles": [
+          "ff-alternating-1",
+          "ff-alternating-2",
+          "ff-alternating-3",
+          "ff-alternating-4",
+          "ff-alternating-5",
+          "ff-alternating-6",
+          "ff-concurrent-a-1",
+          "ff-concurrent-a-2",
+          "ff-concurrent-b-1",
+          "ff-concurrent-b-2",
+          "fr-external-commit"
+        ]
+      },
+      "held": {
+        "acquired": true,
+        "acquired_ms": 1.7384000000000697,
+        "held": true
+      },
+      "process_exit": {
+        "code": null,
+        "signal": "SIGKILL",
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    "lost_receipt": {
+      "after_cursor": {
+        "acquired_ms": 2.754799999999989,
+        "elapsed_ms": null,
+        "journal": [
+          {
+            "actor_id": "9d04c9dc-91bf-4978-93a1-3819f0c94923",
+            "operation_id": "d7ca4741-d16c-4ba1-bdeb-751e01d7adaa",
+            "sequence": "12",
+            "type": "resource.create"
+          }
+        ],
+        "journal_supported": true,
+        "resource_count": 12,
+        "resource_titles": [
+          "ff-alternating-1",
+          "ff-alternating-2",
+          "ff-alternating-3",
+          "ff-alternating-4",
+          "ff-alternating-5",
+          "ff-alternating-6",
+          "ff-concurrent-a-1",
+          "ff-concurrent-a-2",
+          "ff-concurrent-b-1",
+          "ff-concurrent-b-2",
+          "fr-external-commit",
+          "lost-receipt-88c41eb7-f5a0-4d9e-b55e-0277896a9144"
+        ]
+      },
+      "observer_resource": {
+        "id": "f8dd9d39-5e60-404c-8183-b68b423b8f66",
+        "title": "lost-receipt-88c41eb7-f5a0-4d9e-b55e-0277896a9144"
+      },
+      "process_exit": {
+        "code": 77,
+        "signal": null,
+        "stderr": "",
+        "stdout": ""
+      },
+      "title": "lost-receipt-88c41eb7-f5a0-4d9e-b55e-0277896a9144"
+    },
+    "readonly_observer_crash": {
+      "process_exit": {
+        "code": null,
+        "signal": "SIGKILL",
+        "stderr": "",
+        "stdout": ""
+      },
+      "restarted_runtime_read": {
+        "id": "f8dd9d39-5e60-404c-8183-b68b423b8f66",
+        "ok": true,
+        "title": "lost-receipt-88c41eb7-f5a0-4d9e-b55e-0277896a9144"
+      },
+      "restarted_storage_state": {
+        "acquired_ms": null,
+        "elapsed_ms": 0.3135999999999939,
+        "journal": [],
+        "journal_supported": false,
+        "resource_count": 12,
+        "resource_titles": [
+          "ff-alternating-1",
+          "ff-alternating-2",
+          "ff-alternating-3",
+          "ff-alternating-4",
+          "ff-alternating-5",
+          "ff-alternating-6",
+          "ff-concurrent-a-1",
+          "ff-concurrent-a-2",
+          "ff-concurrent-b-1",
+          "ff-concurrent-b-2",
+          "fr-external-commit",
+          "lost-receipt-88c41eb7-f5a0-4d9e-b55e-0277896a9144"
+        ]
+      }
+    },
+    "readonly_restart": {
+      "pid": 15848,
+      "role": "readonly",
+      "timeout_ms": 250
+    },
+    "replacement_after_lock_crash": {
+      "pid": 29780,
+      "role": "full",
+      "timeout_ms": 250
+    },
+    "replacement_after_lost_receipt": {
+      "pid": 13760,
+      "role": "full",
+      "timeout_ms": 250
+    }
+  },
+  "final_snapshot": {
+    "files": [
+      {
+        "path": "extensia.sqlite3",
+        "bytes": 45056,
+        "mtime_ms": 1784304045119,
+        "sha256": "802572a73ab568282ad4bcf5c4f2a5c690d01ac10f9cfab21a9f76e9628dbfb5"
+      }
+    ],
+    "sha256": "a2cafa3d702c3b54b818ad595d0b8058b9312b83847b5bc1fde8262d1dfd4541"
+  },
+  "root_retained_for_audit": "D:\\work\\nodejs projects\\extensia\\.tmp\\p5-rs1-0l5hij"
+}

@@ -24,3 +24,5 @@ Detailed reports для formal research, planning і design усередині t
 - [Exact Asset semantic contract Extensia](2026-07-15-extensia-asset-contracts.md) - P4-DG2 field, lineage, primary, ownership, staged upload і pipeline design для P4-VS2/P4-VS3.
 - [Filesystem-native Storage Driver Extensia](2026-07-15-extensia-filesystem-native-storage-driver-design.md) - Умовна native-helper feasibility, immutable graph/one-HEAD protocol і profile certification boundary.
 - [Client-server transactional Storage Driver family](2026-07-15-extensia-client-server-sql-storage-driver-design.md) - PostgreSQL/MySQL semantic family, vendor profiles, ambiguous-commit reconciliation і certification design.
+- [План canonical task set фази 5](2026-07-17-extensia-phase-5-task-set-plan.md) - Evidence-backed split executable feasibility research, read-model design і multi-instance sync design gates.
+- [Multi-instance здійсненність local-sqlite-v1](2026-07-17-extensia-local-sqlite-multi-instance-feasibility.md) - P5-RS1 executable `full/full` і `full/readonly` visibility, cursor, contention та crash/restart evidence current profile.

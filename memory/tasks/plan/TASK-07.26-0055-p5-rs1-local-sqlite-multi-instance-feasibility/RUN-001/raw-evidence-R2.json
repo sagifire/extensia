@@ -1,0 +1,1261 @@
+{
+  "environment": {
+    "architecture": "x64",
+    "node": "v24.17.0",
+    "os_platform": "win32",
+    "os_release": "10.0.26200",
+    "sqlite": "3.53.0",
+    "storage_root": "D:\\work\\nodejs projects\\extensia\\.tmp\\p5-rs1-pBlinc",
+    "timeout_ms": 250
+  },
+  "source": {
+    "git_baseline": "9968a32b0951e44e706d385744a5f25fe961dfbe",
+    "files": {
+      "package-lock.json": "9855f95c1b9be2166cbca3cbde37cab6c667e036f50343f3b289b2c3fc39680c",
+      "src/composition/local-sqlite-runtime.ts": "6933753da3c499a58c579f01c1235700557477c338df88286b05fc9c576b4350",
+      "src/storage/local-sqlite-resource-driver.ts": "ffcf5db8d7694ac16e456ab09d43b176a02d06b34df533cb0eee589d774fc86d",
+      "src/storage/resource-write-protocol.ts": "3147e03c80c187ffb4bc6510744ca8733d708583f2cdf4fc90e776ce66cf8193"
+    },
+    "profile": "embedded-transactional/local-sqlite-v1"
+  },
+  "full_full": {
+    "alternating": [
+      {
+        "committed_by": "A",
+        "created": {
+          "id": "f0a8b87d-d2b0-4911-8de7-46c31ea7aa9d",
+          "ok": true,
+          "operation_id": "c143c786-5eca-45fd-8cef-0201961f0de5",
+          "title": "ff-alternating-1",
+          "warnings": []
+        },
+        "observed_by": "B",
+        "observer_runtime_read": {
+          "code": "RESOURCE_NOT_FOUND",
+          "ok": false
+        },
+        "observer_storage_after_cursor": {
+          "acquired_ms": 2.776399999999967,
+          "elapsed_ms": null,
+          "journal": [
+            {
+              "actor_id": "05aad7a5-ae49-4494-9571-e8c079999a8f",
+              "operation_id": "c143c786-5eca-45fd-8cef-0201961f0de5",
+              "sequence": "1",
+              "type": "resource.create"
+            }
+          ],
+          "journal_supported": true,
+          "resource_count": 1,
+          "resource_titles": [
+            "ff-alternating-1"
+          ]
+        },
+        "prior_cursor": null
+      },
+      {
+        "committed_by": "B",
+        "created": {
+          "id": "f739ab6f-df2e-45f4-914a-e66930721a30",
+          "ok": true,
+          "operation_id": "bad74b6f-0dc3-4830-a7ae-15e8f2bf276f",
+          "title": "ff-alternating-2",
+          "warnings": []
+        },
+        "observed_by": "A",
+        "observer_runtime_read": {
+          "code": "RESOURCE_NOT_FOUND",
+          "ok": false
+        },
+        "observer_storage_after_cursor": {
+          "acquired_ms": 1.8274000000000115,
+          "elapsed_ms": null,
+          "journal": [
+            {
+              "actor_id": "aec83fc2-8b65-4ade-972b-bdaffe836497",
+              "operation_id": "bad74b6f-0dc3-4830-a7ae-15e8f2bf276f",
+              "sequence": "2",
+              "type": "resource.create"
+            }
+          ],
+          "journal_supported": true,
+          "resource_count": 2,
+          "resource_titles": [
+            "ff-alternating-1",
+            "ff-alternating-2"
+          ]
+        },
+        "prior_cursor": "1"
+      },
+      {
+        "committed_by": "A",
+        "created": {
+          "id": "6b139c60-f63b-4ffd-80a2-7fe044d03020",
+          "ok": true,
+          "operation_id": "eeea09a3-ac76-4110-b3c3-717026f37a09",
+          "title": "ff-alternating-3",
+          "warnings": []
+        },
+        "observed_by": "B",
+        "observer_runtime_read": {
+          "code": "RESOURCE_NOT_FOUND",
+          "ok": false
+        },
+        "observer_storage_after_cursor": {
+          "acquired_ms": 1.7449000000000296,
+          "elapsed_ms": null,
+          "journal": [
+            {
+              "actor_id": "05aad7a5-ae49-4494-9571-e8c079999a8f",
+              "operation_id": "eeea09a3-ac76-4110-b3c3-717026f37a09",
+              "sequence": "3",
+              "type": "resource.create"
+            }
+          ],
+          "journal_supported": true,
+          "resource_count": 3,
+          "resource_titles": [
+            "ff-alternating-1",
+            "ff-alternating-2",
+            "ff-alternating-3"
+          ]
+        },
+        "prior_cursor": "2"
+      },
+      {
+        "committed_by": "B",
+        "created": {
+          "id": "479dc431-7110-4588-b60b-3719c21b6b08",
+          "ok": true,
+          "operation_id": "4cf0a253-7f01-4a3c-8b0a-62ef10fa406c",
+          "title": "ff-alternating-4",
+          "warnings": []
+        },
+        "observed_by": "A",
+        "observer_runtime_read": {
+          "code": "RESOURCE_NOT_FOUND",
+          "ok": false
+        },
+        "observer_storage_after_cursor": {
+          "acquired_ms": 3.080699999999979,
+          "elapsed_ms": null,
+          "journal": [
+            {
+              "actor_id": "aec83fc2-8b65-4ade-972b-bdaffe836497",
+              "operation_id": "4cf0a253-7f01-4a3c-8b0a-62ef10fa406c",
+              "sequence": "4",
+              "type": "resource.create"
+            }
+          ],
+          "journal_supported": true,
+          "resource_count": 4,
+          "resource_titles": [
+            "ff-alternating-1",
+            "ff-alternating-2",
+            "ff-alternating-3",
+            "ff-alternating-4"
+          ]
+        },
+        "prior_cursor": "3"
+      },
+      {
+        "committed_by": "A",
+        "created": {
+          "id": "7354269b-e432-4e0f-92de-bda362b44d1d",
+          "ok": true,
+          "operation_id": "dfeaaca9-d1db-45a1-a7b5-79096eb765de",
+          "title": "ff-alternating-5",
+          "warnings": []
+        },
+        "observed_by": "B",
+        "observer_runtime_read": {
+          "code": "RESOURCE_NOT_FOUND",
+          "ok": false
+        },
+        "observer_storage_after_cursor": {
+          "acquired_ms": 3.163499999999999,
+          "elapsed_ms": null,
+          "journal": [
+            {
+              "actor_id": "05aad7a5-ae49-4494-9571-e8c079999a8f",
+              "operation_id": "dfeaaca9-d1db-45a1-a7b5-79096eb765de",
+              "sequence": "5",
+              "type": "resource.create"
+            }
+          ],
+          "journal_supported": true,
+          "resource_count": 5,
+          "resource_titles": [
+            "ff-alternating-1",
+            "ff-alternating-2",
+            "ff-alternating-3",
+            "ff-alternating-4",
+            "ff-alternating-5"
+          ]
+        },
+        "prior_cursor": "4"
+      },
+      {
+        "committed_by": "B",
+        "created": {
+          "id": "d8dc55f3-3bb8-4758-abc8-278c430b3c8e",
+          "ok": true,
+          "operation_id": "9ffe82ab-a1e0-499c-9437-74a324cdccc7",
+          "title": "ff-alternating-6",
+          "warnings": []
+        },
+        "observed_by": "A",
+        "observer_runtime_read": {
+          "code": "RESOURCE_NOT_FOUND",
+          "ok": false
+        },
+        "observer_storage_after_cursor": {
+          "acquired_ms": 3.094699999999875,
+          "elapsed_ms": null,
+          "journal": [
+            {
+              "actor_id": "aec83fc2-8b65-4ade-972b-bdaffe836497",
+              "operation_id": "9ffe82ab-a1e0-499c-9437-74a324cdccc7",
+              "sequence": "6",
+              "type": "resource.create"
+            }
+          ],
+          "journal_supported": true,
+          "resource_count": 6,
+          "resource_titles": [
+            "ff-alternating-1",
+            "ff-alternating-2",
+            "ff-alternating-3",
+            "ff-alternating-4",
+            "ff-alternating-5",
+            "ff-alternating-6"
+          ]
+        },
+        "prior_cursor": "5"
+      }
+    ],
+    "after_concurrent": {
+      "acquired_ms": 2.2786999999998443,
+      "elapsed_ms": null,
+      "journal": [
+        {
+          "actor_id": "05aad7a5-ae49-4494-9571-e8c079999a8f",
+          "operation_id": "c143c786-5eca-45fd-8cef-0201961f0de5",
+          "sequence": "1",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "aec83fc2-8b65-4ade-972b-bdaffe836497",
+          "operation_id": "bad74b6f-0dc3-4830-a7ae-15e8f2bf276f",
+          "sequence": "2",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "05aad7a5-ae49-4494-9571-e8c079999a8f",
+          "operation_id": "eeea09a3-ac76-4110-b3c3-717026f37a09",
+          "sequence": "3",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "aec83fc2-8b65-4ade-972b-bdaffe836497",
+          "operation_id": "4cf0a253-7f01-4a3c-8b0a-62ef10fa406c",
+          "sequence": "4",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "05aad7a5-ae49-4494-9571-e8c079999a8f",
+          "operation_id": "dfeaaca9-d1db-45a1-a7b5-79096eb765de",
+          "sequence": "5",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "aec83fc2-8b65-4ade-972b-bdaffe836497",
+          "operation_id": "9ffe82ab-a1e0-499c-9437-74a324cdccc7",
+          "sequence": "6",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "05aad7a5-ae49-4494-9571-e8c079999a8f",
+          "operation_id": "23c2d3ff-f9bf-45fa-b95f-96065e7c2c40",
+          "sequence": "7",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "aec83fc2-8b65-4ade-972b-bdaffe836497",
+          "operation_id": "95ef0cca-956d-411a-a894-4b1e7243598a",
+          "sequence": "8",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "05aad7a5-ae49-4494-9571-e8c079999a8f",
+          "operation_id": "8a5b3fce-381d-4d25-82d6-5b556b96ffe3",
+          "sequence": "9",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "aec83fc2-8b65-4ade-972b-bdaffe836497",
+          "operation_id": "87f606b1-e0a2-4e82-bb3d-e53b6992eb75",
+          "sequence": "10",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "05aad7a5-ae49-4494-9571-e8c079999a8f",
+          "operation_id": "67d9ec87-2de7-42d7-b087-b644f224e1fc",
+          "sequence": "11",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "aec83fc2-8b65-4ade-972b-bdaffe836497",
+          "operation_id": "60ffb52a-3449-4ceb-9c76-fa76795ea89c",
+          "sequence": "12",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "05aad7a5-ae49-4494-9571-e8c079999a8f",
+          "operation_id": "5e35d3cd-ce08-4c9c-970f-0cf21bb0b762",
+          "sequence": "13",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "aec83fc2-8b65-4ade-972b-bdaffe836497",
+          "operation_id": "58918f63-25b1-43fa-8f10-a370c5972b4c",
+          "sequence": "14",
+          "type": "resource.create"
+        }
+      ],
+      "journal_supported": true,
+      "resource_count": 14,
+      "resource_titles": [
+        "ff-alternating-1",
+        "ff-alternating-2",
+        "ff-alternating-3",
+        "ff-alternating-4",
+        "ff-alternating-5",
+        "ff-alternating-6",
+        "ff-concurrent-a-1",
+        "ff-concurrent-a-2",
+        "ff-concurrent-a-4",
+        "ff-concurrent-a-5",
+        "ff-concurrent-b-1",
+        "ff-concurrent-b-2",
+        "ff-concurrent-b-4",
+        "ff-concurrent-b-5"
+      ]
+    },
+    "concurrent": [
+      {
+        "a": {
+          "id": "dae99b01-6cb0-4e56-befc-8a3199192bf1",
+          "ok": true,
+          "operation_id": "23c2d3ff-f9bf-45fa-b95f-96065e7c2c40",
+          "title": "ff-concurrent-a-1",
+          "warnings": []
+        },
+        "b": {
+          "id": "b737754c-8a3e-4384-9762-443b5b6b4dab",
+          "ok": true,
+          "operation_id": "95ef0cca-956d-411a-a894-4b1e7243598a",
+          "title": "ff-concurrent-b-1",
+          "warnings": []
+        }
+      },
+      {
+        "a": {
+          "id": "272e55ce-36a2-4d97-afee-e1f4e9bc25f0",
+          "ok": true,
+          "operation_id": "8a5b3fce-381d-4d25-82d6-5b556b96ffe3",
+          "title": "ff-concurrent-a-2",
+          "warnings": []
+        },
+        "b": {
+          "id": "e604a831-ee04-472f-b474-b8b29b6b0538",
+          "ok": true,
+          "operation_id": "87f606b1-e0a2-4e82-bb3d-e53b6992eb75",
+          "title": "ff-concurrent-b-2",
+          "warnings": []
+        }
+      },
+      {
+        "a": {
+          "ok": false,
+          "code": "STORAGE_LOCK_FAILED"
+        },
+        "b": {
+          "ok": false,
+          "code": "STORAGE_LOCK_FAILED"
+        }
+      },
+      {
+        "a": {
+          "id": "f62c865c-ab93-45c7-8fa8-30e8a2b287b1",
+          "ok": true,
+          "operation_id": "67d9ec87-2de7-42d7-b087-b644f224e1fc",
+          "title": "ff-concurrent-a-4",
+          "warnings": []
+        },
+        "b": {
+          "id": "411ef1ed-e759-4915-a324-337361bb8b7e",
+          "ok": true,
+          "operation_id": "60ffb52a-3449-4ceb-9c76-fa76795ea89c",
+          "title": "ff-concurrent-b-4",
+          "warnings": []
+        }
+      },
+      {
+        "a": {
+          "id": "f3ed8e1d-6604-4e48-a91d-586f48a49c1f",
+          "ok": true,
+          "operation_id": "5e35d3cd-ce08-4c9c-970f-0cf21bb0b762",
+          "title": "ff-concurrent-a-5",
+          "warnings": []
+        },
+        "b": {
+          "id": "d7c16b2d-c2bb-4e66-acb8-2e935764ea47",
+          "ok": true,
+          "operation_id": "58918f63-25b1-43fa-8f10-a370c5972b4c",
+          "title": "ff-concurrent-b-5",
+          "warnings": []
+        }
+      }
+    ],
+    "final_a": {
+      "acquired_ms": 2.6875,
+      "elapsed_ms": null,
+      "journal": [
+        {
+          "actor_id": "05aad7a5-ae49-4494-9571-e8c079999a8f",
+          "operation_id": "c143c786-5eca-45fd-8cef-0201961f0de5",
+          "sequence": "1",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "aec83fc2-8b65-4ade-972b-bdaffe836497",
+          "operation_id": "bad74b6f-0dc3-4830-a7ae-15e8f2bf276f",
+          "sequence": "2",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "05aad7a5-ae49-4494-9571-e8c079999a8f",
+          "operation_id": "eeea09a3-ac76-4110-b3c3-717026f37a09",
+          "sequence": "3",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "aec83fc2-8b65-4ade-972b-bdaffe836497",
+          "operation_id": "4cf0a253-7f01-4a3c-8b0a-62ef10fa406c",
+          "sequence": "4",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "05aad7a5-ae49-4494-9571-e8c079999a8f",
+          "operation_id": "dfeaaca9-d1db-45a1-a7b5-79096eb765de",
+          "sequence": "5",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "aec83fc2-8b65-4ade-972b-bdaffe836497",
+          "operation_id": "9ffe82ab-a1e0-499c-9437-74a324cdccc7",
+          "sequence": "6",
+          "type": "resource.create"
+        }
+      ],
+      "journal_supported": true,
+      "resource_count": 6,
+      "resource_titles": [
+        "ff-alternating-1",
+        "ff-alternating-2",
+        "ff-alternating-3",
+        "ff-alternating-4",
+        "ff-alternating-5",
+        "ff-alternating-6"
+      ]
+    },
+    "final_b": {
+      "acquired_ms": 2.9709000000000287,
+      "elapsed_ms": null,
+      "journal": [
+        {
+          "actor_id": "05aad7a5-ae49-4494-9571-e8c079999a8f",
+          "operation_id": "c143c786-5eca-45fd-8cef-0201961f0de5",
+          "sequence": "1",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "aec83fc2-8b65-4ade-972b-bdaffe836497",
+          "operation_id": "bad74b6f-0dc3-4830-a7ae-15e8f2bf276f",
+          "sequence": "2",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "05aad7a5-ae49-4494-9571-e8c079999a8f",
+          "operation_id": "eeea09a3-ac76-4110-b3c3-717026f37a09",
+          "sequence": "3",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "aec83fc2-8b65-4ade-972b-bdaffe836497",
+          "operation_id": "4cf0a253-7f01-4a3c-8b0a-62ef10fa406c",
+          "sequence": "4",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "05aad7a5-ae49-4494-9571-e8c079999a8f",
+          "operation_id": "dfeaaca9-d1db-45a1-a7b5-79096eb765de",
+          "sequence": "5",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "aec83fc2-8b65-4ade-972b-bdaffe836497",
+          "operation_id": "9ffe82ab-a1e0-499c-9437-74a324cdccc7",
+          "sequence": "6",
+          "type": "resource.create"
+        }
+      ],
+      "journal_supported": true,
+      "resource_count": 6,
+      "resource_titles": [
+        "ff-alternating-1",
+        "ff-alternating-2",
+        "ff-alternating-3",
+        "ff-alternating-4",
+        "ff-alternating-5",
+        "ff-alternating-6"
+      ]
+    },
+    "process_a": {
+      "pid": 36376,
+      "role": "full",
+      "timeout_ms": 250
+    },
+    "process_b": {
+      "pid": 35040,
+      "role": "full",
+      "timeout_ms": 250
+    },
+    "release_waits": [
+      {
+        "held": {
+          "acquired": true,
+          "acquired_ms": 1.8585000000000491,
+          "held": true
+        },
+        "result": {
+          "acquired": true,
+          "acquired_ms": 42.91179999999986,
+          "held": false
+        }
+      },
+      {
+        "held": {
+          "acquired": true,
+          "acquired_ms": 1.8665999999998348,
+          "held": true
+        },
+        "result": {
+          "acquired": true,
+          "acquired_ms": 60.28760000000011,
+          "held": false
+        }
+      },
+      {
+        "held": {
+          "acquired": true,
+          "acquired_ms": 1.5038999999999305,
+          "held": true
+        },
+        "result": {
+          "acquired": true,
+          "acquired_ms": 60.02170000000001,
+          "held": false
+        }
+      },
+      {
+        "held": {
+          "acquired": true,
+          "acquired_ms": 1.6101999999998498,
+          "held": true
+        },
+        "result": {
+          "acquired": true,
+          "acquired_ms": 44.41249999999991,
+          "held": false
+        }
+      },
+      {
+        "held": {
+          "acquired": true,
+          "acquired_ms": 1.8144999999999527,
+          "held": true
+        },
+        "result": {
+          "acquired": true,
+          "acquired_ms": 43.80780000000004,
+          "held": false
+        }
+      },
+      {
+        "held": {
+          "acquired": true,
+          "acquired_ms": 1.6142999999999574,
+          "held": true
+        },
+        "result": {
+          "acquired": true,
+          "acquired_ms": 43.00229999999965,
+          "held": false
+        }
+      },
+      {
+        "held": {
+          "acquired": true,
+          "acquired_ms": 1.5722999999998137,
+          "held": true
+        },
+        "result": {
+          "acquired": true,
+          "acquired_ms": 42.99610000000007,
+          "held": false
+        }
+      },
+      {
+        "held": {
+          "acquired": true,
+          "acquired_ms": 1.4972999999999956,
+          "held": true
+        },
+        "result": {
+          "acquired": true,
+          "acquired_ms": 43.28969999999981,
+          "held": false
+        }
+      },
+      {
+        "held": {
+          "acquired": true,
+          "acquired_ms": 1.6996000000003733,
+          "held": true
+        },
+        "result": {
+          "acquired": true,
+          "acquired_ms": 42.638099999999895,
+          "held": false
+        }
+      },
+      {
+        "held": {
+          "acquired": true,
+          "acquired_ms": 1.620300000000043,
+          "held": true
+        },
+        "result": {
+          "acquired": true,
+          "acquired_ms": 59.1558,
+          "held": false
+        }
+      }
+    ],
+    "replay_after_2": {
+      "acquired_ms": 2.421600000000126,
+      "elapsed_ms": null,
+      "journal": [
+        {
+          "actor_id": "05aad7a5-ae49-4494-9571-e8c079999a8f",
+          "operation_id": "eeea09a3-ac76-4110-b3c3-717026f37a09",
+          "sequence": "3",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "aec83fc2-8b65-4ade-972b-bdaffe836497",
+          "operation_id": "4cf0a253-7f01-4a3c-8b0a-62ef10fa406c",
+          "sequence": "4",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "05aad7a5-ae49-4494-9571-e8c079999a8f",
+          "operation_id": "dfeaaca9-d1db-45a1-a7b5-79096eb765de",
+          "sequence": "5",
+          "type": "resource.create"
+        },
+        {
+          "actor_id": "aec83fc2-8b65-4ade-972b-bdaffe836497",
+          "operation_id": "9ffe82ab-a1e0-499c-9437-74a324cdccc7",
+          "sequence": "6",
+          "type": "resource.create"
+        }
+      ],
+      "journal_supported": true,
+      "resource_count": 6,
+      "resource_titles": [
+        "ff-alternating-1",
+        "ff-alternating-2",
+        "ff-alternating-3",
+        "ff-alternating-4",
+        "ff-alternating-5",
+        "ff-alternating-6"
+      ]
+    },
+    "replay_at_head": {
+      "acquired_ms": 2.1950999999999112,
+      "elapsed_ms": null,
+      "journal": [],
+      "journal_supported": true,
+      "resource_count": 6,
+      "resource_titles": [
+        "ff-alternating-1",
+        "ff-alternating-2",
+        "ff-alternating-3",
+        "ff-alternating-4",
+        "ff-alternating-5",
+        "ff-alternating-6"
+      ]
+    },
+    "timeout": {
+      "hold": {
+        "acquired": true,
+        "acquired_ms": 2.0743999999999687,
+        "held": true
+      },
+      "contender": {
+        "acquired": false,
+        "elapsed_ms": 320.68679999999995,
+        "error": {
+          "code": "ERR_SQLITE_ERROR",
+          "message": "database is locked",
+          "name": "Error"
+        }
+      }
+    }
+  },
+  "full_readonly": {
+    "created_for_readonly": {
+      "id": "aaea22c1-4b39-424d-8104-99243923a9ef",
+      "ok": true,
+      "operation_id": "126276b2-ce39-494d-81be-632cab9d050d",
+      "title": "fr-external-commit",
+      "warnings": []
+    },
+    "initial_readonly": {
+      "acquired_ms": null,
+      "elapsed_ms": 0.37129999999999086,
+      "journal": [],
+      "journal_supported": false,
+      "resource_count": 14,
+      "resource_titles": [
+        "ff-alternating-1",
+        "ff-alternating-2",
+        "ff-alternating-3",
+        "ff-alternating-4",
+        "ff-alternating-5",
+        "ff-alternating-6",
+        "ff-concurrent-a-1",
+        "ff-concurrent-a-2",
+        "ff-concurrent-a-4",
+        "ff-concurrent-a-5",
+        "ff-concurrent-b-1",
+        "ff-concurrent-b-2",
+        "ff-concurrent-b-4",
+        "ff-concurrent-b-5"
+      ]
+    },
+    "readonly_observed_before_restart": {
+      "acquired_ms": null,
+      "elapsed_ms": 0.6256000000000199,
+      "journal": [],
+      "journal_supported": false,
+      "resource_count": 15,
+      "resource_titles": [
+        "ff-alternating-1",
+        "ff-alternating-2",
+        "ff-alternating-3",
+        "ff-alternating-4",
+        "ff-alternating-5",
+        "ff-alternating-6",
+        "ff-concurrent-a-1",
+        "ff-concurrent-a-2",
+        "ff-concurrent-a-4",
+        "ff-concurrent-a-5",
+        "ff-concurrent-b-1",
+        "ff-concurrent-b-2",
+        "ff-concurrent-b-4",
+        "ff-concurrent-b-5",
+        "fr-external-commit"
+      ]
+    },
+    "readonly_after_release": {
+      "acquired_ms": null,
+      "elapsed_ms": 0.6403999999999996,
+      "journal": [],
+      "journal_supported": false,
+      "resource_count": 15,
+      "resource_titles": [
+        "ff-alternating-1",
+        "ff-alternating-2",
+        "ff-alternating-3",
+        "ff-alternating-4",
+        "ff-alternating-5",
+        "ff-alternating-6",
+        "ff-concurrent-a-1",
+        "ff-concurrent-a-2",
+        "ff-concurrent-a-4",
+        "ff-concurrent-a-5",
+        "ff-concurrent-b-1",
+        "ff-concurrent-b-2",
+        "ff-concurrent-b-4",
+        "ff-concurrent-b-5",
+        "fr-external-commit"
+      ]
+    },
+    "readonly_during_writer_lease": {
+      "message": "{\"code\":\"ERR_SQLITE_ERROR\",\"message\":\"database is locked\",\"name\":\"Error\"}",
+      "ok": false
+    },
+    "refreshed_runtime_read": {
+      "id": "aaea22c1-4b39-424d-8104-99243923a9ef",
+      "ok": true,
+      "title": "fr-external-commit"
+    },
+    "snapshots": {
+      "after_initial_read": {
+        "files": [
+          {
+            "path": "extensia.sqlite3",
+            "bytes": 57344,
+            "mtime_ms": 1784304043380.1824,
+            "sha256": "e019f53948733d4ed9d9ed791f14a6725882cbe98c128a86765b5a4cdcb59042"
+          }
+        ],
+        "sha256": "45707012d2034c1f842a0f727ed514a85b83a734277a81762f185a8433e38ce6"
+      },
+      "after_observe": {
+        "files": [
+          {
+            "path": "extensia.sqlite3",
+            "bytes": 57344,
+            "mtime_ms": 1784304043969.1177,
+            "sha256": "c650f1a7fb4c0cae031487d5d5e2d259c8910799c4d7c913a1f491c5bce30d08"
+          }
+        ],
+        "sha256": "4055d5faa1a3da5a5d7298e93cd7d2815c4034843ffb11982130868784488365"
+      },
+      "after_start": {
+        "files": [
+          {
+            "path": "extensia.sqlite3",
+            "bytes": 57344,
+            "mtime_ms": 1784304043380.1824,
+            "sha256": "e019f53948733d4ed9d9ed791f14a6725882cbe98c128a86765b5a4cdcb59042"
+          }
+        ],
+        "sha256": "45707012d2034c1f842a0f727ed514a85b83a734277a81762f185a8433e38ce6"
+      },
+      "after_writer_contention": {
+        "files": [
+          {
+            "path": "extensia.sqlite3",
+            "bytes": 57344,
+            "mtime_ms": 1784304043969.1177,
+            "sha256": "c650f1a7fb4c0cae031487d5d5e2d259c8910799c4d7c913a1f491c5bce30d08"
+          }
+        ],
+        "sha256": "4055d5faa1a3da5a5d7298e93cd7d2815c4034843ffb11982130868784488365"
+      },
+      "before_observe": {
+        "files": [
+          {
+            "path": "extensia.sqlite3",
+            "bytes": 57344,
+            "mtime_ms": 1784304043969.1177,
+            "sha256": "c650f1a7fb4c0cae031487d5d5e2d259c8910799c4d7c913a1f491c5bce30d08"
+          }
+        ],
+        "sha256": "4055d5faa1a3da5a5d7298e93cd7d2815c4034843ffb11982130868784488365"
+      },
+      "before_start": {
+        "files": [
+          {
+            "path": "extensia.sqlite3",
+            "bytes": 57344,
+            "mtime_ms": 1784304043380.1824,
+            "sha256": "e019f53948733d4ed9d9ed791f14a6725882cbe98c128a86765b5a4cdcb59042"
+          }
+        ],
+        "sha256": "45707012d2034c1f842a0f727ed514a85b83a734277a81762f185a8433e38ce6"
+      },
+      "before_writer_contention": {
+        "files": [
+          {
+            "path": "extensia.sqlite3",
+            "bytes": 57344,
+            "mtime_ms": 1784304043969.1177,
+            "sha256": "c650f1a7fb4c0cae031487d5d5e2d259c8910799c4d7c913a1f491c5bce30d08"
+          }
+        ],
+        "sha256": "4055d5faa1a3da5a5d7298e93cd7d2815c4034843ffb11982130868784488365"
+      }
+    },
+    "stale_runtime_read": {
+      "code": "RESOURCE_NOT_FOUND",
+      "ok": false
+    },
+    "writer_held": {
+      "acquired": true,
+      "acquired_ms": 2.1300999999999704,
+      "held": true
+    }
+  },
+  "crash_restart": {
+    "lock_owner_crash": {
+      "after": {
+        "acquired_ms": 2.321399999999983,
+        "elapsed_ms": null,
+        "journal": [
+          {
+            "actor_id": "05aad7a5-ae49-4494-9571-e8c079999a8f",
+            "operation_id": "c143c786-5eca-45fd-8cef-0201961f0de5",
+            "sequence": "1",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "aec83fc2-8b65-4ade-972b-bdaffe836497",
+            "operation_id": "bad74b6f-0dc3-4830-a7ae-15e8f2bf276f",
+            "sequence": "2",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "05aad7a5-ae49-4494-9571-e8c079999a8f",
+            "operation_id": "eeea09a3-ac76-4110-b3c3-717026f37a09",
+            "sequence": "3",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "aec83fc2-8b65-4ade-972b-bdaffe836497",
+            "operation_id": "4cf0a253-7f01-4a3c-8b0a-62ef10fa406c",
+            "sequence": "4",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "05aad7a5-ae49-4494-9571-e8c079999a8f",
+            "operation_id": "dfeaaca9-d1db-45a1-a7b5-79096eb765de",
+            "sequence": "5",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "aec83fc2-8b65-4ade-972b-bdaffe836497",
+            "operation_id": "9ffe82ab-a1e0-499c-9437-74a324cdccc7",
+            "sequence": "6",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "05aad7a5-ae49-4494-9571-e8c079999a8f",
+            "operation_id": "23c2d3ff-f9bf-45fa-b95f-96065e7c2c40",
+            "sequence": "7",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "aec83fc2-8b65-4ade-972b-bdaffe836497",
+            "operation_id": "95ef0cca-956d-411a-a894-4b1e7243598a",
+            "sequence": "8",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "05aad7a5-ae49-4494-9571-e8c079999a8f",
+            "operation_id": "8a5b3fce-381d-4d25-82d6-5b556b96ffe3",
+            "sequence": "9",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "aec83fc2-8b65-4ade-972b-bdaffe836497",
+            "operation_id": "87f606b1-e0a2-4e82-bb3d-e53b6992eb75",
+            "sequence": "10",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "05aad7a5-ae49-4494-9571-e8c079999a8f",
+            "operation_id": "67d9ec87-2de7-42d7-b087-b644f224e1fc",
+            "sequence": "11",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "aec83fc2-8b65-4ade-972b-bdaffe836497",
+            "operation_id": "60ffb52a-3449-4ceb-9c76-fa76795ea89c",
+            "sequence": "12",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "05aad7a5-ae49-4494-9571-e8c079999a8f",
+            "operation_id": "5e35d3cd-ce08-4c9c-970f-0cf21bb0b762",
+            "sequence": "13",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "aec83fc2-8b65-4ade-972b-bdaffe836497",
+            "operation_id": "58918f63-25b1-43fa-8f10-a370c5972b4c",
+            "sequence": "14",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "5d700637-0422-42c6-a516-81cf49ee615b",
+            "operation_id": "126276b2-ce39-494d-81be-632cab9d050d",
+            "sequence": "15",
+            "type": "resource.create"
+          }
+        ],
+        "journal_supported": true,
+        "resource_count": 15,
+        "resource_titles": [
+          "ff-alternating-1",
+          "ff-alternating-2",
+          "ff-alternating-3",
+          "ff-alternating-4",
+          "ff-alternating-5",
+          "ff-alternating-6",
+          "ff-concurrent-a-1",
+          "ff-concurrent-a-2",
+          "ff-concurrent-a-4",
+          "ff-concurrent-a-5",
+          "ff-concurrent-b-1",
+          "ff-concurrent-b-2",
+          "ff-concurrent-b-4",
+          "ff-concurrent-b-5",
+          "fr-external-commit"
+        ]
+      },
+      "before": {
+        "acquired_ms": 3.383000000000038,
+        "elapsed_ms": null,
+        "journal": [
+          {
+            "actor_id": "05aad7a5-ae49-4494-9571-e8c079999a8f",
+            "operation_id": "c143c786-5eca-45fd-8cef-0201961f0de5",
+            "sequence": "1",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "aec83fc2-8b65-4ade-972b-bdaffe836497",
+            "operation_id": "bad74b6f-0dc3-4830-a7ae-15e8f2bf276f",
+            "sequence": "2",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "05aad7a5-ae49-4494-9571-e8c079999a8f",
+            "operation_id": "eeea09a3-ac76-4110-b3c3-717026f37a09",
+            "sequence": "3",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "aec83fc2-8b65-4ade-972b-bdaffe836497",
+            "operation_id": "4cf0a253-7f01-4a3c-8b0a-62ef10fa406c",
+            "sequence": "4",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "05aad7a5-ae49-4494-9571-e8c079999a8f",
+            "operation_id": "dfeaaca9-d1db-45a1-a7b5-79096eb765de",
+            "sequence": "5",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "aec83fc2-8b65-4ade-972b-bdaffe836497",
+            "operation_id": "9ffe82ab-a1e0-499c-9437-74a324cdccc7",
+            "sequence": "6",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "05aad7a5-ae49-4494-9571-e8c079999a8f",
+            "operation_id": "23c2d3ff-f9bf-45fa-b95f-96065e7c2c40",
+            "sequence": "7",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "aec83fc2-8b65-4ade-972b-bdaffe836497",
+            "operation_id": "95ef0cca-956d-411a-a894-4b1e7243598a",
+            "sequence": "8",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "05aad7a5-ae49-4494-9571-e8c079999a8f",
+            "operation_id": "8a5b3fce-381d-4d25-82d6-5b556b96ffe3",
+            "sequence": "9",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "aec83fc2-8b65-4ade-972b-bdaffe836497",
+            "operation_id": "87f606b1-e0a2-4e82-bb3d-e53b6992eb75",
+            "sequence": "10",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "05aad7a5-ae49-4494-9571-e8c079999a8f",
+            "operation_id": "67d9ec87-2de7-42d7-b087-b644f224e1fc",
+            "sequence": "11",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "aec83fc2-8b65-4ade-972b-bdaffe836497",
+            "operation_id": "60ffb52a-3449-4ceb-9c76-fa76795ea89c",
+            "sequence": "12",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "05aad7a5-ae49-4494-9571-e8c079999a8f",
+            "operation_id": "5e35d3cd-ce08-4c9c-970f-0cf21bb0b762",
+            "sequence": "13",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "aec83fc2-8b65-4ade-972b-bdaffe836497",
+            "operation_id": "58918f63-25b1-43fa-8f10-a370c5972b4c",
+            "sequence": "14",
+            "type": "resource.create"
+          },
+          {
+            "actor_id": "5d700637-0422-42c6-a516-81cf49ee615b",
+            "operation_id": "126276b2-ce39-494d-81be-632cab9d050d",
+            "sequence": "15",
+            "type": "resource.create"
+          }
+        ],
+        "journal_supported": true,
+        "resource_count": 15,
+        "resource_titles": [
+          "ff-alternating-1",
+          "ff-alternating-2",
+          "ff-alternating-3",
+          "ff-alternating-4",
+          "ff-alternating-5",
+          "ff-alternating-6",
+          "ff-concurrent-a-1",
+          "ff-concurrent-a-2",
+          "ff-concurrent-a-4",
+          "ff-concurrent-a-5",
+          "ff-concurrent-b-1",
+          "ff-concurrent-b-2",
+          "ff-concurrent-b-4",
+          "ff-concurrent-b-5",
+          "fr-external-commit"
+        ]
+      },
+      "held": {
+        "acquired": true,
+        "acquired_ms": 2.7513999999999896,
+        "held": true
+      },
+      "process_exit": {
+        "code": null,
+        "signal": "SIGKILL",
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    "lost_receipt": {
+      "after_cursor": {
+        "acquired_ms": 3.329900000000009,
+        "elapsed_ms": null,
+        "journal": [
+          {
+            "actor_id": "733e3c24-419d-4ea7-85a6-8b9f83c3a02d",
+            "operation_id": "3756284e-3db1-48ab-9bf9-cd63d9ed731f",
+            "sequence": "16",
+            "type": "resource.create"
+          }
+        ],
+        "journal_supported": true,
+        "resource_count": 16,
+        "resource_titles": [
+          "ff-alternating-1",
+          "ff-alternating-2",
+          "ff-alternating-3",
+          "ff-alternating-4",
+          "ff-alternating-5",
+          "ff-alternating-6",
+          "ff-concurrent-a-1",
+          "ff-concurrent-a-2",
+          "ff-concurrent-a-4",
+          "ff-concurrent-a-5",
+          "ff-concurrent-b-1",
+          "ff-concurrent-b-2",
+          "ff-concurrent-b-4",
+          "ff-concurrent-b-5",
+          "fr-external-commit",
+          "lost-receipt-139f105b-b1ff-4f78-925b-c3ab04ad8932"
+        ]
+      },
+      "observer_resource": {
+        "id": "69856ef7-5f2f-4219-852f-3ee466cd7ad4",
+        "title": "lost-receipt-139f105b-b1ff-4f78-925b-c3ab04ad8932"
+      },
+      "process_exit": {
+        "code": 77,
+        "signal": null,
+        "stderr": "",
+        "stdout": ""
+      },
+      "title": "lost-receipt-139f105b-b1ff-4f78-925b-c3ab04ad8932"
+    },
+    "readonly_observer_crash": {
+      "process_exit": {
+        "code": null,
+        "signal": "SIGKILL",
+        "stderr": "",
+        "stdout": ""
+      },
+      "restarted_runtime_read": {
+        "id": "69856ef7-5f2f-4219-852f-3ee466cd7ad4",
+        "ok": true,
+        "title": "lost-receipt-139f105b-b1ff-4f78-925b-c3ab04ad8932"
+      },
+      "restarted_storage_state": {
+        "acquired_ms": null,
+        "elapsed_ms": 0.3160000000000025,
+        "journal": [],
+        "journal_supported": false,
+        "resource_count": 16,
+        "resource_titles": [
+          "ff-alternating-1",
+          "ff-alternating-2",
+          "ff-alternating-3",
+          "ff-alternating-4",
+          "ff-alternating-5",
+          "ff-alternating-6",
+          "ff-concurrent-a-1",
+          "ff-concurrent-a-2",
+          "ff-concurrent-a-4",
+          "ff-concurrent-a-5",
+          "ff-concurrent-b-1",
+          "ff-concurrent-b-2",
+          "ff-concurrent-b-4",
+          "ff-concurrent-b-5",
+          "fr-external-commit",
+          "lost-receipt-139f105b-b1ff-4f78-925b-c3ab04ad8932"
+        ]
+      }
+    },
+    "readonly_restart": {
+      "pid": 2352,
+      "role": "readonly",
+      "timeout_ms": 250
+    },
+    "replacement_after_lock_crash": {
+      "pid": 1540,
+      "role": "full",
+      "timeout_ms": 250
+    },
+    "replacement_after_lost_receipt": {
+      "pid": 26524,
+      "role": "full",
+      "timeout_ms": 250
+    }
+  },
+  "final_snapshot": {
+    "files": [
+      {
+        "path": "extensia.sqlite3",
+        "bytes": 57344,
+        "mtime_ms": 1784304044785.7788,
+        "sha256": "4ce0bd0994bdb6be1896ca9822e1e92e1f8051730d7fcefd520b6a889eebd71b"
+      }
+    ],
+    "sha256": "38639cf0cf519822cc43618f9c52c62ed55f263dcca42b6d92e663cf6883f217"
+  },
+  "root_retained_for_audit": "D:\\work\\nodejs projects\\extensia\\.tmp\\p5-rs1-pBlinc"
+}

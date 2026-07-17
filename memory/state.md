@@ -8,7 +8,7 @@ Internal Stage: `v2`
 
 ## Поточний фокус
 
-Phase 1, Phase 2, Phase 3 і Phase 4 завершені. `P4-STAB / TASK-0053 / RUN-001` accepted/closed: required FIX-001 applied, repeated post-application audit `PASS`, explicit Phase 4 human gate пройдений. Phase 5 не активована. TASK-0041 і TASK-0042 завершені; їх downstream лишається без activation.
+Phase 1, Phase 2, Phase 3 і Phase 4 завершені. `P5-RS1 / TASK-0055` accepted/completed: current `local-sqlite-v1` storage primitives conditionally feasible, current live coherent topologies infeasible без Phase 5 sync contract. `P5-DG1 / TASK-0056` backlog/prepared; `P5-DG2 / TASK-0057` refined як окремий sync/refresh/cursor/retry/lock research/design owner і лишається P5-DG1-gated, жодна downstream task не активована.
 
 ## Поточний стан продукту
 
@@ -28,6 +28,8 @@ Phase 1, Phase 2, Phase 3 і Phase 4 завершені. `P4-STAB / TASK-0053 / 
 
 ## Активні задачі
 
+- `TASK-07.26-0054 / RUN-001` done/completed: canonical-now split `P5-RS1` + `P5-DG1` + dependent `P5-DG2`, packages, AGENTS sync і repeated independent audit accepted whole-task review.
+- `P5-RS1 / TASK-0055 / RUN-001` done/completed: three-run SQLite evidence і conditional/infeasible verdict accepted whole-task review; support claim відсутній. `P5-DG1 / TASK-0056` лишається backlog/prepared. `P5-DG2 / TASK-0057` refined для architecture options, cursor/refresh, retry/backoff, lock fairness/starvation і exact downstream task map; P5-RS1 gate виконаний, P5-DG1 gate та activation pending.
 - `TASK-07.26-0038` done: Phase 4 planning і canonical preparation двох owner gates прийняті whole-task human review; repeated independent audit без open P0-P3.
 - `P4-DG1 / TASK-07.26-0039` done: FIX-001/FIX-002 applied, final post-application audit `PASS`, `APP-07.26-0039-001` published; downstream не активовано.
 - `P4-DG2 / TASK-07.26-0040` done: FIX-001/FIX-002/FIX-003 approved and applied; final repeated post-application audit `PASS`, downstream не активовано.
@@ -69,6 +71,10 @@ Phase 1, Phase 2, Phase 3 і Phase 4 завершені. `P4-STAB / TASK-0053 / 
 
 ## Останні рішення
 
+- Користувач 2026-07-17 approved whole-task result `P5-RS1 / TASK-0055` і доручив запланувати окреме research для process synchronization, refresh, cursor, retry та lock contention. Existing P5-DG2 визначено правильним Phase 5 owner і refined без activation; дублюючу task не створено.
+- Користувач 2026-07-17 явно активував `P5-RS1 / TASK-0055 / RUN-001`; це не активує P5-DG1, P5-DG2 або downstream Phase 5 implementation.
+- Користувач 2026-07-17 explicitly approved whole-task result `TASK-0054`; task/run finalized `done/completed`. Approval не активує TASK-0055…0057.
+- Користувач 2026-07-17 доручив у межах окремої задачі виконати повну підготовку Phase 5, синхронізувати root `AGENTS.md` і створити окремі Phase 5 research tasks, якщо evidence покаже їхню необхідність. Це активувало `TASK-0054 / RUN-001`, але не downstream Phase 5 tasks.
 - Користувач 2026-07-17 окремо approved whole-task result `P4-STAB / TASK-0053`, required FIX-001 і explicit Phase 4 human gate; exact fixation applied, repeated post-application audit `PASS`, task closed. Phase 5 цим рішенням не активована.
 - Користувач 2026-07-17 явно активував `P4-STAB / TASK-0053`; це не є whole-task approval, FIX-001 approval, Phase 4 human gate або Phase 5 activation.
 - Користувач 2026-07-17 явно доручив підготувати й виконати P4-VS3 RUN-002, де exact opaque adapter materialization є first deliverable цього самого vertical slice; згодом окремо approved whole-task result, FIX-001 і FIX-002. Обидві fixations applied, final repeated audit `PASS`, TASK-0052 closed; P4-STAB не активована.
@@ -147,8 +153,9 @@ Phase 1, Phase 2, Phase 3 і Phase 4 завершені. `P4-STAB / TASK-0053 / 
 
 ## Наступні кроки
 
-1. Phase 5 не активована й потребує окремого owner activation decision після completed Phase 4 gate.
-2. За окремим owner рішенням можна активувати TASK-0044 або TASK-0048; client-server vendor tasks потребують окремого створення/activation.
+1. За окремим owner рішенням активувати `P5-DG1 / TASK-0056` і прийняти/apply-нути її read-model contract.
+2. Після цього окремо активувати refined `P5-DG2 / TASK-0057`; її result має запропонувати exact downstream implementation/stabilization/audit task set без automatic activation.
+3. За окремим owner рішенням можна активувати TASK-0044 або TASK-0048; client-server vendor tasks потребують окремого створення/activation.
 
 ## Відкриті питання
 

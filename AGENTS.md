@@ -1,120 +1,99 @@
-# Extensia - інструкція для агентів
+# Extensia — інструкція для агентів
 
-Extensia є in-process бібліотекою. Вона запускається всередині процесу застосунку і надає набір публічних об’єктів для роботи з медіа-ресурсами.
+Extensia є in-process бібліотекою. Вона запускається всередині процесу застосунку й надає facade-first API для роботи з медіаресурсами.
 
 ## Project Memory
 
-У цьому проекті використовується Project Memory — довготривала wiki-like пам'ять проекту, розташована в папці:
+Основний довготривалий контекст проекту розташований у `memory/`.
 
 ```text
-memory/
+Starter Kit Version: 5.0
+PDADM MVP Version: 0.5
 ```
 
-Project Memory є основним місцем зберігання продуктового контексту, вимог, задач, рішень, доменної й технічної пам'яті, reusable knowledge packages, правил роботи агентів та іншого контексту, необхідного для розробки.
-
-Очікувана версія структури пам'яті:
-
-```text
-Starter Kit Version: 4.0
-PDADM MVP Version: 0.4
-```
-
-Завжди явно читай документи пам'яті в кодувані UTF-8
+Документи Project Memory завжди читати явно в UTF-8.
 
 ## Agent Startup
 
-Перед будь-якою змістовною роботою агент повинен почати з:
+Перед будь-якою змістовною роботою почати з:
 
 ```text
 memory/agent-start.md
 ```
 
-`memory/agent-start.md` є першою точкою входу в Project Memory. Він визначає boot packet, startup profiles і правило зупинки стартового читання.
+`memory/agent-start.md` визначає обов’язковий boot packet, project-specific routes, task-specific reading і stop rule. Не читати всю `memory/` або повний reglament package без task-specific причини.
 
-За замовчуванням агент читає тільки документи, вказані в boot packet або відповідному startup profile, після чого зупиняє startup reading і переходить до задачі.
+## Agent Role і task boundary
 
-Агент не повинен на старті сесії самостійно читати всю `memory/`, весь knowledge package `pdadm-mvp-reglament` або повний регламент методології, якщо цього прямо не вимагає задача.
+- Кожна активна task/run сесія має явну `Agent Role`.
+- Якщо роль або задача не задані, працювати як `Agent Assistant` у clarification і не змінювати project artifacts.
+- Не змінювати код або canonical Project Memory поза task boundary.
+- Пряма команда створити або виконати задачу є достатнім дозволом для відповідної task operation; downstream activation не виводиться неявно.
 
-## Agent Role
+## Чинні правила
 
-Кожна агентська сесія повинна мати явну `Agent Role`.
-
-Якщо роль не вказана, агент працює як `Agent Assistant` у режимі clarification:
-
-- уточнює намір користувача;
-- допомагає підготувати або знайти задачу;
-- не змінює canonical Project Memory або код без достатнього контексту й підтвердженого режиму роботи.
-
-## Task And Memory Rules
-
-Після startup агент повинен працювати згідно з правилами в:
+Operational rules:
 
 ```text
-memory/memory-rules.md
-memory/agents/rules.md
+memory/reglament/agents.md
+memory/reglament/memory-rules.md
 ```
 
-Для задач використовується структура:
+Project-specific adaptations читати за маршрутами `memory/agent-start.md`:
 
 ```text
-memory/tasks/plan/
-memory/tasks/plan/progress.md
-memory/tasks/archive/
+memory/project/agents.md
+memory/project/memory-rules.md
 ```
 
-Усі неархівні задачі мають стабільний шлях у `memory/tasks/plan/`. Зміна статусу задачі не повинна переносити task folder між `backlog`, `active`, `review`, `blocked` і `done`; статус фіксується в `task.md` і `tasks/plan/progress.md`.
+Universal task/run structure:
 
-Якщо задача виконується як `autonomous-implementation`, агент повинен працювати через task folder і task run з `requirements.md`, `context.md` та `result.md`, якщо тільки користувач явно не дозволив дрібну правку поза повним task workflow.
+```text
+memory/tasks/plan/TASK-.../
+  index.md
+  task.md
+  RUN-001/
+    index.md
+    context.md
+    result.md   # створюється під час activation
+  RSCH-001.md   # якщо потрібне formal research
+  FIX-001.md    # якщо потрібна canonical memory fixation
+```
 
-Якщо задача стосується фіксації або актуалізації Project Memory через діалог, вона має виконуватися як `interactive-memory-update`: агент веде `worklog.md`, готує `fixations/FIX-*.md`, виконує self-review і тільки після цього вносить зміни в canonical memory.
+- Нова задача створюється атомарно як `backlog + prepared`.
+- Пряма команда виконати однозначно визначену задачу активує її current run.
+- Після activation `context.md` заморожується; execution, verification, self-review та audit ведуться в `result.md`.
+- Formal research/planning/design створює task-local `RSCH-*` і detailed report у `memory/reports/research/`.
+- Змістові зміни canonical Product/Domain/Technical/Knowledge/Project Memory готуються в `FIX-*` і застосовуються тільки після explicit human approval.
+- Task/run/index/progress/state lifecycle updates є operational і не потребують рекурсивного `FIX-*`.
+- Агент не переводить задачу в `done` без whole-task human approval.
 
-## Domain And Knowledge Rules
+## Domain і knowledge boundaries
 
-Domain Memory ведеться у папках:
+Поточний і цільовий доменний стан не змішувати:
 
 ```text
 memory/domain/current/
 memory/domain/target/
 ```
 
-Поточний доменний стан і цільовий або бажаний стан не змішуються.
+Reusable knowledge відкривати через `memory/knowledge/package-index.md`. Повний `pdadm-mvp-reglament` package є reference layer і читається лише для methodology audit, migration або конфлікту правил.
 
-Reusable knowledge packages знаходяться в:
+## Missing або broken memory
 
-```text
-memory/knowledge/
-memory/knowledge/package-index.md
-```
-
-`memory/knowledge/packages/pdadm-mvp-reglament/` є reference layer регламенту PDADM MVP, а не startup layer. Його треба читати тільки коли задача стосується правил методології, workflow, шаблонів, memory migration або коли є конфлікт чи неясність правил.
-
-## Missing Or Broken Memory
-
-Якщо `memory/agent-start.md` відсутній, пошкоджений або не дає достатніх інструкцій для старту, агент повинен перевірити:
+Якщо `memory/agent-start.md` відсутній, пошкоджений або недостатній, перевірити:
 
 ```text
 memory/README.md
-memory/memory-rules.md
-memory/agents/rules.md
+memory/reglament/agents.md
+memory/reglament/memory-rules.md
 ```
 
-Якщо ці документи теж відсутні, пошкоджені або суперечливі, агент повинен зупинитися і повідомити користувача, що Project Memory не готова до безпечного використання.
+Якщо ці джерела теж відсутні або суперечливі, зупинитися й повідомити користувача. Не відновлювати Project Memory без окремої migration/update task.
 
-Агент не повинен самостійно "відновлювати" або переписувати структуру Project Memory без явно поставленої задачі на memory migration або memory update.
+## Self-review і independent audit
 
-## Independent Self-Review And Subagents
-
-Для задач, де регламент вимагає self-review або independent audit, агент не має мовчки
-підміняти незалежний review same-agent review.
-
-Перед тим як зафіксувати `subagent-unavailable`, агент повинен перевірити доступність
-subagent / multi-agent capability через tool discovery, якщо `tool_search` доступний у
-поточній сесії.
-
-Якщо subagent capability знайдена, але політика інструмента вимагає explicit delegation
-request або human confirmation, агент повинен зупинитись і прямо попросити підтвердження на запуск
-незалежного субагента-аудитора, якщо це підтвердження не отримано, то тоді фіксується як
-`delegation-not-confirmed`, а не як `subagent-unavailable`.
-
-`subagent-unavailable` можна фіксувати тільки коли discovery виконано і capability справді
-недоступна, або коли `tool_search` недоступний і це явно записано в `Review Limitation`.
+- Перед human review виконати self-review всього run і пов’язаних artifacts.
+- Коли регламент вимагає independent audit і доступний субагент, використовувати окремого аудитора; same-agent review не видавати за незалежний.
+- Findings усунути або явно оформити до передачі task у review.
+- Review має охопити scope, acceptance, verification, risks, compromises, memory impact, language gate й architecture pressure.
