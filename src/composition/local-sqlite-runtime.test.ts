@@ -76,6 +76,13 @@ interface ScenarioIds {
   readonly second: string;
 }
 
+interface AssetScenarioIds {
+  readonly primary: string;
+  readonly source: string;
+  readonly target: string;
+  readonly transient: string;
+}
+
 async function runAcceptedResourceScenario(
   extensia: ExtensiaModule,
 ): Promise<ScenarioIds> {
@@ -157,6 +164,98 @@ async function runAcceptedResourceScenario(
   return ids;
 }
 
+async function runAcceptedAssetScenario(
+  extensia: ExtensiaModule,
+): Promise<AssetScenarioIds> {
+  await expect(extensia.start()).resolves.toEqual({
+    ok: true,
+    value: undefined,
+  });
+  const storage = extensia.storage()!;
+  const source = mustWrite(
+    await storage.createResource({ title: "asset-source" }),
+  );
+  const target = mustWrite(
+    await storage.createResource({ title: "asset-target" }),
+  );
+  const sourceID = source.resource.data.id;
+  const targetID = target.resource.data.id;
+  const transient = await storage.createAsset(sourceID, {
+    data: { version: 1 },
+    extension: "jpg",
+    kind: "external",
+    mime: "image/jpeg",
+    role: "original",
+    type: "image",
+    url: "HTTPS://Example.COM:443/media/../asset.jpg",
+  });
+  if (!transient.ok || transient.value.asset === null) {
+    throw new Error(transient.ok ? "Asset is missing" : transient.error.code);
+  }
+  const transientID = transient.value.asset.id;
+  await expect(
+    storage.updateAsset(sourceID, transientID, {
+      data: { version: 1 },
+      url: "https://example.com/asset.jpg",
+    }),
+  ).resolves.toMatchObject({
+    error: { code: "ASSET_NO_CHANGES" },
+    ok: false,
+  });
+  await expect(
+    storage.updateAsset(sourceID, transientID, {
+      data: { version: 2 },
+      role: "preview",
+    }),
+  ).resolves.toMatchObject({
+    ok: true,
+    value: { asset: { data: { version: 2 }, role: "preview" } },
+  });
+  const primary = await storage.createAsset(sourceID, {
+    data: null,
+    extension: "png",
+    kind: "external",
+    mime: "image/png",
+    role: "primary",
+    type: "image",
+    url: "https://example.test/primary.png",
+  });
+  if (!primary.ok || primary.value.asset === null) {
+    throw new Error(primary.ok ? "Asset is missing" : primary.error.code);
+  }
+  const primaryID = primary.value.asset.id;
+  await expect(
+    storage.setPrimaryAsset(sourceID, primaryID),
+  ).resolves.toMatchObject({
+    ok: true,
+    value: { asset: { id: primaryID, is_primary: true } },
+  });
+  await expect(
+    storage.updateAsset(sourceID, "90000000-0000-4000-8000-000000000001", {
+      role: "missing",
+    }),
+  ).resolves.toMatchObject({ error: { code: "ASSET_NOT_FOUND" }, ok: false });
+  await expect(
+    storage.reassignAsset(sourceID, transientID, targetID),
+  ).resolves.toMatchObject({
+    ok: true,
+    value: { asset: { id: transientID, is_primary: false } },
+  });
+  await expect(
+    storage.deleteAsset(targetID, transientID),
+  ).resolves.toMatchObject({ ok: true, value: { asset: null } });
+  await expect(extensia.stop()).resolves.toEqual({
+    ok: true,
+    value: undefined,
+  });
+  return {
+    primary: primaryID,
+    source: sourceID,
+    target: targetID,
+    transient: transientID,
+  };
+}
+
 interface DurableState {
   readonly resources: readonly ResourceSnapshot[];
   readonly journal: readonly CommittedOperationEntry[];
@@ -214,6 +313,66 @@ function normalizeState(state: DurableState, ids: ScenarioIds): unknown {
   };
 }
 
+function normalizeAssetState(
+  state: DurableState,
+  ids: AssetScenarioIds,
+): unknown {
+  const resourceLabel = new Map([
+    [ids.source, "source"],
+    [ids.target, "target"],
+  ]);
+  const assetLabel = new Map([
+    [ids.primary, "primary"],
+    [ids.transient, "transient"],
+  ]);
+  return {
+    journal: state.journal.map((entry) => ({
+      affected: entry.affected_resources
+        .map((id) => resourceLabel.get(id))
+        .sort(),
+      asset_changes:
+        "asset_changes" in entry
+          ? entry.asset_changes
+              .map((change) => ({
+                asset: assetLabel.get(change.asset_id),
+                owner_after:
+                  change.owner_after === null
+                    ? null
+                    : resourceLabel.get(change.owner_after),
+                owner_before:
+                  change.owner_before === null
+                    ? null
+                    : resourceLabel.get(change.owner_before),
+                payload_action: change.payload_action.kind,
+                state_after: change.state_after,
+                state_before: change.state_before,
+              }))
+              .sort((left, right) =>
+                String(left.asset).localeCompare(String(right.asset)),
+              )
+          : [],
+      sequence: entry.sequence,
+      type: entry.type,
+    })),
+    resources: state.resources
+      .map((resource) => ({
+        assets: resource.assets.map((asset) => ({
+          data: asset.data,
+          is_external: asset.is_external,
+          is_on_uploading: asset.is_on_uploading,
+          is_primary: asset.is_primary,
+          label: assetLabel.get(asset.id),
+          role: asset.role,
+          url: asset.url,
+        })),
+        label: resourceLabel.get(resource.data.id),
+      }))
+      .sort((left, right) =>
+        String(left.label).localeCompare(String(right.label)),
+      ),
+  };
+}
+
 function filesystemDigest(rootPath: string): string {
   const hash = createHash("sha256");
   for (const name of readdirSync(rootPath).sort()) {
@@ -262,6 +421,37 @@ describe("internal local SQLite production composition", () => {
       "resource.kv.set",
       "resource.kv.set",
       "resource.delete",
+    ]);
+  });
+
+  it("matches the accepted fake oracle for the Asset metadata lifecycle", async () => {
+    const fake = createDeterministicFullResourceDriver();
+    const fakeModule = createExtensia({
+      storage: { driver: defineFullResourceDriver(fake.adapter) },
+    });
+    const fakeIDs = await runAcceptedAssetScenario(fakeModule);
+    const fakeState = fake.inspect();
+
+    const root = createRoot();
+    const sqliteModule = createLocalSqliteExtensia({
+      mode: "full",
+      storage: sqliteOptions(root),
+    });
+    const sqliteIDs = await runAcceptedAssetScenario(sqliteModule);
+    const sqliteState = await inspectSqlite(root);
+
+    expect(normalizeAssetState(sqliteState, sqliteIDs)).toEqual(
+      normalizeAssetState(fakeState, fakeIDs),
+    );
+    expect(sqliteState.journal.map((entry) => entry.type)).toEqual([
+      "resource.create",
+      "resource.create",
+      "asset.create",
+      "asset.update",
+      "asset.create",
+      "asset.primary.set",
+      "asset.reassign",
+      "asset.delete",
     ]);
   });
 

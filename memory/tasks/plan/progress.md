@@ -76,9 +76,9 @@ Activation order completed: `Phase 2 gate -> BP3-01 -> TASK-0024 -> BP3-01A -> B
 - [x] **[Done]** [P4-VS1 / TASK-07.26-0050](TASK-07.26-0050-p4-vs1-concrete-resource-durability/index.md) - Full SQLite Resource parity accepted: 239-test/package/process evidence, required FIX-001 applied exactly, repeated post-application audit `PASS`; P4-VS2 не активована.
 - [x] **[Done]** [P4-VS2 / TASK-07.26-0051](TASK-07.26-0051-p4-vs2-asset-metadata-lifecycle/index.md) - Asset metadata lifecycle accepted whole-task review; final 264-test/package/double-pack gates зелені, required FIX-001 approved/applied і repeated post-application audit `PASS`; P4-VS3 не активована.
 - [x] **[Done]** [P4-VS3 / TASK-07.26-0052](TASK-07.26-0052-p4-vs3-internal-asset-upload/index.md) - Adapter-first internal upload lifecycle accepted; 286-test/package/double-pack gates зелені, FIX-001/FIX-002 applied, final repeated post-application audit `PASS`; P4-STAB не активована.
-- [ ] **[Backlog]** [P4-STAB / TASK-07.26-0053](TASK-07.26-0053-p4-stab-phase-4/index.md) - No-feature stabilization/audit після accepted P4-VS1…P4-VS3 перед Phase 4 human gate; не активована.
+- [x] **[Done]** [P4-STAB / TASK-07.26-0053](TASK-07.26-0053-p4-stab-phase-4/index.md) - Whole-task, FIX-001 і explicit Phase 4 gate approved; exact fixation applied, repeated post-application audit `PASS`, Phase 4 completed. Phase 5 not activated.
 
-Allowed parallelism: P4-DG1 і P4-DG2 могли активуватися окремими рішеннями й досліджуватися паралельно. Обидва owner gates, P4-WP1, P4-VS1, P4-VS2 і P4-VS3 accepted/completed. P4-STAB prepared і не активована. Implementation chain суворо послідовний: `P4-WP1 -> P4-VS1 -> P4-VS2 -> P4-VS3 -> P4-STAB -> Phase 4 human gate`, і кожна наступна activation потребує окремого explicit рішення.
+Allowed parallelism: P4-DG1 і P4-DG2 могли активуватися окремими рішеннями й досліджуватися паралельно. Обидва owner gates, P4-WP1, P4-VS1, P4-VS2, P4-VS3 і P4-STAB accepted/completed; Phase 4 human gate пройдений, repeated post-application audit `PASS`. Implementation chain `P4-WP1 -> P4-VS1 -> P4-VS2 -> P4-VS3 -> P4-STAB -> Phase 4 human gate` завершений; Phase 5 не активована й потребує окремого owner activation decision.
 
 ## Майбутня фаза FN — Filesystem-native Storage Driver
 

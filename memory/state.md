@@ -8,7 +8,7 @@ Internal Stage: `v2`
 
 ## Поточний фокус
 
-Phase 1, Phase 2 і Phase 3 завершені. `P4-DG1 / TASK-0039` і `P4-DG2 / TASK-0040` accepted/applied target designs. `P4-WP1 / TASK-0049`, `P4-VS1 / TASK-0050`, `P4-VS2 / TASK-0051` і `P4-VS3 / TASK-0052` done/accepted. P4-VS3 RUN-002 пройшла final repeated post-application audit `PASS`; FIX-001/FIX-002 applied. P4-STAB не активована. TASK-0041 і TASK-0042 завершені; їх downstream лишається без activation.
+Phase 1, Phase 2, Phase 3 і Phase 4 завершені. `P4-STAB / TASK-0053 / RUN-001` accepted/closed: required FIX-001 applied, repeated post-application audit `PASS`, explicit Phase 4 human gate пройдений. Phase 5 не активована. TASK-0041 і TASK-0042 завершені; їх downstream лишається без activation.
 
 ## Поточний стан продукту
 
@@ -37,7 +37,8 @@ Phase 1, Phase 2 і Phase 3 завершені. `P4-DG1 / TASK-0039` і `P4-DG2 
 - `P4-WP1 / TASK-07.26-0049` done: canonical Node.js 24 `node:sqlite` foundation і bounded Windows local NTFS physical proof прийняті; required FIX-001 applied exactly, final post-application audit `PASS`.
 - `P4-VS1 / TASK-07.26-0050 / RUN-001` done/completed: whole-task approved, required FIX-001 applied exactly, repeated post-application audit `PASS`. Internal production composition, fake-vs-SQLite full Resource parity, 239-test full gate, readonly/corruption/reconciliation, measured synchronous envelope, packed restart і fresh-process pre/post-COMMIT evidence прийняті.
 - `P4-VS2 / TASK-07.26-0051 / RUN-001` done/completed: exact Asset metadata create/update/primary/reassign/delete, staged internal generation, storage-wide integrity, SQLite schema version `2` migration та one shared journal/commit path accepted whole-task human review. Final 25 files / 264 tests, package gates, byte-identical 150-file double-pack, bounded 32 Resources / 256 Assets pressure evidence й independent audit `REVIEW_READY` зелені; FIX-001 approved/applied, repeated post-application audit `PASS`, P4-VS3 не активована.
-- `P4-VS3 / TASK-07.26-0052 / RUN-002` done/completed: first deliverable materialize-ив exact opaque adapter/capability, після чого той самий Core/Operation Engine/SQLite authority реалізував initial/replacement begin/stage/finish/abort/read lifecycle. Focused 80/full 286 tests, package smoke, byte-identical 158-file double pack і implementation audit `REVIEW_READY` зелені; whole-task approved, FIX-001/FIX-002 applied, final repeated post-application audit `PASS`. P4-STAB не активована.
+- `P4-VS3 / TASK-07.26-0052 / RUN-002` done/completed: first deliverable materialize-ив exact opaque adapter/capability, після чого той самий Core/Operation Engine/SQLite authority реалізував initial/replacement begin/stage/finish/abort/read lifecycle. Focused 80/full 286 tests, package smoke, byte-identical 158-file double pack і implementation audit `REVIEW_READY` зелені; whole-task approved, FIX-001/FIX-002 applied, final repeated post-application audit `PASS`.
+- `P4-STAB / TASK-07.26-0053 / RUN-001` done/completed: focused 115/full 301, exact double pack і boundaries зелені; final implementation audit `REVIEW_READY`, whole-task/FIX-001/Phase 4 gate approved, exact fixation applied, repeated post-application audit `PASS` без open P0–P3. Phase 5 не активована.
 
 - `P3-STAB / TASK-07.26-0036` завершена як `done`: fresh 20-file / 202-test full gate і byte-identical 126-path double pack accepted; required FIX-001 applied exactly, post-application audit `PASS`, open P0-P3 немає.
 
@@ -68,6 +69,8 @@ Phase 1, Phase 2 і Phase 3 завершені. `P4-DG1 / TASK-0039` і `P4-DG2 
 
 ## Останні рішення
 
+- Користувач 2026-07-17 окремо approved whole-task result `P4-STAB / TASK-0053`, required FIX-001 і explicit Phase 4 human gate; exact fixation applied, repeated post-application audit `PASS`, task closed. Phase 5 цим рішенням не активована.
+- Користувач 2026-07-17 явно активував `P4-STAB / TASK-0053`; це не є whole-task approval, FIX-001 approval, Phase 4 human gate або Phase 5 activation.
 - Користувач 2026-07-17 явно доручив підготувати й виконати P4-VS3 RUN-002, де exact opaque adapter materialization є first deliverable цього самого vertical slice; згодом окремо approved whole-task result, FIX-001 і FIX-002. Обидві fixations applied, final repeated audit `PASS`, TASK-0052 closed; P4-STAB не активована.
 - Користувач 2026-07-12 approved whole-task `P4-DG1 / TASK-0039` і required FIX-002; раніше approved FIX-001 має disposition `apply unchanged`. Обидві fixations застосовано до post-application audit; downstream tasks не активовано.
 - Користувач 2026-07-11 явно схвалив whole-task result `TASK-07.26-0037`; migration фіналізована як `done`, а `TASK-0034…0036` лишаються backlog і не активовані.
@@ -144,8 +147,8 @@ Phase 1, Phase 2 і Phase 3 завершені. `P4-DG1 / TASK-0039` і `P4-DG2 
 
 ## Наступні кроки
 
-1. `P4-STAB / TASK-0053` не активована й після accepted P4-VS3 потребує окремого explicit рішення.
-2. За окремим owner рішенням також можна активувати TASK-0044 або TASK-0048; client-server vendor tasks потребують окремого створення/activation.
+1. Phase 5 не активована й потребує окремого owner activation decision після completed Phase 4 gate.
+2. За окремим owner рішенням можна активувати TASK-0044 або TASK-0048; client-server vendor tasks потребують окремого створення/activation.
 
 ## Відкриті питання
 

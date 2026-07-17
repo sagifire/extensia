@@ -62,7 +62,8 @@ Updated: 2026-07-17
 - U-23: exact `Asset.data` depth/node/container/string/canonical UTF-8 limits fixed; schema evolution remains P7-WP1.
 - U-24: internal create staged-only; replacement retains old committed payload; active upload blocks Resource delete.
 - `P4-VS3 / RUN-002` завершила exact internal adapter/lifecycle: opaque adapter-epoch handle, bounded stage/read, begin/finish/abort, atomic publish/discard і startup payload integrity через один Core/Operation Engine/SQLite authority.
-- Still open: application-facing bytes/file API design, streaming strategy, P4-STAB, broader payload/performance/platform/power-loss certification, P5 global indexes/sync і P7 API/schema freeze.
+- `P4-STAB / TASK-0053 / RUN-001` завершила cross-phase conformance, compound-action cut-point/restart, readonly/failure/lock, reproducible package й architecture/public-boundary gates; explicit Phase 4 human gate пройдений без розширення public API або support claims.
+- Still open: application-facing bytes/file API design, streaming strategy, broader payload/performance/platform/power-loss certification, P5 global indexes/sync і P7 API/schema freeze.
 
 ## Закритий filesystem-native design gate
 

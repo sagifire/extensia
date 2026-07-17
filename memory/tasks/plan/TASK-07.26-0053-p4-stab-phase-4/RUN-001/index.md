@@ -2,7 +2,7 @@
 
 ## Призначення
 
-Prepared no-feature stabilization/audit run для Phase 4; не активований.
+Completed accepted no-feature stabilization/audit run для Phase 4.
 
 ## Папки
 
@@ -10,5 +10,6 @@ Prepared no-feature stabilization/audit run для Phase 4; не активов�
 
 ## Файли
 
-- [Context](context.md) - Snapshot stabilization scope, evidence matrix і Phase 4 gate до активації.
-
+- [Context](context.md) - Frozen snapshot stabilization scope, evidence matrix і Phase 4 gate.
+- [Evidence manifest](evidence-manifest.md) - Fresh commands, counts, hashes, matrices, pressure й boundary evidence.
+- [Result](result.md) - Execution, verification, self-review та audit report.

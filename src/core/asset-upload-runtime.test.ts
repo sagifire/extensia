@@ -429,6 +429,48 @@ describe("local SQLite upload failures and integrity", () => {
     };
   }
 
+  async function killAtAssetAction(input: {
+    readonly action: "delete" | "finish";
+    readonly assetId: IDString;
+    readonly markerLabel: string;
+    readonly mode: "after" | "before";
+    readonly resourceId: IDString;
+    readonly rootPath: string;
+  }): Promise<void> {
+    const markerPath = join(
+      input.rootPath,
+      `crash-${input.markerLabel}-${input.mode}.marker`,
+    );
+    const child = spawn(
+      process.execPath,
+      [
+        join(process.cwd(), "node_modules", "vitest", "vitest.mjs"),
+        "run",
+        "--coverage.enabled=false",
+        "--pool=threads",
+        "--maxWorkers=1",
+      ],
+      {
+        cwd: process.cwd(),
+        env: {
+          ...process.env,
+          EXTENSIA_ASSET_UPLOAD_ACTION: input.action,
+          EXTENSIA_ASSET_UPLOAD_ASSET: input.assetId,
+          EXTENSIA_ASSET_UPLOAD_CRASH_CHILD: "1",
+          EXTENSIA_ASSET_UPLOAD_MARKER: markerPath,
+          EXTENSIA_ASSET_UPLOAD_MODE: input.mode,
+          EXTENSIA_ASSET_UPLOAD_RESOURCE: input.resourceId,
+          EXTENSIA_ASSET_UPLOAD_ROOT: input.rootPath,
+        },
+        stdio: ["ignore", "pipe", "pipe"],
+      },
+    );
+    await waitForMarker(child, markerPath);
+    const exited = once(child, "exit");
+    child.kill();
+    await exited;
+  }
+
   it.each([
     "asset-upload.stage.before-write",
     "asset-upload.stage.after-write",
@@ -504,6 +546,151 @@ describe("local SQLite upload failures and integrity", () => {
       ok: true,
     });
     await active.module.stop();
+  });
+
+  describe.each([
+    "initial-publish",
+    "replacement-publish",
+    "ready-delete",
+    "replacement-delete",
+  ] as const)("compound action cut-point matrix: %s", (scenario) => {
+    it.each([
+      {
+        committed: false,
+        point: "transaction.after-journal-write" as const,
+      },
+      { committed: true, point: "transaction.after-commit" as const },
+    ])("restarts coherently at $point", async ({ committed, point }) => {
+      const rootPath = mkdtempSync(join(tmpdir(), "extensia-upload-compound-"));
+      roots.push(rootPath);
+      let armed = false;
+      const module = moduleFor(
+        createLocalSqliteFullResourceDriver({
+          faults: {
+            hit(candidate) {
+              if (candidate === point && armed) {
+                armed = false;
+                throw new Error(`compound fault:${scenario}:${point}`);
+              }
+            },
+          },
+          profile: "candidate-local-filesystem",
+          reconciliationDelayMs: 1,
+          rootPath,
+          timeoutMs: 100,
+        }),
+      );
+      const port = await start(module);
+      const ids = await createInitialUpload(module);
+      const initial = await port.resolve(ids.resourceId, ids.assetId);
+      if (!initial.ok) throw new Error(initial.error.code);
+
+      let action: () => Promise<{ readonly ok: boolean }>;
+      if (scenario === "initial-publish") {
+        await port.stage(initial.value, new Uint8Array([2]));
+        action = () => port.finish(initial.value);
+      } else {
+        await port.stage(initial.value, new Uint8Array([1]));
+        await expect(port.finish(initial.value)).resolves.toMatchObject({
+          ok: true,
+        });
+        if (
+          scenario === "replacement-publish" ||
+          scenario === "replacement-delete"
+        ) {
+          const replacement = await port.begin(ids.resourceId, ids.assetId);
+          if (!replacement.ok) throw new Error(replacement.error.code);
+          await port.stage(replacement.value.handle, new Uint8Array([2]));
+          action =
+            scenario === "replacement-publish"
+              ? () => port.finish(replacement.value.handle)
+              : () =>
+                  module.storage()!.deleteAsset(ids.resourceId, ids.assetId);
+        } else {
+          action = () =>
+            module.storage()!.deleteAsset(ids.resourceId, ids.assetId);
+        }
+      }
+
+      armed = true;
+      const result = await action();
+      expect(armed).toBe(false);
+      expect(result.ok).toBe(committed);
+      if (!committed) {
+        expect(result).toMatchObject({
+          error: { code: "STORAGE_WRITE_FAILED" },
+          ok: false,
+        });
+      }
+      await module.stop();
+
+      const restarted = moduleFor(
+        createLocalSqliteFullResourceDriver({
+          profile: "candidate-local-filesystem",
+          reconciliationDelayMs: 1,
+          rootPath,
+          timeoutMs: 100,
+        }),
+      );
+      const restartedPort = await start(restarted);
+      const owner = await restarted.query()!.getResource(ids.resourceId);
+      if (!owner.ok) throw new Error(owner.error.code);
+      const deleted = scenario.endsWith("delete") && committed;
+      expect(owner.value.assets).toHaveLength(deleted ? 0 : 1);
+      if (!deleted) {
+        const expectedActive =
+          !committed &&
+          (scenario === "initial-publish" ||
+            scenario === "replacement-publish" ||
+            scenario === "replacement-delete");
+        expect(owner.value.assets[0]?.is_on_uploading).toBe(expectedActive);
+        const read = await restartedPort.read(ids.resourceId, ids.assetId);
+        if (scenario === "initial-publish" && !committed) {
+          expect(read).toEqual({
+            error: { code: "ASSET_FILE_NOT_READY" },
+            ok: false,
+          });
+        } else {
+          expect(read.ok && [...read.value.bytes]).toEqual([
+            scenario.includes("publish") && committed ? 2 : 1,
+          ]);
+        }
+      }
+      await restarted.stop();
+
+      const db = new DatabaseSync(
+        inspectLocalSqliteProfile(rootPath).databasePath,
+        { readOnly: true },
+      );
+      const actionType = scenario.endsWith("delete")
+        ? "asset.delete"
+        : "asset.upload.finish";
+      const baselineActionRows = scenario === "replacement-publish" ? 1 : 0;
+      expect(
+        db
+          .prepare("SELECT count(*) AS count FROM journal WHERE type = ?")
+          .get(actionType),
+      ).toEqual({ count: baselineActionRows + (committed ? 1 : 0) });
+      const expectedGenerations =
+        committed || scenario === "ready-delete" ? 0 : 1;
+      expect(
+        db
+          .prepare("SELECT count(*) AS count FROM asset_upload_generations")
+          .get(),
+      ).toEqual({ count: expectedGenerations });
+      const expectedPayloads = committed
+        ? scenario.endsWith("delete")
+          ? 0
+          : 1
+        : scenario === "replacement-publish" ||
+            scenario === "replacement-delete"
+          ? 2
+          : 1;
+      expect(
+        db.prepare("SELECT count(*) AS count FROM payloads").get(),
+      ).toEqual({ count: expectedPayloads });
+      db.close();
+    });
   });
 
   it.each(["before", "after"] as const)(
@@ -599,6 +786,104 @@ describe("local SQLite upload failures and integrity", () => {
     },
     30_000,
   );
+
+  describe.each([
+    "replacement-publish",
+    "ready-delete",
+    "replacement-delete",
+  ] as const)("real compound-action process crash: %s", (scenario) => {
+    it.each(["before", "after"] as const)(
+      "recovers coherently %s COMMIT",
+      async (mode) => {
+        const active = localWithFaults(new Set());
+        const port = await start(active.module);
+        const ids = await createInitialUpload(active.module);
+        const initial = await port.resolve(ids.resourceId, ids.assetId);
+        if (!initial.ok) throw new Error(initial.error.code);
+        await port.stage(initial.value, new Uint8Array([51]));
+        await expect(port.finish(initial.value)).resolves.toMatchObject({
+          ok: true,
+        });
+        if (
+          scenario === "replacement-publish" ||
+          scenario === "replacement-delete"
+        ) {
+          const replacement = await port.begin(ids.resourceId, ids.assetId);
+          if (!replacement.ok) throw new Error(replacement.error.code);
+          await port.stage(replacement.value.handle, new Uint8Array([52]));
+        }
+        await active.module.stop();
+
+        await killAtAssetAction({
+          action: scenario.endsWith("delete") ? "delete" : "finish",
+          assetId: ids.assetId,
+          markerLabel: scenario,
+          mode,
+          resourceId: ids.resourceId,
+          rootPath: active.rootPath,
+        });
+
+        const restarted = moduleFor(
+          createLocalSqliteFullResourceDriver({
+            profile: "candidate-local-filesystem",
+            reconciliationDelayMs: 1,
+            rootPath: active.rootPath,
+            timeoutMs: 1_000,
+          }),
+        );
+        const restartedPort = await start(restarted);
+        const owner = await restarted.query()!.getResource(ids.resourceId);
+        if (!owner.ok) throw new Error(owner.error.code);
+        const committed = mode === "after";
+        const deleted = scenario.endsWith("delete") && committed;
+        expect(owner.value.assets).toHaveLength(deleted ? 0 : 1);
+        if (!deleted) {
+          expect(owner.value.assets[0]?.is_on_uploading).toBe(
+            !committed && scenario !== "ready-delete",
+          );
+          const read = await restartedPort.read(ids.resourceId, ids.assetId);
+          expect(read.ok && [...read.value.bytes]).toEqual([
+            scenario === "replacement-publish" && committed ? 52 : 51,
+          ]);
+        }
+        await restarted.stop();
+
+        const db = new DatabaseSync(
+          inspectLocalSqliteProfile(active.rootPath).databasePath,
+          { readOnly: true },
+        );
+        const actionType = scenario.endsWith("delete")
+          ? "asset.delete"
+          : "asset.upload.finish";
+        const baselineActionRows = scenario === "replacement-publish" ? 1 : 0;
+        expect(
+          db
+            .prepare("SELECT count(*) AS count FROM journal WHERE type = ?")
+            .get(actionType),
+        ).toEqual({ count: baselineActionRows + (committed ? 1 : 0) });
+        expect(
+          db
+            .prepare("SELECT count(*) AS count FROM asset_upload_generations")
+            .get(),
+        ).toEqual({
+          count: !committed && scenario !== "ready-delete" ? 1 : 0,
+        });
+        expect(
+          db.prepare("SELECT count(*) AS count FROM payloads").get(),
+        ).toEqual({
+          count: committed
+            ? scenario === "replacement-publish"
+              ? 1
+              : 0
+            : scenario === "ready-delete"
+              ? 1
+              : 2,
+        });
+        db.close();
+      },
+      30_000,
+    );
+  });
 
   it.each([
     ["BUSY", "transaction.before-write"],

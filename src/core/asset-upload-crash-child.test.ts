@@ -18,12 +18,13 @@ function required(name: string): string {
   return value;
 }
 
-it("halts a production Asset finish at the requested SQLite cut point", async () => {
+it("halts a production Asset compound action at the requested SQLite cut point", async () => {
   const rootPath = required("EXTENSIA_ASSET_UPLOAD_ROOT");
   const markerPath = required("EXTENSIA_ASSET_UPLOAD_MARKER");
   const resourceId = required("EXTENSIA_ASSET_UPLOAD_RESOURCE") as IDString;
   const assetId = required("EXTENSIA_ASSET_UPLOAD_ASSET") as IDString;
   const mode = required("EXTENSIA_ASSET_UPLOAD_MODE");
+  const action = process.env.EXTENSIA_ASSET_UPLOAD_ACTION ?? "finish";
   const cutPoint =
     mode === "before"
       ? "transaction.before-commit"
@@ -48,10 +49,14 @@ it("halts a production Asset finish at the requested SQLite cut point", async ()
     },
   });
   await expect(module.start()).resolves.toMatchObject({ ok: true });
-  const port = resolveInternalAssetUploadPort(module);
-  if (port === null) throw new Error("Asset upload port is missing");
-  const handle = await port.resolve(resourceId, assetId);
-  if (!handle.ok) throw new Error(handle.error.code);
-  await port.finish(handle.value);
-  throw new Error("Asset finish unexpectedly passed the crash cut point");
+  if (action === "delete") {
+    await module.storage()!.deleteAsset(resourceId, assetId);
+  } else {
+    const port = resolveInternalAssetUploadPort(module);
+    if (port === null) throw new Error("Asset upload port is missing");
+    const handle = await port.resolve(resourceId, assetId);
+    if (!handle.ok) throw new Error(handle.error.code);
+    await port.finish(handle.value);
+  }
+  throw new Error("Asset action unexpectedly passed the crash cut point");
 });

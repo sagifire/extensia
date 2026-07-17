@@ -77,14 +77,14 @@ Gate: кожний Resource write journal-backed; committed entry є publication
 
 ## Фаза 4 — Assets і перший concrete durable Storage Driver
 
-Стан: P4-DG1/P4-DG2 approved/applied; P4-WP1 concrete driver, P4-VS1 Resource durability і P4-VS2 Asset metadata lifecycle accepted; P4-VS3 internal bounded upload bytes/finalization implementation accepted. P4-STAB лишається pending і не активована.
+Стан: done — P4-DG1/P4-DG2 approved/applied; P4-WP1 concrete driver, P4-VS1 Resource durability, P4-VS2 Asset metadata lifecycle, P4-VS3 internal bounded upload bytes/finalization і P4-STAB cross-phase stabilization accepted. Explicit Phase 4 human gate пройдений; Phase 5 не активована.
 
 Wave IDs: паралельні `P4-DG1` concrete storage protocol і `P4-DG2` Asset contracts; `P4-DG1 -> P4-WP1` concrete driver -> `P4-VS1` Resource durability, після чого гілка приєднує погоджений `P4-DG2` перед `P4-VS2/VS3` Asset metadata/upload -> `P4-STAB`.
 
 - Реалізовано first/default internal `embedded-transactional/local-sqlite-v1` profile з atomic SQLite persistence, committed journal, exclusive storage session і recovery primitives у P4-WP1.
 - Реалізовано повну Resource durability parity у P4-VS1 та Asset metadata invariants, internal/external assets, primary/reassign/delete й staged generation persistence у P4-VS2.
 - P4-VS3 реалізувала exact opaque adapter як first deliverable, internal begin/stage/finish/abort/read, last-ready replacement semantics, atomic payload actions та bounded recovery/pressure/package evidence через той самий Core/Operation Engine/SQLite authority.
-- Лишаються P4-STAB повна crash/recovery stabilization, ordinary public bytes/file API та broader platform/power-loss certification; Phase 4 не є done до окремої P4-STAB activation/acceptance і Phase 4 human gate.
+- P4-STAB закрила fresh fake-vs-SQLite conformance, Resource/Asset metadata/payload/journal crash-restart/cut-point, cleanup/readonly/failure/lock, package reproducibility та architecture/public-boundary gates без production feature change. Ordinary public bytes/file API, broader platform/performance і destructive power-loss certification залишаються окремими future owner gates та не входять у завершену Phase 4.
 
 Gate: successful operation означає durable committed state на concrete storage; incomplete artifacts не стають visible; restart recovery та `readonly` behavior покриті tests.
 

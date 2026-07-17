@@ -1,6 +1,6 @@
 # P4-STAB / TASK-07.26-0053: Phase 4 stabilization
 
-Task Status: backlog
+Task Status: done
 Type: stabilization/audit
 Created: 2026-07-15
 Owner Role: Agent Stabilizer
@@ -8,13 +8,13 @@ Current Run: RUN-001
 
 ## Поточний стан
 
-Run Status: prepared
-Progress: Canonical package підготовлено; run не активований.
-Acceptance: 0/9; stabilization evidence не збиралася.
-Blockers: activation потребує completed/accepted P4-VS1, P4-VS2 і P4-VS3.
-Blocked Phase: activation gate
-Pending Decisions: predecessor acceptance та explicit activation RUN-001.
-Next Action: після gate виконати no-feature cross-Phase-4 stabilization і independent audit.
+Run Status: completed
+Progress: Whole-task, FIX-001 і explicit Phase 4 human gate approved; exact FIX-001 applied, repeated post-application audit `PASS`, Phase 4 completed.
+Acceptance: 9/9 accepted and closed.
+Blockers: none.
+Blocked Phase: n/a
+Pending Decisions: none.
+Next Action: none; Phase 5 remains inactive pending a separate owner activation decision.
 
 ## Мета
 
@@ -99,7 +99,7 @@ P4-STAB не розширює домен чи API. Вона перевіряє, 
 
 ## Прогони
 
-- [RUN-001](RUN-001/index.md) - prepared; не активований.
+- [RUN-001](RUN-001/index.md) - completed; accepted no-feature cross-Phase-4 stabilization.
 
 ## Дослідження
 
@@ -107,11 +107,10 @@ P4-STAB не розширює домен чи API. Вона перевіряє, 
 
 ## Фіксації
 
-Немає; canonical fixation proposals ще не готувалися.
+- [FIX-001](FIX-001.md) - required / applied - exact approved Phase 4 current/product/technical memory synchronization.
 
 ## Запити на рішення
 
-- Після accepted P4-VS1/P4-VS2/P4-VS3 — explicit activation RUN-001.
 - Після review-ready result — окремі whole-task і Phase 4 human gate decisions.
 
 ## Запропоновані follow-up задачі
@@ -120,19 +119,18 @@ P4-STAB не розширює домен чи API. Вона перевіряє, 
 
 ## Human Review
 
-Status: not-ready
-Requested: n/a
-Reviewed: n/a
-Approval Source: n/a
-Approved Fixations: none
+Status: approved
+Requested: 2026-07-17
+Reviewed: 2026-07-17
+Approval Source: explicit user decision in current Codex task
+Approved Fixations: FIX-001
 Rejected Fixations: none
-Follow-up Decisions: none
-Decision Notes: Package preparation не є activation, approval або Phase 4 gate.
+Follow-up Decisions: explicit Phase 4 human gate approved; Phase 5 remains not activated
+Decision Notes: User separately approved whole-task result, required FIX-001 and explicit Phase 4 human gate on 2026-07-17.
 
 ## Фінальний результат
 
-Completed: n/a
-Final Run: n/a
-Summary: n/a
-Residual Risks: n/a
-
+Completed: 2026-07-17
+Final Run: RUN-001
+Summary: Fresh cross-Phase-4 stabilization, 115-focused/301-full gates, reproducible package evidence, exact FIX-001 application і repeated post-application audit `PASS`; Phase 4 human gate accepted without production/API expansion.
+Residual Risks: synchronous 16 MiB whole-payload path and replacement storage amplification remain bounded non-SLA costs; current-host process-crash evidence is not broader platform or destructive power-loss certification; public bytes/file API, public/default driver surface, Phase 5 sync/indexes and Phase 7 compatibility remain deferred.

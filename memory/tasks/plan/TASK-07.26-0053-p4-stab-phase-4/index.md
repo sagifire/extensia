@@ -2,13 +2,13 @@
 
 ## Призначення
 
-Canonical backlog-задача для no-feature stabilization й audit фази 4 перед human gate.
+Completed no-feature stabilization й audit фази 4 з accepted human gate.
 
 ## Папки
 
-- [RUN-001](RUN-001/index.md) - Prepared stabilization run; не активований.
+- [RUN-001](RUN-001/index.md) - Completed accepted stabilization run.
 
 ## Файли
 
+- [FIX-001](FIX-001.md) - Required exact canonical synchronization applied; repeated post-application audit `PASS`.
 - [Task](task.md) - Контракт, dashboard і реєстр артефактів задачі.
-

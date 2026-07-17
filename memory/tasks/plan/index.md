@@ -58,7 +58,7 @@
 - [TASK-07.26-0050-p4-vs1-concrete-resource-durability](TASK-07.26-0050-p4-vs1-concrete-resource-durability/index.md) - Done `P4-VS1`: full SQLite Resource parity accepted, required FIX-001 applied exactly, final post-application audit `PASS`; P4-VS2 not activated.
 - [TASK-07.26-0051-p4-vs2-asset-metadata-lifecycle](TASK-07.26-0051-p4-vs2-asset-metadata-lifecycle/index.md) - Backlog/prepared `P4-VS2` для accepted Asset metadata lifecycle після P4-VS1; не активована.
 - [TASK-07.26-0052-p4-vs3-internal-asset-upload](TASK-07.26-0052-p4-vs3-internal-asset-upload/index.md) - Done `P4-VS3`: adapter-first lifecycle accepted, FIX-001/FIX-002 applied, final audit `PASS`.
-- [TASK-07.26-0053-p4-stab-phase-4](TASK-07.26-0053-p4-stab-phase-4/index.md) - Backlog/prepared no-feature `P4-STAB` після accepted VS1–VS3; не активована.
+- [TASK-07.26-0053-p4-stab-phase-4](TASK-07.26-0053-p4-stab-phase-4/index.md) - Done `P4-STAB`: whole-task, FIX-001 і Phase 4 gate approved; exact fixation applied, repeated post-application audit `PASS`; Phase 5 не активована.
 
 ## Файли
 
