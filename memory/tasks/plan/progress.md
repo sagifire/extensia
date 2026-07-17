@@ -75,10 +75,10 @@ Activation order completed: `Phase 2 gate -> BP3-01 -> TASK-0024 -> BP3-01A -> B
 - [x] **[Done]** [P4-WP1 / TASK-07.26-0049](TASK-07.26-0049-p4-wp1-local-sqlite-driver/index.md) - Internal Node-native `local-sqlite-v1`, 234-test gate і bounded physical proof accepted; FIX-001 applied exactly, downstream не активований.
 - [x] **[Done]** [P4-VS1 / TASK-07.26-0050](TASK-07.26-0050-p4-vs1-concrete-resource-durability/index.md) - Full SQLite Resource parity accepted: 239-test/package/process evidence, required FIX-001 applied exactly, repeated post-application audit `PASS`; P4-VS2 не активована.
 - [x] **[Done]** [P4-VS2 / TASK-07.26-0051](TASK-07.26-0051-p4-vs2-asset-metadata-lifecycle/index.md) - Asset metadata lifecycle accepted whole-task review; final 264-test/package/double-pack gates зелені, required FIX-001 approved/applied і repeated post-application audit `PASS`; P4-VS3 не активована.
-- [ ] **[Backlog]** [P4-VS3 / TASK-07.26-0052](TASK-07.26-0052-p4-vs3-internal-asset-upload/index.md) - Internal upload generation lifecycle після accepted P4-VS2 і executable opaque staging capability gate; не активована.
+- [ ] **[Review]** [P4-VS3 / TASK-07.26-0052](TASK-07.26-0052-p4-vs3-internal-asset-upload/index.md) - Whole-task approved і FIX-001 applied; post-application audit виявив bounded stale Asset-contract ownership wording поза FIX-001 scope, required FIX-002 proposal очікує окремого human decision.
 - [ ] **[Backlog]** [P4-STAB / TASK-07.26-0053](TASK-07.26-0053-p4-stab-phase-4/index.md) - No-feature stabilization/audit після accepted P4-VS1…P4-VS3 перед Phase 4 human gate; не активована.
 
-Allowed parallelism: P4-DG1 і P4-DG2 могли активуватися окремими рішеннями й досліджуватися паралельно. Обидва owner gates, P4-WP1, P4-VS1 і P4-VS2 accepted/completed. P4-VS3 та P4-STAB prepared, але не активовані. Implementation chain суворо послідовний: `P4-WP1 -> P4-VS1 -> P4-VS2 -> P4-VS3 -> P4-STAB -> Phase 4 human gate`, і кожна наступна activation потребує окремого explicit рішення.
+Allowed parallelism: P4-DG1 і P4-DG2 могли активуватися окремими рішеннями й досліджуватися паралельно. Обидва owner gates, P4-WP1, P4-VS1 і P4-VS2 accepted/completed. P4-VS3 RUN-002 finalizing з corrected in-run capability ownership і pending FIX-002 decision; P4-STAB prepared і не активована. Implementation chain суворо послідовний: `P4-WP1 -> P4-VS1 -> P4-VS2 -> P4-VS3 -> P4-STAB -> Phase 4 human gate`, і кожна наступна activation потребує окремого explicit рішення.
 
 ## Майбутня фаза FN — Filesystem-native Storage Driver
 

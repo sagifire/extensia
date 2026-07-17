@@ -1,11 +1,15 @@
 import type { ExtensiaModule } from "../public/contracts.js";
-import { createExtensia } from "../public/extensia.js";
+import {
+  createExtensia,
+  resolveInternalAssetUploadPort,
+} from "../public/extensia.js";
 import { defineFullResourceDriver } from "../public/full-resource-driver.js";
 import {
   createLocalSqliteFullResourceDriver,
   createLocalSqliteReadonlyResourceDriver,
   type LocalSqliteDriverOptions,
 } from "../storage/local-sqlite-resource-driver.js";
+import type { CoreAssetUploadPort } from "../system-extensions/default-api/asset-upload-port.js";
 
 export interface LocalSqliteExtensiaConfig {
   readonly mode: "full" | "readonly";
@@ -28,4 +32,10 @@ export function createLocalSqliteExtensia(
       : createLocalSqliteReadonlyResourceDriver(config.storage);
 
   return createExtensia({ storage: { driver } });
+}
+
+export function resolveLocalSqliteAssetUploadPort(
+  module: ExtensiaModule,
+): CoreAssetUploadPort | null {
+  return resolveInternalAssetUploadPort(module);
 }

@@ -452,6 +452,7 @@ describe("public Asset metadata lifecycle", () => {
       asset_id: assetID,
       committed: true,
     });
+    backing.assetPayloadBytes.set(assetID, new Uint8Array([1]));
 
     const active = await restart(backing);
     await expect(
@@ -499,6 +500,7 @@ describe("public Asset metadata lifecycle", () => {
       asset_id: assetID,
       committed: true,
     });
+    backing.assetPayloadBytes.set(assetID, new Uint8Array([1]));
 
     const active = await restart(backing);
     await expect(

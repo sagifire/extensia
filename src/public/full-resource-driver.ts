@@ -13,6 +13,10 @@ import {
   AssetStorageIntegrityError,
   ResourceCommittedIntegrityError,
 } from "../storage/resource-runtime-integrity.js";
+import {
+  attachAssetUploadSessionCapability,
+  resolveAssetUploadSessionCapability,
+} from "../storage/asset-upload-capability.js";
 import type {
   CommittedOperationDraft,
   CommittedOperationEntry,
@@ -263,7 +267,7 @@ async function validateSession(candidate: unknown) {
     "readCommittedOperationsAfter",
   );
   const release = captureMethod(candidate, "release");
-  return {
+  const validated = {
     recovery: {
       status,
       rolled_back_operations: rolledBack as number,
@@ -363,6 +367,10 @@ async function validateSession(candidate: unknown) {
     },
     release: () => release() as Promise<void>,
   } satisfies import("../storage/resource-write-protocol.js").ResourceStorageSession;
+  const uploadCapability = resolveAssetUploadSessionCapability(candidate);
+  return uploadCapability === null
+    ? validated
+    : attachAssetUploadSessionCapability(validated, uploadCapability);
 }
 
 function validateCommittedEntry(
@@ -410,7 +418,10 @@ function validateStoredEntry(candidate: unknown): CommittedOperationEntry {
       entry.type !== "asset.update" &&
       entry.type !== "asset.primary.set" &&
       entry.type !== "asset.reassign" &&
-      entry.type !== "asset.delete") ||
+      entry.type !== "asset.delete" &&
+      entry.type !== "asset.upload.begin" &&
+      entry.type !== "asset.upload.finish" &&
+      entry.type !== "asset.upload.abort") ||
     !isTimestamp(entry.committed_at) ||
     typeof entry.sequence !== "string" ||
     parseJournalSequence(entry.sequence as never) < 1n ||

@@ -1,20 +1,20 @@
 # P4-VS3 / TASK-07.26-0052: Internal Asset upload lifecycle
 
-Task Status: backlog
+Task Status: review
 Type: implementation
 Created: 2026-07-15
 Owner Role: Agent Implementer
-Current Run: RUN-001
+Current Run: RUN-002
 
 ## Поточний стан
 
-Run Status: prepared
-Progress: Canonical package підготовлено; run не активований.
-Acceptance: 0/9; capability gate і verification не виконані.
-Blockers: activation потребує completed/accepted P4-VS2 та executable opaque staging primitives/exact Core↔driver adapter boundary.
-Blocked Phase: activation gate
-Pending Decisions: capability gate, exact bounded bytes transport materialization і explicit activation.
-Next Action: перед activation перевірити executable capability; за її відсутності зупинитися як blocker.
+Run Status: finalizing
+Progress: whole-task result і FIX-001 approved; FIX-001 applied. Independent post-application audit підтвердив implementation/boundaries, але виявив два stale Asset-contract ownership statements поза approved FIX-001 scope; required FIX-002 підготовлено proposal-only.
+Acceptance: 9/9; whole-task human approval recorded, closure gate pending FIX-002 decision and repeated post-application audit.
+Blockers: none.
+Blocked Phase: n/a
+Pending Decisions: required proposal-only `FIX-002: approve | reject`.
+Next Action: after FIX-002 decision, apply/reject disposition and repeat independent post-application audit; task не переходить у `done`, поки open P2 не закритий. P4-STAB не активується.
 
 ## Мета
 
@@ -22,14 +22,14 @@ Next Action: перед activation перевірити executable capability; �
 
 ## Продуктовий контекст
 
-P4-VS2 володіє Asset metadata semantics, а P4-VS3 materialize-ить physical bytes lifecycle. Conceptual payload methods недостатні: до activation concrete driver має надати executable opaque staging primitives й exact internal adapter boundary. Якщо gate не виконаний, run блокується; parallel write path, public path/session або transaction token не вигадуються.
+P4-VS2 володіє Asset metadata semantics, а P4-VS3 materialize-ить physical bytes lifecycle. RUN-001 довів, що predecessors залишили лише inactive payload seam. Explicit human decision 2026-07-17 передало RUN-002 ownership materialize-ити executable opaque primitives та exact internal adapter як перший deliverable того самого vertical slice. Lifecycle consumer не виконується до conformance; parallel write path, public path/session або transaction token не вигадуються.
 
 ## Залежності та activation gate
 
 - [P4-VS2 / TASK-07.26-0051](../TASK-07.26-0051-p4-vs2-asset-metadata-lifecycle/task.md) має бути completed/accepted.
-- `local-sqlite-v1` має executable opaque generation staging/publish/discard/delete primitives у тій самій durability domain.
-- Exact trusted Core↔driver adapter boundary і bounded bytes transport design мають бути materialized до execution; відсутність будь-якого пункту є stop/blocker.
-- Підготовка package не активує RUN-001; потрібне окреме explicit рішення після capability gate.
+- RUN-002 materialize-ить executable opaque generation stage/read/publish capability у `local-sqlite-v1` і deterministic conformance fake як first deliverable в тій самій durability domain.
+- Exact trusted Core↔driver adapter boundary і bounded bytes transport design мають пройти executable conformance до підключення begin/finish/abort consumers; failure є in-run stop/blocker і не дозволяє parallel path.
+- Explicit human decision 2026-07-17 активувало RUN-002 з цим corrected ownership; RUN-001 лишається immutable blocked activation audit.
 
 ## Обсяг
 
@@ -51,7 +51,7 @@ P4-VS2 володіє Asset metadata semantics, а P4-VS3 materialize-ить phy
 
 ## Критерії приймання
 
-1. До activation executable capability gate доводить opaque `local-sqlite-v1` staging/publish/discard/delete primitives та exact Core↔driver adapter; missing capability блокує run і не породжує parallel path.
+1. Перший deliverable RUN-002 materialize-ить і executable capability gate доводить opaque `local-sqlite-v1` staging/read/publish/discard/delete primitives та exact Core↔driver adapter до lifecycle consumer integration; missing capability блокує подальше execution і не породжує parallel path.
 2. Internal begin/resolve/stage bytes/finish/abort/retry lifecycle точно реалізує accepted Asset generation states, opaque handle ownership і normalized stale/not-active failures.
 3. Initial upload не стає visible до successful finish; replacement зберігає last-ready payload visible, а incomplete/aborted generation ніколи його не замінює.
 4. `generation.publish`, `generation.discard` і payload delete виконуються як exact compound actions в одній SQLite durability domain і тому самому semantic commit з metadata та рівно одним journal entry.
@@ -94,7 +94,8 @@ P4-VS2 володіє Asset metadata semantics, а P4-VS3 materialize-ить phy
 
 ## Прогони
 
-- [RUN-001](RUN-001/index.md) - prepared; не активований.
+- [RUN-001](RUN-001/index.md) - blocked на activation capability gate; production execution не починалося.
+- [RUN-002](RUN-002/index.md) - finalizing; adapter-first lifecycle accepted, FIX-001 applied, FIX-002 decision pending.
 
 ## Дослідження
 
@@ -102,11 +103,12 @@ P4-VS2 володіє Asset metadata semantics, а P4-VS3 materialize-ить phy
 
 ## Фіксації
 
-Немає; canonical fixation proposals ще не готувалися.
+- [FIX-001](FIX-001.md) - required / approved / applied; post-application audit findings outside its approved rewrite scope tracked by FIX-002.
+- [FIX-002](FIX-002.md) - required / proposed; minimal Asset-contract ownership correction після post-application P2 audit finding.
 
 ## Запити на рішення
 
-- Після accepted P4-VS2 і executable capability gate — explicit activation RUN-001.
+- **Resolved 2026-07-17:** користувач погодив recommended corrected ownership і прямо наказав підготувати та виконати RUN-002, де exact opaque adapter є першим deliverable цього ж vertical slice.
 
 ## Запропоновані follow-up задачі
 
@@ -114,14 +116,14 @@ P4-VS2 володіє Asset metadata semantics, а P4-VS3 materialize-ить phy
 
 ## Human Review
 
-Status: not-ready
-Requested: n/a
-Reviewed: n/a
-Approval Source: n/a
-Approved Fixations: none
+Status: accepted; closure-finalization pending
+Requested: 2026-07-17
+Reviewed: 2026-07-17
+Approval Source: explicit user decision `Task: approve`
+Approved Fixations: FIX-001
 Rejected Fixations: none
-Follow-up Decisions: none
-Decision Notes: Package preparation не є activation або approval.
+Follow-up Decisions: FIX-002 pending
+Decision Notes: RUN-001 blocked audit accepted as evidence. Explicit human decision 2026-07-17 активувало RUN-002 з capability materialization як first in-run deliverable. User separately approved whole-task result and FIX-001. Initial post-application audit found a bounded canonical ownership contradiction outside FIX-001 scope; task remains finalizing pending FIX-002.
 
 ## Фінальний результат
 
@@ -129,4 +131,3 @@ Completed: n/a
 Final Run: n/a
 Summary: n/a
 Residual Risks: n/a
-

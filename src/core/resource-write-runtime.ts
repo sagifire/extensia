@@ -67,7 +67,14 @@ import {
 } from "../system-extensions/default-api/resource-write-port.js";
 import { createGreedyResourceIndex } from "./resource-index.js";
 import type { MutableGreedyResourceIndex } from "./resource-index-write-contracts.js";
-import { createAssetWritePort } from "./asset-write-runtime.js";
+import {
+  createAssetUploadPort,
+  createAssetWritePort,
+} from "./asset-write-runtime.js";
+import {
+  CORE_ASSET_UPLOAD_PORT,
+  type CoreAssetUploadPort,
+} from "../system-extensions/default-api/asset-upload-port.js";
 
 const tokens = createExtensiaInternalNamespace("core.resource-write-runtime");
 export const FULL_RESOURCE_DRIVER: Token<FullResourceDriverAdapter> =
@@ -75,6 +82,7 @@ export const FULL_RESOURCE_DRIVER: Token<FullResourceDriverAdapter> =
 const RUNTIME: Token<FullResourceRuntime> = tokens.token("runtime");
 
 interface FullResourceRuntime {
+  readonly assetUploadPort: CoreAssetUploadPort;
   readonly assetWritePort: CoreAssetWritePort;
   readonly readPort: CoreResourceReadPort;
   readonly writePort: CoreResourceWritePort;
@@ -791,8 +799,10 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
     },
   });
 
+  const assetRuntimeInput = { driver, engine, identities, index };
   return Object.freeze({
-    assetWritePort: createAssetWritePort({ driver, engine, identities, index }),
+    assetUploadPort: createAssetUploadPort(assetRuntimeInput),
+    assetWritePort: createAssetWritePort(assetRuntimeInput),
     readPort: createReadPort(index),
     writePort,
     lifecycle: lifecycleContribution({
@@ -837,6 +847,7 @@ export const FULL_RESOURCE_CORE_MODULE: ReturnType<typeof defineModule> =
       { token: CORE_RESOURCE_READ_PORT, kind: "public-api" },
       { token: CORE_RESOURCE_WRITE_PORT, kind: "public-api" },
       { token: CORE_ASSET_WRITE_PORT, kind: "public-api" },
+      { token: CORE_ASSET_UPLOAD_PORT, kind: "shared-service" },
       {
         token: LIFECYCLE_CONTRIBUTIONS,
         kind: "admin-contribution",
@@ -847,6 +858,10 @@ export const FULL_RESOURCE_CORE_MODULE: ReturnType<typeof defineModule> =
       context
         .bind(RUNTIME)
         .toFactory(({ get }) => createRuntime(get(FULL_RESOURCE_DRIVER)))
+        .singleton();
+      context
+        .bind(CORE_ASSET_UPLOAD_PORT)
+        .toFactory(({ get }) => get(RUNTIME).assetUploadPort)
         .singleton();
       context
         .bind(CORE_ASSET_WRITE_PORT)

@@ -265,7 +265,8 @@ export function validateAssetStorageInvariants(
       !validPayloadState(state) ||
       stateByAsset.has(state.asset_id) ||
       (state.active_upload !== null &&
-        activeUploadIDs.has(state.active_upload.upload_id))
+        (activeUploadIDs.has(state.active_upload.upload_id) ||
+          assets.has(state.active_upload.upload_id)))
     ) {
       return false;
     }

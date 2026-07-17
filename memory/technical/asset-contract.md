@@ -423,7 +423,7 @@ P3-compatible ordering може створити operation ID/clock Timestamp д
 
 ### Current `AssetSnapshot`
 
-Shape збережено. `P4-VS2 / TASK-07.26-0051 / RUN-001` materialize-ила це intentional tightening під `experimental-phase-4`: pure validators тепер перевіряють exact nonempty classifiers, canonical URL, bounded data й local aggregate shape, а coherent command/startup scan — global ownership/lifecycle/timestamp/primary/lineage invariants. Readiness proof concrete SQLite driver передає лише через internal symbol capability; public readonly DTO/method не додається. Bytes transport і upload finalization лишаються P4-VS3; P7 compatibility freeze не заявлений.
+Shape збережено. `P4-VS2 / TASK-07.26-0051 / RUN-001` materialize-ила це intentional tightening під `experimental-phase-4`: pure validators тепер перевіряють exact nonempty classifiers, canonical URL, bounded data й local aggregate shape, а coherent command/startup scan — global ownership/lifecycle/timestamp/primary/lineage invariants. Readiness proof concrete SQLite driver передає лише через internal symbol capability; public readonly DTO/method не додається. `P4-VS3 / TASK-07.26-0052 / RUN-002` materialize-ила internal bytes/finalization contract без зміни public `AssetSnapshot`, root namespace або ordinary `StorageFacade`: opaque handle не enumerable/serializable і має adapter-open-epoch authority; public application bytes/file API лишається окремим bounded design, а P7 compatibility freeze не заявлений.
 
 ### P3 pipeline
 
@@ -444,11 +444,11 @@ P5 будує `assetId→resourceId`, primary та lineage reverse indexes із 
 | P4-WP1 | applied P4-DG1 | concrete Resource durability + opaque future payload capability seam, без Asset semantics | profile conformance/crash proof |
 | P4-VS1 | P4-WP1 | P3 Resource parity on concrete driver | restart/cut-point matrix |
 | P4-VS2 | P4-VS1 + approved/applied P4-DG2 | field/data/url validators; external/internal metadata create/update/primary/reassign/delete; startup Asset integrity; no payload finalization | table/property/integration/concurrency/failure tests |
-| P4-VS3 | P4-VS2 + driver opaque staging primitives | internal upload generation begin/finish/abort/retry; last-ready visibility; atomic payload actions | incomplete/retry/crash/recovery matrix |
+| P4-VS3 | accepted P4-VS2 + explicit corrected RUN-002 activation | exact adapter materialization first; bounded internal resolve/stage/read; upload generation begin/finish/abort/retry; last-ready visibility; atomic payload actions; startup payload integrity | shared fake/SQLite conformance; incomplete/retry/crash/recovery, pressure і package evidence |
 | P5 | accepted Phase 4 | derived global asset/primary/lineage indexes and sync | rebuild/cursor/multi-instance proof |
 | P7 | all gates | public compatibility/schema freeze | packed type/runtime and migration report |
 
-P4-VS2 може materialize internal metadata state seam, але не оголошує bytes transport. P4-VS3 не може стартувати з conceptual methods: потрібен executable driver capability і exact adapter boundary.
+P4-VS2 може materialize internal metadata state seam, але не оголошує bytes transport. RUN-001 виявила circular ownership, бо predecessors лишили conceptual/inactive seam. Explicit human decision 2026-07-17 передало RUN-002 ownership materialize-ити exact executable adapter як first deliverable цього ж slice; consumer lifecycle підключено лише після shared fake/SQLite conformance, без parallel path або послаблення gate.
 
 ## 12. Verification matrix
 

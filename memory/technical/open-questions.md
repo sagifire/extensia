@@ -1,6 +1,6 @@
 # Відкриті технічні питання
 
-Updated: 2026-07-16
+Updated: 2026-07-17
 
 ## Закритий Phase 1 baseline
 
@@ -53,7 +53,7 @@ Updated: 2026-07-16
 
 - Перший concrete profile — `embedded-transactional/local-sqlite-v1`; одна SQLite durability domain, rollback journal, exclusive connection lease, canonical TEXT sequence і recovery/readonly/integrity gates прийняті в ADR-0010.
 - Canonical driver families: `filesystem-native`, `embedded-transactional`, `client-server-transactional`. Shared semantic port не стандартизує family-specific physical layout, SQL або locks.
-- P4-WP1 реалізувала internal `local-sqlite-v1`, P4-VS1 довела повну Phase 3 Resource parity, а P4-VS2 — Asset metadata й staged-generation persistence через shared production composition з bounded Windows local fixed NTFS process-crash/restart, readonly/corruption, packed і pressure evidence. Public/default driver surface, bytes transport/finalization, broader Node/OS/filesystem profiles, performance envelopes і destructive power-loss certificates лишаються окремими gates.
+- P4-WP1 реалізувала internal `local-sqlite-v1`, P4-VS1 довела повну Phase 3 Resource parity, P4-VS2 — Asset metadata й staged-generation persistence, а P4-VS3 — bounded internal SQLite-resident bytes lifecycle через shared production composition з Windows local fixed NTFS process-crash/restart, readonly/corruption, packed, integrity і pressure evidence. Public/default driver surface, ordinary public bytes/file API, streaming strategy, broader payload/performance/Node/OS/filesystem profiles і destructive power-loss certificates лишаються окремими gates.
 
 ## Закритий P4-DG2 baseline
 
@@ -61,7 +61,8 @@ Updated: 2026-07-16
 - U-22: exact field/MIME/extension/WHATWG HTTP(S) URL validation fixed in `asset-contract.md`.
 - U-23: exact `Asset.data` depth/node/container/string/canonical UTF-8 limits fixed; schema evolution remains P7-WP1.
 - U-24: internal create staged-only; replacement retains old committed payload; active upload blocks Resource delete.
-- Still open: P4-VS3 application bytes transport, upload begin/finish/abort/read adapter, broader performance/certification, P5 global indexes/sync і P7 API/schema freeze.
+- `P4-VS3 / RUN-002` завершила exact internal adapter/lifecycle: opaque adapter-epoch handle, bounded stage/read, begin/finish/abort, atomic publish/discard і startup payload integrity через один Core/Operation Engine/SQLite authority.
+- Still open: application-facing bytes/file API design, streaming strategy, P4-STAB, broader payload/performance/platform/power-loss certification, P5 global indexes/sync і P7 API/schema freeze.
 
 ## Закритий filesystem-native design gate
 

@@ -1,5 +1,8 @@
 import { defineConfig } from "vitest/config";
 
+const assetUploadCrashChild =
+  process.env["EXTENSIA_ASSET_UPLOAD_CRASH_CHILD"] === "1";
+
 export default defineConfig({
   test: {
     coverage: {
@@ -9,6 +12,11 @@ export default defineConfig({
       reporter: ["text", "json-summary"],
     },
     environment: "node",
-    include: ["src/**/*.test.ts"],
+    exclude: assetUploadCrashChild
+      ? []
+      : ["src/core/asset-upload-crash-child.test.ts"],
+    include: assetUploadCrashChild
+      ? ["src/core/asset-upload-crash-child.test.ts"]
+      : ["src/**/*.test.ts"],
   },
 });

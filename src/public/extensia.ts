@@ -41,6 +41,10 @@ import type {
   SafeDiagnostic,
   StorageFacade,
 } from "./contracts.js";
+import {
+  CORE_ASSET_UPLOAD_PORT,
+  type CoreAssetUploadPort,
+} from "../system-extensions/default-api/asset-upload-port.js";
 
 const INVALID_CONFIG = Symbol("invalid Extensia config");
 
@@ -51,8 +55,20 @@ interface NormalizedConfig {
 }
 
 interface PublicRuntime {
+  readonly assetUploads: CoreAssetUploadPort | null;
   readonly host: RuntimeLifecycleHost;
   readonly facades: FacadeRegistryAccess;
+}
+
+const internalAssetUploadPorts = new WeakMap<
+  ExtensiaModule,
+  () => CoreAssetUploadPort | null
+>();
+
+export function resolveInternalAssetUploadPort(
+  module: ExtensiaModule,
+): CoreAssetUploadPort | null {
+  return internalAssetUploadPorts.get(module)?.() ?? null;
 }
 
 function isObject(value: unknown): value is object {
@@ -257,22 +273,44 @@ async function composePublicRuntime(
   | { readonly ok: true; readonly runtime: PublicRuntime }
   | { readonly ok: false; readonly diagnostics: readonly SafeDiagnostic[] }
 > {
-  const result = await composeExtensia({
-    register(registry) {
-      const driver = config.storage.driver;
-      const full = resolveFullResourceDriver(driver as FullResourceDriver);
-      if (full !== null) {
+  const driver = config.storage.driver;
+  const full = resolveFullResourceDriver(driver as FullResourceDriver);
+  if (full !== null) {
+    const result = await composeExtensia({
+      register(registry) {
         registry.bindValue(FULL_RESOURCE_DRIVER, full);
         registry.use(FULL_RESOURCE_CORE_MODULE);
         registry.use(FULL_DEFAULT_API_SYSTEM_EXTENSION_MODULE);
-      } else {
-        registry.bindValue(
-          READONLY_RESOURCE_DRIVER,
-          driver as ReadonlyResourceDriver,
-        );
-        registry.use(READONLY_RESOURCE_CORE_MODULE);
-        registry.use(DEFAULT_API_SYSTEM_EXTENSION_MODULE);
-      }
+        registry.use(DEFAULT_API_FACADE_REGISTRY_MODULE);
+        return undefined;
+      },
+      exports: {
+        assetUploads: singleCapability(CORE_ASSET_UPLOAD_PORT),
+        lifecycle: multiCapability(LIFECYCLE_CONTRIBUTIONS),
+        facades: singleCapability(FACADE_REGISTRY_ACCESS),
+      },
+    });
+    if (!result.ok) {
+      return compositionFailure(result.failure);
+    }
+    return Object.freeze({
+      ok: true,
+      runtime: Object.freeze({
+        assetUploads: result.composition.capabilities.assetUploads,
+        facades: result.composition.capabilities.facades,
+        host: createRuntimeLifecycleHost(result.composition),
+      }),
+    });
+  }
+
+  const result = await composeExtensia({
+    register(registry) {
+      registry.bindValue(
+        READONLY_RESOURCE_DRIVER,
+        driver as ReadonlyResourceDriver,
+      );
+      registry.use(READONLY_RESOURCE_CORE_MODULE);
+      registry.use(DEFAULT_API_SYSTEM_EXTENSION_MODULE);
       registry.use(DEFAULT_API_FACADE_REGISTRY_MODULE);
       return undefined;
     },
@@ -283,23 +321,31 @@ async function composePublicRuntime(
   });
 
   if (!result.ok) {
-    return Object.freeze({
-      ok: false,
-      diagnostics: Object.freeze([
-        diagnostic(result.failure.code, "composition"),
-        ...result.failure.diagnostics.map((entry) =>
-          diagnostic(entry.code, "composition"),
-        ),
-      ]),
-    });
+    return compositionFailure(result.failure);
   }
 
   return Object.freeze({
     ok: true,
     runtime: Object.freeze({
+      assetUploads: null,
       facades: result.composition.capabilities.facades,
       host: createRuntimeLifecycleHost(result.composition),
     }),
+  });
+}
+
+function compositionFailure(input: {
+  readonly code: string;
+  readonly diagnostics: readonly { readonly code: string }[];
+}) {
+  return Object.freeze({
+    ok: false as const,
+    diagnostics: Object.freeze([
+      diagnostic(input.code, "composition"),
+      ...input.diagnostics.map((entry) =>
+        diagnostic(entry.code, "composition"),
+      ),
+    ]),
   });
 }
 
@@ -394,7 +440,7 @@ export function createExtensia(config: ExtensiaConfig): ExtensiaModule {
     return result.ok ? success() : failure("STOP_FAILED");
   }
 
-  return Object.freeze({
+  const module = Object.freeze({
     getState(): ExtensiaModuleState {
       reconcileRuntimeFault();
       return state;
@@ -445,6 +491,10 @@ export function createExtensia(config: ExtensiaConfig): ExtensiaModule {
       });
     },
   });
+  internalAssetUploadPorts.set(module, () =>
+    state === "started" ? (runtime?.assetUploads ?? null) : null,
+  );
+  return module;
 
   function reconcileRuntimeFault(): void {
     if (state === "started" && runtime?.facades.inspect().ready === false) {

@@ -2,7 +2,7 @@
 
 ## Призначення
 
-Prepared run для P4-VS3; activation залежить від accepted P4-VS2 та executable capability gate.
+Blocked activation attempt для P4-VS3: accepted P4-VS2 підтверджено, executable capability gate відсутній.
 
 ## Папки
 
@@ -11,4 +11,4 @@ Prepared run для P4-VS3; activation залежить від accepted P4-VS2 �
 ## Файли
 
 - [Context](context.md) - Snapshot upload lifecycle, capability gate, scope і verification до активації.
-
+- [Result](result.md) - Capability audit, blocker evidence і Decision Request; production execution не починалося.

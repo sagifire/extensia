@@ -28,6 +28,15 @@ import type {
   ResourceStorageSession,
   ResourceWriteTransaction,
 } from "./resource-write-protocol.js";
+import {
+  assetUploadDigest,
+  attachAssetUploadSessionCapability,
+  createAssetUploadHandle,
+  createAssetUploadHandleAuthority,
+  isAssetUploadHandle,
+  validateAssetUploadBytes,
+  type AssetUploadHandleAuthority,
+} from "./asset-upload-capability.js";
 
 export type DeterministicFullDriverCutPoint =
   | "open"
@@ -44,6 +53,8 @@ export type DeterministicFullDriverCutPoint =
   | "transaction.commit.before"
   | "transaction.commit.after-durable"
   | "transaction.abort"
+  | "asset-upload.stage.before"
+  | "asset-upload.stage.after"
   | "session.release";
 
 export class DeterministicDriverCrashError extends Error {
@@ -67,6 +78,7 @@ interface StagingManifest {
 
 export interface DeterministicFullDriverBacking {
   readonly assetPayloadStates: Map<IDString, AssetPayloadState>;
+  readonly assetPayloadBytes: Map<IDString, Uint8Array>;
   readonly resources: Map<IDString, ResourceSnapshot>;
   readonly journal: CommittedOperationEntry[];
   readonly staging: Map<IDString, StagingManifest>;
@@ -74,6 +86,7 @@ export interface DeterministicFullDriverBacking {
 
 export function createDeterministicFullDriverBacking(): DeterministicFullDriverBacking {
   return {
+    assetPayloadBytes: new Map(),
     assetPayloadStates: new Map(),
     journal: [],
     resources: new Map(),
@@ -169,6 +182,7 @@ export interface DeterministicFullDriverFixture {
   crashNext(point: DeterministicFullDriverCutPoint): void;
   inspect(): Readonly<{
     asset_payload_states: readonly AssetPayloadState[];
+    asset_payload_ids: readonly IDString[];
     resources: readonly ResourceSnapshot[];
     journal: readonly CommittedOperationEntry[];
     staging_operations: readonly IDString[];
@@ -184,6 +198,7 @@ export function createDeterministicFullResourceDriver(
   let activeSession = false;
   let crashRelease: (() => void) | null = null;
   let generation = 0;
+  let uploadHandleAuthority = createAssetUploadHandleAuthority();
   const failures = new FailurePlan(() => {
     const release = crashRelease;
     crashRelease = null;
@@ -254,6 +269,7 @@ export function createDeterministicFullResourceDriver(
     async open() {
       failures.hit("open");
       if (opened) throw new Error("Driver is already open");
+      uploadHandleAuthority = createAssetUploadHandleAuthority();
       opened = true;
     },
     async close() {
@@ -290,6 +306,7 @@ export function createDeterministicFullResourceDriver(
             releaseOwnedLease();
           },
           () => generation === sessionGeneration,
+          uploadHandleAuthority,
         );
       } catch (error) {
         activeSession = false;
@@ -327,6 +344,7 @@ export function createDeterministicFullResourceDriver(
     },
     inspect() {
       return {
+        asset_payload_ids: [...backing.assetPayloadBytes.keys()].sort(),
         asset_payload_states: [...backing.assetPayloadStates.values()].map(
           cloneAssetPayloadState,
         ),
@@ -358,6 +376,27 @@ function validateBacking(backing: DeterministicFullDriverBacking): void {
     throw new ResourceStorageIntegrityError(
       "Deterministic Asset storage state is invalid",
     );
+  }
+  const allowedPayloadIDs = new Set<IDString>();
+  for (const state of backing.assetPayloadStates.values()) {
+    if (state.committed) {
+      allowedPayloadIDs.add(state.asset_id);
+      if (!backing.assetPayloadBytes.has(state.asset_id)) {
+        throw new ResourceStorageIntegrityError(
+          "Deterministic committed Asset payload bytes are missing",
+        );
+      }
+    }
+    if (state.active_upload !== null) {
+      allowedPayloadIDs.add(state.active_upload.upload_id);
+    }
+  }
+  for (const payloadID of backing.assetPayloadBytes.keys()) {
+    if (!allowedPayloadIDs.has(payloadID)) {
+      throw new ResourceStorageIntegrityError(
+        "Deterministic Asset payload bytes are orphaned",
+      );
+    }
   }
 }
 
@@ -392,6 +431,7 @@ function createSession(
   recovery: ResourceRecoveryReport,
   releaseLease: () => void,
   isGenerationActive: () => boolean,
+  uploadHandleAuthority: AssetUploadHandleAuthority,
 ): ResourceStorageSession {
   let released = false;
   const assertActive = () => {
@@ -401,7 +441,7 @@ function createSession(
       );
     }
   };
-  return {
+  const session: ResourceStorageSession = {
     recovery,
     async *listResources() {
       assertActive();
@@ -467,6 +507,96 @@ function createSession(
       failures.hit("session.release");
     },
   };
+  return attachAssetUploadSessionCapability(session, {
+    ownsHandle(handle) {
+      return isAssetUploadHandle(handle, uploadHandleAuthority);
+    },
+    issueHandle(resourceId, assetId, uploadId) {
+      assertActive();
+      return createAssetUploadHandle(
+        {
+          asset_id: assetId,
+          resource_id: resourceId,
+          upload_id: uploadId,
+        },
+        uploadHandleAuthority,
+      );
+    },
+    async resolveActiveUpload(resourceId, assetId) {
+      assertActive();
+      const resource = backing.resources.get(resourceId);
+      const state = backing.assetPayloadStates.get(assetId);
+      if (
+        resource === undefined ||
+        resource.data.is_deleted ||
+        !resource.assets.some((asset) => asset.id === assetId) ||
+        state?.active_upload === null ||
+        state === undefined
+      ) {
+        return null;
+      }
+      return createAssetUploadHandle(
+        {
+          asset_id: assetId,
+          resource_id: resourceId,
+          upload_id: state.active_upload.upload_id,
+        },
+        uploadHandleAuthority,
+      );
+    },
+    async stageBytes(handle, bytes) {
+      assertActive();
+      if (!isAssetUploadHandle(handle, uploadHandleAuthority)) return null;
+      validateAssetUploadBytes(bytes);
+      const resource = backing.resources.get(handle.resource_id);
+      const state = backing.assetPayloadStates.get(handle.asset_id);
+      if (
+        resource === undefined ||
+        resource.data.is_deleted ||
+        !resource.assets.some((asset) => asset.id === handle.asset_id) ||
+        state?.active_upload?.upload_id !== handle.upload_id
+      ) {
+        return null;
+      }
+      failures.hit("asset-upload.stage.before");
+      const detached = new Uint8Array(bytes);
+      backing.assetPayloadBytes.set(handle.upload_id, detached);
+      failures.hit("asset-upload.stage.after");
+      return Object.freeze({
+        byte_length: detached.byteLength,
+        digest: assetUploadDigest(detached),
+      });
+    },
+    async inspectStagedUpload(handle) {
+      assertActive();
+      if (!isAssetUploadHandle(handle, uploadHandleAuthority)) return null;
+      const state = backing.assetPayloadStates.get(handle.asset_id);
+      const bytes = backing.assetPayloadBytes.get(handle.upload_id);
+      if (
+        state?.active_upload?.upload_id !== handle.upload_id ||
+        bytes === undefined
+      ) {
+        return null;
+      }
+      return Object.freeze({
+        byte_length: bytes.byteLength,
+        digest: assetUploadDigest(bytes),
+      });
+    },
+    async readCommitted(resourceId, assetId) {
+      assertActive();
+      const resource = backing.resources.get(resourceId);
+      const state = backing.assetPayloadStates.get(assetId);
+      const bytes = backing.assetPayloadBytes.get(assetId);
+      return resource !== undefined &&
+        !resource.data.is_deleted &&
+        resource.assets.some((asset) => asset.id === assetId) &&
+        state?.committed === true &&
+        bytes !== undefined
+        ? new Uint8Array(bytes)
+        : null;
+    },
+  });
 }
 
 function createTransaction(
@@ -574,14 +704,15 @@ function createTransaction(
       for (const resource of manifest.resources) {
         nextResources.set(resource.data.id, buildResourceSnapshot(resource));
       }
-      const nextPayloadStates = prepareAssetPayloadStates(
+      const nextPayload = prepareAssetPayloadState(
         backing.assetPayloadStates,
+        backing.assetPayloadBytes,
         manifest.assetChanges,
       );
       if (
         !validateAssetStorageInvariants(
           [...nextResources.values()],
-          [...nextPayloadStates.values()],
+          [...nextPayload.states.values()],
         )
       ) {
         throw new ResourceStorageIntegrityError(
@@ -591,8 +722,12 @@ function createTransaction(
       backing.resources.clear();
       nextResources.forEach((value, key) => backing.resources.set(key, value));
       backing.assetPayloadStates.clear();
-      nextPayloadStates.forEach((value, key) =>
+      nextPayload.states.forEach((value, key) =>
         backing.assetPayloadStates.set(key, value),
+      );
+      backing.assetPayloadBytes.clear();
+      nextPayload.bytes.forEach((value, key) =>
+        backing.assetPayloadBytes.set(key, new Uint8Array(value)),
       );
       backing.journal.push(entry);
       manifest.phase = "committed-needs-finalization";
@@ -624,12 +759,18 @@ function canonicalAssetChanges(changes: readonly AssetLogicalChange[]): string {
   return canonicalResourceStorageJson(changes.map(cloneAssetLogicalChange));
 }
 
-function prepareAssetPayloadStates(
+function prepareAssetPayloadState(
   current: ReadonlyMap<IDString, AssetPayloadState>,
+  currentBytes: ReadonlyMap<IDString, Uint8Array>,
   changes: readonly AssetLogicalChange[],
-): Map<IDString, AssetPayloadState> {
+): {
+  readonly states: Map<IDString, AssetPayloadState>;
+  readonly bytes: Map<IDString, Uint8Array>;
+} {
   const next = new Map<IDString, AssetPayloadState>();
+  const bytes = new Map<IDString, Uint8Array>();
   current.forEach((value, key) => next.set(key, cloneAssetPayloadState(value)));
+  currentBytes.forEach((value, key) => bytes.set(key, new Uint8Array(value)));
   for (const change of changes) {
     const state = next.get(change.asset_id);
     switch (change.payload_action.kind) {
@@ -638,6 +779,8 @@ function prepareAssetPayloadStates(
       case "generation.create": {
         const replacement = change.state_after === "replacement-uploading";
         if (
+          change.payload_action.upload_id === change.asset_id ||
+          bytes.has(change.payload_action.upload_id) ||
           (replacement &&
             (state === undefined ||
               !state.committed ||
@@ -675,6 +818,7 @@ function prepareAssetPayloadStates(
         } else {
           next.delete(change.asset_id);
         }
+        bytes.delete(change.payload_action.upload_id);
         break;
       case "payload.delete":
         if (
@@ -687,6 +831,11 @@ function prepareAssetPayloadStates(
           );
         }
         next.delete(change.asset_id);
+        if (!bytes.delete(change.asset_id)) {
+          throw new ResourceStorageIntegrityError(
+            "Asset committed payload bytes are missing",
+          );
+        }
         break;
       case "payload.delete-and-generation.discard":
         if (
@@ -699,12 +848,44 @@ function prepareAssetPayloadStates(
           );
         }
         next.delete(change.asset_id);
+        if (!bytes.delete(change.asset_id)) {
+          throw new ResourceStorageIntegrityError(
+            "Asset committed payload bytes are missing",
+          );
+        }
+        bytes.delete(change.payload_action.upload_id);
         break;
-      case "generation.publish":
-        throw new ResourceStorageIntegrityError(
-          "Asset generation publication is not implemented in P4-VS2",
-        );
+      case "generation.publish": {
+        const staged = bytes.get(change.payload_action.upload_id);
+        if (
+          staged === undefined ||
+          state?.active_upload?.upload_id !== change.payload_action.upload_id ||
+          state.active_upload.replaces_committed !==
+            change.payload_action.replaces_committed ||
+          state.committed !== change.payload_action.replaces_committed
+        ) {
+          throw new ResourceStorageIntegrityError(
+            "Asset generation publication state is invalid",
+          );
+        }
+        if (
+          change.payload_action.replaces_committed &&
+          !bytes.has(change.asset_id)
+        ) {
+          throw new ResourceStorageIntegrityError(
+            "Asset replacement payload bytes are missing",
+          );
+        }
+        bytes.set(change.asset_id, new Uint8Array(staged));
+        bytes.delete(change.payload_action.upload_id);
+        next.set(change.asset_id, {
+          active_upload: null,
+          asset_id: change.asset_id,
+          committed: true,
+        });
+        break;
+      }
     }
   }
-  return next;
+  return { bytes, states: next };
 }

@@ -37,7 +37,10 @@ export type AssetOperationType =
   | "asset.update"
   | "asset.primary.set"
   | "asset.reassign"
-  | "asset.delete";
+  | "asset.delete"
+  | "asset.upload.begin"
+  | "asset.upload.finish"
+  | "asset.upload.abort";
 
 export type AssetLifecycleState =
   "external-ready" | "initial-uploading" | "ready" | "replacement-uploading";

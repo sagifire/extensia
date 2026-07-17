@@ -2,7 +2,7 @@
 
 Status: accepted target design
 Date: 2026-07-12
-Updated: 2026-07-16
+Updated: 2026-07-17
 Decision Owner: P4-DG1 / TASK-07.26-0039
 Evidence: `memory/reports/research/2026-07-12-extensia-concrete-storage-protocol.md`
 
@@ -13,7 +13,7 @@ Phase 3 довела semantic commit на deterministic fake, але не physic
 ## Рішення
 
 - Перший concrete driver — internal `local-sqlite-v1`, profile family `embedded-transactional`, на Node.js 24 `node:sqlite`.
-- Одна SQLite durability domain містить Resource metadata, committed journal і майбутні opaque payload chunks. External filesystem blob publication у baseline заборонена.
+- Одна SQLite durability domain містить Resource metadata, committed journal і bounded staged та committed opaque payload chunks. External filesystem blob publication у baseline заборонена.
 - Proposed initial support boundary: Windows 11 local NTFS, one host, one full writer. Certification потребує P4-WP1 crash/lock proof. Linux ext4/XFS лишається candidate до окремої certification. Network/removable/sync/FUSE/direct mutation unsupported.
 - Physical profile використовує rollback journal, `synchronous=EXTRA` і dedicated `locking_mode=EXCLUSIVE` connection як lease від storage-session acquire через recovery/scan/commit/Core publication до release. PID/stale lock file заборонений.
 - Одна SQLite transaction записує logical metadata, operation fingerprint і рівно один committed `journal` row. `journal` є єдиним committed journal authority; independent append заборонений.
@@ -22,6 +22,7 @@ Phase 3 довела semantic commit на deterministic fake, але не physic
 - Full startup виконує recovery-before-ready. Readonly open не виконує hidden recovery/cleanup writes і fail-close, якщо ready потребує mutation.
 - Physical root містить driver-owned `extensia.sqlite3` і SQLite-private rollback journal. Logical IDs не стають paths; symlink/reparse/non-regular DB target відхиляється.
 - `application_id`, current `user_version=2`, singleton format marker, exact schema/quick-check, canonical JSON/fingerprint/sequence/payload/generation integrity перевіряються до ready. Version `1` є єдиним accepted legacy input: full owner після повної validation й доказу порожнього legacy payload seam атомарно додає `asset_upload_generations` та оновлює обидва version markers; readonly валідовує version `1` без mutation. Unknown/corrupt або nonempty unsupported legacy state fail-close; deterministic schema migration не є automatic repair.
+- P4-VS3 використовує current `user_version=2` без migration: `payloads`/`payload_chunks` key-яться opaque active upload ID до finish і Asset ID після publish. Stage виконується invisible whole-payload transaction без journal; publish/discard/delete є compound actions semantic metadata/journal transaction. Exact 64 KiB chunks, 16 MiB payload maximum, SHA-256/length/continuity scan і adapter-epoch handle authority є internal profile constraints, не public Storage Driver API.
 - Device power-loss за dishonest cache, network filesystem і uncertified filesystem guarantees не заявляються.
 
 ## Implementation gate
@@ -36,4 +37,4 @@ P4-WP1 має довести child-process cut points, fault injection, dual-pla
 
 ## Наслідки
 
-`local-sqlite-v1` є first/default concrete profile `0.1.0`, але не universal physical model Storage Driver. P4-WP1, P4-VS1 і P4-VS2 реалізували internal production capability для Resource parity, Asset metadata та staged-generation persistence з bounded current-host Windows local NTFS process-crash evidence. Public/default driver surface, broader platform/performance certification і destructive power-loss guarantee не заявлені.
+`local-sqlite-v1` є first/default concrete profile `0.1.0`, але не universal physical model Storage Driver. P4-WP1, P4-VS1, P4-VS2 і P4-VS3 реалізували internal production capability для Resource parity, Asset metadata, staged-generation persistence та bounded internal bytes lifecycle з current-host Windows local NTFS process-crash evidence. P4-STAB, public/default driver surface, ordinary application bytes/file API, broader platform/performance certification і destructive power-loss guarantee не заявлені.

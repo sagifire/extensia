@@ -14,6 +14,9 @@ import type {
   ResourceOperationType,
 } from "../storage/resource-write-protocol.js";
 
+export type AssetTransportOperationType =
+  "asset.upload.resolve" | "asset.upload.stage" | "asset.file.read";
+
 export type OperationPipelineState =
   | "admitted"
   | "waiting-for-locks"
@@ -28,7 +31,8 @@ export type OperationPipelineState =
 export interface ResourceOperationPlan {
   readonly operation_id: IDString;
   readonly actor_id: IDString;
-  readonly type: ResourceOperationType | AssetOperationType;
+  readonly type:
+    ResourceOperationType | AssetOperationType | AssetTransportOperationType;
   readonly resource_hints: readonly IDString[];
   readonly lock_keys: readonly string[];
 }

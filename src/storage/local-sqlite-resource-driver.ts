@@ -44,6 +44,20 @@ import {
   AssetStorageIntegrityError,
   ResourceRuntimeIntegrityError,
 } from "./resource-runtime-integrity.js";
+import {
+  ASSET_UPLOAD_CHUNK_BYTES,
+  ASSET_UPLOAD_MAX_BYTES,
+  assetUploadChunkCount,
+  assetUploadDigest,
+  attachAssetUploadSessionCapability,
+  createAssetUploadHandle,
+  createAssetUploadHandleAuthority,
+  isAssetUploadHandle,
+  validateAssetUploadBytes,
+  type AssetUploadHandle,
+  type AssetUploadHandleAuthority,
+  type StagedAssetUpload,
+} from "./asset-upload-capability.js";
 
 const APPLICATION_ID = 1_163_416_625;
 const FORMAT = "extensia-local-sqlite";
@@ -65,6 +79,9 @@ const OPERATION_TYPES = new Set<CommittedOperationEntry["type"]>([
   "asset.primary.set",
   "asset.reassign",
   "asset.delete",
+  "asset.upload.begin",
+  "asset.upload.finish",
+  "asset.upload.abort",
 ]);
 
 const SCHEMA = `
@@ -221,6 +238,9 @@ export type LocalSqliteFaultPoint =
   | "transaction.after-journal-write"
   | "transaction.before-commit"
   | "transaction.after-commit"
+  | "asset-upload.stage.before-write"
+  | "asset-upload.stage.after-write"
+  | "asset-upload.stage.after-commit"
   | "reconciliation.before-reopen"
   | "reconciliation.before-query"
   | "readonly.after-open";
@@ -310,12 +330,14 @@ export function createLocalSqliteFullResourceDriver(
   const options = normalizeOptions(input);
   let openedRoot: ResolvedRoot | null = null;
   let sessionActive = false;
+  let uploadHandleAuthority = createAssetUploadHandleAuthority();
 
   return Object.freeze({
     mode: "full" as const,
     async open() {
       if (openedRoot !== null) throw new Error("Driver is already open");
       openedRoot = resolveStorageRoot(options);
+      uploadHandleAuthority = createAssetUploadHandleAuthority();
     },
     async close() {
       if (sessionActive) throw new Error("Cannot close with an active session");
@@ -331,9 +353,15 @@ export function createLocalSqliteFullResourceDriver(
       try {
         connection = openFullConnection(openedRoot, options);
         options.faults?.hit("session.after-lock");
-        return createFullSession(openedRoot, options, connection, () => {
-          sessionActive = false;
-        });
+        return createFullSession(
+          openedRoot,
+          options,
+          connection,
+          () => {
+            sessionActive = false;
+          },
+          uploadHandleAuthority,
+        );
       } catch (error) {
         connection?.db.close();
         sessionActive = false;
@@ -830,6 +858,25 @@ function normalizeSchemaSql(sql: string): string {
 
 function loadAssetPayloadStates(db: DatabaseSync): AssetPayloadState[] {
   const states = new Map<IDString, AssetPayloadState>();
+  const generationRows = db
+    .prepare(
+      "SELECT asset_id, upload_id, replaces_committed FROM asset_upload_generations ORDER BY asset_id",
+    )
+    .all() as AssetGenerationRow[];
+  const stagedPayloadIDs = new Set<IDString>();
+  for (const row of generationRows) {
+    if (
+      !isIDString(row.asset_id) ||
+      !isIDString(row.upload_id) ||
+      (row.replaces_committed !== 0 && row.replaces_committed !== 1) ||
+      stagedPayloadIDs.has(row.upload_id)
+    ) {
+      throw new AssetStorageIntegrityError(
+        "SQLite Asset upload generation is invalid",
+      );
+    }
+    stagedPayloadIDs.add(row.upload_id);
+  }
   const payloadRows = db
     .prepare("SELECT payload_id FROM payloads ORDER BY payload_id")
     .all();
@@ -840,38 +887,133 @@ function loadAssetPayloadStates(db: DatabaseSync): AssetPayloadState[] {
         "SQLite committed Asset payload identity is invalid",
       );
     }
+    loadPayloadBytes(db, assetID);
+    if (stagedPayloadIDs.has(assetID)) continue;
     states.set(assetID, {
       active_upload: null,
       asset_id: assetID,
       committed: true,
     });
   }
-  const generationRows = db
-    .prepare(
-      "SELECT asset_id, upload_id, replaces_committed FROM asset_upload_generations ORDER BY asset_id",
-    )
-    .all() as AssetGenerationRow[];
   for (const row of generationRows) {
-    if (
-      !isIDString(row.asset_id) ||
-      !isIDString(row.upload_id) ||
-      (row.replaces_committed !== 0 && row.replaces_committed !== 1)
-    ) {
-      throw new AssetStorageIntegrityError(
-        "SQLite Asset upload generation is invalid",
-      );
-    }
-    const committed = states.has(row.asset_id);
-    states.set(row.asset_id, {
+    const assetId = row.asset_id as IDString;
+    const uploadId = row.upload_id as IDString;
+    const committed = states.has(assetId);
+    states.set(assetId, {
       active_upload: {
         replaces_committed: row.replaces_committed === 1,
-        upload_id: row.upload_id,
+        upload_id: uploadId,
       },
-      asset_id: row.asset_id,
+      asset_id: assetId,
       committed,
     });
   }
   return [...states.values()];
+}
+
+function loadPayloadBytes(
+  db: DatabaseSync,
+  payloadId: IDString,
+): { readonly bytes: Uint8Array; readonly staged: StagedAssetUpload } | null {
+  const row = db
+    .prepare("SELECT digest, byte_length FROM payloads WHERE payload_id = ?")
+    .get(payloadId);
+  if (row === undefined) return null;
+  const digest = row["digest"];
+  const byteLength = row["byte_length"];
+  if (
+    typeof digest !== "string" ||
+    !/^[0-9a-f]{64}$/.test(digest) ||
+    !Number.isSafeInteger(byteLength) ||
+    (byteLength as number) < 0 ||
+    (byteLength as number) > ASSET_UPLOAD_MAX_BYTES
+  ) {
+    throw new AssetStorageIntegrityError("SQLite Asset payload is invalid");
+  }
+  const chunks = db
+    .prepare(
+      "SELECT chunk_index, bytes FROM payload_chunks WHERE payload_id = ? ORDER BY chunk_index",
+    )
+    .all(payloadId);
+  const expectedChunks = assetUploadChunkCount(byteLength as number);
+  if (chunks.length !== expectedChunks) {
+    throw new AssetStorageIntegrityError(
+      "SQLite Asset payload chunks are incomplete",
+    );
+  }
+  const bytes = new Uint8Array(byteLength as number);
+  let offset = 0;
+  for (let index = 0; index < chunks.length; index += 1) {
+    const chunk = chunks[index]!;
+    const value = chunk["bytes"];
+    const expectedLength = Math.min(
+      ASSET_UPLOAD_CHUNK_BYTES,
+      (byteLength as number) - offset,
+    );
+    if (
+      chunk["chunk_index"] !== index ||
+      !(value instanceof Uint8Array) ||
+      value.byteLength !== expectedLength
+    ) {
+      throw new AssetStorageIntegrityError(
+        "SQLite Asset payload chunk is invalid",
+      );
+    }
+    bytes.set(value, offset);
+    offset += value.byteLength;
+  }
+  if (offset !== byteLength || assetUploadDigest(bytes) !== digest) {
+    throw new AssetStorageIntegrityError(
+      "SQLite Asset payload digest or length is invalid",
+    );
+  }
+  return {
+    bytes,
+    staged: Object.freeze({ byte_length: byteLength as number, digest }),
+  };
+}
+
+function resourceOwnsAsset(
+  db: DatabaseSync,
+  resourceId: IDString,
+  assetId: IDString,
+): boolean {
+  const row = db
+    .prepare(
+      "SELECT id, snapshot_json, tombstoned, revision FROM resources WHERE id = ?",
+    )
+    .get(resourceId) as ResourceRow | undefined;
+  if (row === undefined) return false;
+  const resource = decodeResourceRow(row);
+  return (
+    !resource.data.is_deleted &&
+    resource.assets.some((asset) => asset.id === assetId)
+  );
+}
+
+function resolveActiveUploadHandle(
+  db: DatabaseSync,
+  resourceId: IDString,
+  assetId: IDString,
+  uploadHandleAuthority: AssetUploadHandleAuthority,
+): AssetUploadHandle | null {
+  if (!resourceOwnsAsset(db, resourceId, assetId)) return null;
+  const row = db
+    .prepare(
+      "SELECT upload_id FROM asset_upload_generations WHERE asset_id = ?",
+    )
+    .get(assetId);
+  const uploadId = row?.["upload_id"];
+  return isIDString(uploadId)
+    ? createAssetUploadHandle(
+        {
+          asset_id: assetId,
+          resource_id: resourceId,
+          upload_id: uploadId,
+        },
+        uploadHandleAuthority,
+      )
+    : null;
 }
 
 function loadResources(db: DatabaseSync): ResourceSnapshot[] {
@@ -1072,6 +1214,7 @@ function createFullSession(
   options: NormalizedOptions,
   initial: ConnectionState,
   releaseOwnership: () => void,
+  uploadHandleAuthority: AssetUploadHandleAuthority,
 ): ResourceStorageSession {
   let connection = initial;
   let released = false;
@@ -1102,7 +1245,7 @@ function createFullSession(
     resolveTransactionSettlement = undefined;
   };
 
-  return {
+  const session: ResourceStorageSession = {
     recovery: initial.recovery,
     async *listResources() {
       assertActive();
@@ -1193,6 +1336,115 @@ function createFullSession(
       return releasePromise;
     },
   };
+
+  return attachAssetUploadSessionCapability(session, {
+    ownsHandle(handle) {
+      return isAssetUploadHandle(handle, uploadHandleAuthority);
+    },
+    issueHandle(resourceId, assetId, uploadId) {
+      assertActive();
+      return createAssetUploadHandle(
+        {
+          asset_id: assetId,
+          resource_id: resourceId,
+          upload_id: uploadId,
+        },
+        uploadHandleAuthority,
+      );
+    },
+    async resolveActiveUpload(resourceId, assetId) {
+      assertActive();
+      if (transactionActive) {
+        throw new Error("Cannot resolve an Asset upload during a transaction");
+      }
+      return resolveActiveUploadHandle(
+        connection.db,
+        resourceId,
+        assetId,
+        uploadHandleAuthority,
+      );
+    },
+    async stageBytes(handle, bytes) {
+      assertActive();
+      if (transactionActive) {
+        throw new Error("Cannot stage Asset bytes during a transaction");
+      }
+      if (!isAssetUploadHandle(handle, uploadHandleAuthority)) return null;
+      validateAssetUploadBytes(bytes);
+      const active = resolveActiveUploadHandle(
+        connection.db,
+        handle.resource_id,
+        handle.asset_id,
+        uploadHandleAuthority,
+      );
+      if (active?.upload_id !== handle.upload_id) return null;
+      if (handle.upload_id === handle.asset_id) {
+        throw new AssetStorageIntegrityError(
+          "SQLite Asset upload identity collides with its Asset",
+        );
+      }
+      const digest = assetUploadDigest(bytes);
+      const db = connection.db;
+      db.exec("BEGIN IMMEDIATE");
+      try {
+        options.faults?.hit("asset-upload.stage.before-write");
+        db.prepare("DELETE FROM payloads WHERE payload_id = ?").run(
+          handle.upload_id,
+        );
+        db.prepare(
+          "INSERT INTO payloads(payload_id, digest, byte_length) VALUES (?, ?, ?)",
+        ).run(handle.upload_id, digest, bytes.byteLength);
+        const insert = db.prepare(
+          "INSERT INTO payload_chunks(payload_id, chunk_index, bytes) VALUES (?, ?, ?)",
+        );
+        for (
+          let offset = 0, chunkIndex = 0;
+          offset < bytes.byteLength;
+          offset += ASSET_UPLOAD_CHUNK_BYTES, chunkIndex += 1
+        ) {
+          insert.run(
+            handle.upload_id,
+            chunkIndex,
+            bytes.subarray(offset, offset + ASSET_UPLOAD_CHUNK_BYTES),
+          );
+        }
+        options.faults?.hit("asset-upload.stage.after-write");
+        db.exec("COMMIT");
+        options.faults?.hit("asset-upload.stage.after-commit");
+        return Object.freeze({
+          byte_length: bytes.byteLength,
+          digest,
+        });
+      } catch (error) {
+        if (db.isTransaction) db.exec("ROLLBACK");
+        throw normalizeSqliteIntegrityError(error);
+      }
+    },
+    async inspectStagedUpload(handle) {
+      assertActive();
+      if (transactionActive) {
+        throw new Error("Cannot inspect Asset bytes during a transaction");
+      }
+      if (!isAssetUploadHandle(handle, uploadHandleAuthority)) return null;
+      const active = resolveActiveUploadHandle(
+        connection.db,
+        handle.resource_id,
+        handle.asset_id,
+        uploadHandleAuthority,
+      );
+      if (active?.upload_id !== handle.upload_id) return null;
+      return loadPayloadBytes(connection.db, handle.upload_id)?.staged ?? null;
+    },
+    async readCommitted(resourceId, assetId) {
+      assertActive();
+      if (transactionActive) {
+        throw new Error("Cannot read Asset bytes during a transaction");
+      }
+      if (!resourceOwnsAsset(connection.db, resourceId, assetId)) return null;
+      const payload = loadPayloadBytes(connection.db, assetId);
+      return payload === null ? null : new Uint8Array(payload.bytes);
+    },
+  });
 }
 
 function createWriteTransaction(
@@ -1381,7 +1633,17 @@ function writeAssetPayloadChanges(
     switch (change.payload_action.kind) {
       case "none":
         break;
-      case "generation.create":
+      case "generation.create": {
+        if (
+          change.payload_action.upload_id === change.asset_id ||
+          db
+            .prepare("SELECT 1 AS present FROM payloads WHERE payload_id = ?")
+            .get(change.payload_action.upload_id) !== undefined
+        ) {
+          throw new AssetStorageIntegrityError(
+            "SQLite Asset upload identity collides with payload state",
+          );
+        }
         db.prepare(
           `INSERT INTO asset_upload_generations(
              asset_id, upload_id, replaces_committed
@@ -1392,7 +1654,11 @@ function writeAssetPayloadChanges(
           Number(change.state_after === "replacement-uploading"),
         );
         break;
+      }
       case "generation.discard": {
+        db.prepare("DELETE FROM payloads WHERE payload_id = ?").run(
+          change.payload_action.upload_id,
+        );
         const result = db
           .prepare(
             "DELETE FROM asset_upload_generations WHERE asset_id = ? AND upload_id = ?",
@@ -1417,6 +1683,9 @@ function writeAssetPayloadChanges(
         break;
       }
       case "payload.delete-and-generation.discard": {
+        db.prepare("DELETE FROM payloads WHERE payload_id = ?").run(
+          change.payload_action.upload_id,
+        );
         const generation = db
           .prepare(
             "DELETE FROM asset_upload_generations WHERE asset_id = ? AND upload_id = ?",
@@ -1432,10 +1701,67 @@ function writeAssetPayloadChanges(
         }
         break;
       }
-      case "generation.publish":
-        throw new AssetStorageIntegrityError(
-          "SQLite Asset generation publication is not implemented in P4-VS2",
-        );
+      case "generation.publish": {
+        const generation = db
+          .prepare(
+            "SELECT upload_id, replaces_committed FROM asset_upload_generations WHERE asset_id = ?",
+          )
+          .get(change.asset_id);
+        if (
+          generation?.["upload_id"] !== change.payload_action.upload_id ||
+          generation["replaces_committed"] !==
+            Number(change.payload_action.replaces_committed)
+        ) {
+          throw new AssetStorageIntegrityError(
+            "SQLite Asset generation publication did not match active state",
+          );
+        }
+        const staged = loadPayloadBytes(db, change.payload_action.upload_id);
+        if (staged === null) {
+          throw new AssetStorageIntegrityError(
+            "SQLite Asset generation publication is incomplete",
+          );
+        }
+        const removedCommitted = db
+          .prepare("DELETE FROM payloads WHERE payload_id = ?")
+          .run(change.asset_id);
+        if (
+          removedCommitted.changes !==
+          Number(change.payload_action.replaces_committed)
+        ) {
+          throw new AssetStorageIntegrityError(
+            "SQLite Asset generation replacement state is invalid",
+          );
+        }
+        const inserted = db
+          .prepare(
+            `INSERT INTO payloads(payload_id, digest, byte_length)
+             SELECT ?, digest, byte_length FROM payloads WHERE payload_id = ?`,
+          )
+          .run(change.asset_id, change.payload_action.upload_id);
+        if (inserted.changes !== 1) {
+          throw new AssetStorageIntegrityError(
+            "SQLite Asset generation publication payload is missing",
+          );
+        }
+        db.prepare(
+          "UPDATE payload_chunks SET payload_id = ? WHERE payload_id = ?",
+        ).run(change.asset_id, change.payload_action.upload_id);
+        const removedStaged = db
+          .prepare("DELETE FROM payloads WHERE payload_id = ?")
+          .run(change.payload_action.upload_id);
+        const removedGeneration = db
+          .prepare(
+            "DELETE FROM asset_upload_generations WHERE asset_id = ? AND upload_id = ?",
+          )
+          .run(change.asset_id, change.payload_action.upload_id);
+        if (removedStaged.changes !== 1 || removedGeneration.changes !== 1) {
+          throw new AssetStorageIntegrityError(
+            "SQLite Asset generation publication cleanup is invalid",
+          );
+        }
+        break;
+      }
     }
   }
 }

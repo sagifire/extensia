@@ -48,6 +48,19 @@ import type {
 } from "../system-extensions/default-api/asset-write-port.js";
 import { validateResourceHierarchy } from "../domain/resource-hierarchy.js";
 import type { MutableGreedyResourceIndex } from "./resource-index-write-contracts.js";
+import {
+  isAssetUploadHandle,
+  resolveAssetUploadSessionCapability,
+  validateAssetUploadBytes,
+  type AssetUploadHandle,
+} from "../storage/asset-upload-capability.js";
+import type {
+  AssetUploadReadSuccess,
+  AssetUploadStageSuccess,
+  CoreAssetUploadFailureCode,
+  CoreAssetUploadPort,
+  CoreAssetUploadResult,
+} from "../system-extensions/default-api/asset-upload-port.js";
 
 type AssetAttempt =
   | {
@@ -74,6 +87,26 @@ interface LoadedAssetState {
     { readonly asset: AssetSnapshot; readonly owner: ResourceSnapshot }
   >;
   readonly payloadByAssetID: ReadonlyMap<IDString, AssetPayloadState>;
+}
+
+function createUniqueUploadID(
+  state: LoadedAssetState,
+  additional: readonly IDString[] = [],
+): IDString | null {
+  const occupied = new Set<IDString>([
+    ...state.assetsByID.keys(),
+    ...additional,
+  ]);
+  for (const payload of state.payloadByAssetID.values()) {
+    if (payload.active_upload !== null) {
+      occupied.add(payload.active_upload.upload_id);
+    }
+  }
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const candidate = generateIDString();
+    if (!occupied.has(candidate)) return candidate;
+  }
+  return null;
 }
 
 function failure(code: CoreAssetWriteFailureCode): BaseAssetAttempt {
@@ -372,7 +405,12 @@ export function createAssetWritePort(input: {
                     await session.release();
                     return failure("RESOURCE_NOT_FOUND");
                   }
-                  if (state.assetsByID.has(assetID)) {
+                  if (
+                    state.assetsByID.has(assetID) ||
+                    [...state.payloadByAssetID.values()].some(
+                      (payload) => payload.active_upload?.upload_id === assetID,
+                    )
+                  ) {
                     await session.release();
                     return Object.freeze({ kind: "collision" as const });
                   }
@@ -397,8 +435,12 @@ export function createAssetWritePort(input: {
                   }
                   const uploadID =
                     request.input.kind === "internal"
-                      ? generateIDString()
+                      ? createUniqueUploadID(state, [assetID])
                       : null;
+                  if (request.input.kind === "internal" && uploadID === null) {
+                    await session.release();
+                    return failure("ASSET_ID_GENERATION_FAILED");
+                  }
                   const asset = buildAssetSnapshot({
                     created_at: now,
                     data: request.input.data,
@@ -829,4 +871,565 @@ export function createAssetWritePort(input: {
   }
 
   return Object.freeze({ write: execute });
+}
+
+type UploadAttempt<TValue> =
+  | { readonly kind: "success"; readonly value: TValue }
+  | { readonly kind: "failure"; readonly code: CoreAssetUploadFailureCode };
+
+function uploadFailure(code: CoreAssetUploadFailureCode): UploadAttempt<never> {
+  return Object.freeze({ kind: "failure", code });
+}
+
+function uploadResult<TValue>(
+  result: Awaited<ReturnType<OperationEngine["execute"]>>,
+): CoreAssetUploadResult<TValue> {
+  if (!result.ok) {
+    return Object.freeze({
+      error: Object.freeze({
+        code:
+          result.code === "OPERATION_INTEGRITY_FAILED"
+            ? "STORAGE_INTEGRITY_FAILED"
+            : "STORAGE_WRITE_FAILED",
+      }),
+      ok: false,
+    });
+  }
+  const attempt = result.value as UploadAttempt<TValue>;
+  return attempt.kind === "failure"
+    ? Object.freeze({
+        error: Object.freeze({ code: attempt.code }),
+        ok: false,
+      })
+    : Object.freeze({ ok: true, value: attempt.value });
+}
+
+function committedUploadWrite(
+  attempt: Extract<BaseAssetAttempt, { readonly kind: "success" }>,
+  warnings: readonly (
+    "LOCAL_INDEX_PUBLICATION_FAILED" | "POST_COMMIT_CLEANUP_FAILED"
+  )[],
+) {
+  return Object.freeze({
+    asset: attempt.asset === null ? null : buildAssetSnapshot(attempt.asset),
+    operation_id: attempt.operationId,
+    resources: Object.freeze(attempt.resources.map(buildResourceSnapshot)),
+    warnings,
+  });
+}
+
+export function createAssetUploadPort(input: {
+  readonly driver: FullResourceDriverAdapter;
+  readonly index: MutableGreedyResourceIndex;
+  readonly engine: OperationEngine;
+  readonly identities: ResourceOperationIdentitySource;
+}): CoreAssetUploadPort {
+  const { driver, engine, identities, index } = input;
+
+  async function resolve(
+    resourceId: IDString,
+    assetId: IDString,
+    failIntegrity?: Parameters<CoreAssetUploadPort["resolve"]>[2],
+  ): ReturnType<CoreAssetUploadPort["resolve"]> {
+    const result = await engine.execute<UploadAttempt<AssetUploadHandle>>(
+      {
+        ...(failIntegrity === undefined
+          ? {}
+          : { fail_integrity: failIntegrity }),
+        lock_keys: [`resource:${resourceId}`],
+        resource_hints: [resourceId],
+        type: "asset.upload.resolve",
+      },
+      async (scope) => {
+        let session: ResourceStorageSession;
+        try {
+          session = await driver.acquireStorageSession(scope.signal);
+        } catch (error) {
+          if (error instanceof ResourceRuntimeIntegrityError) throw error;
+          return uploadFailure("STORAGE_LOCK_FAILED");
+        }
+        try {
+          const state = await loadAssetState(session);
+          const owner = state.resourcesByID.get(resourceId);
+          if (owner === undefined || owner.data.is_deleted) {
+            return uploadFailure("RESOURCE_NOT_FOUND");
+          }
+          const asset = owner.assets.find(
+            (candidate) => candidate.id === assetId,
+          );
+          if (asset === undefined) return uploadFailure("ASSET_NOT_FOUND");
+          const payload = state.payloadByAssetID.get(assetId);
+          if (
+            asset.is_external ||
+            !asset.is_on_uploading ||
+            payload?.active_upload === null ||
+            payload === undefined
+          ) {
+            return uploadFailure("ASSET_UPLOAD_NOT_ACTIVE");
+          }
+          const capability = resolveAssetUploadSessionCapability(session);
+          if (capability === null) {
+            throw new AssetStorageIntegrityError(
+              "Storage Driver lacks Asset upload capability",
+            );
+          }
+          const handle = await capability.resolveActiveUpload(
+            resourceId,
+            assetId,
+          );
+          if (
+            handle === null ||
+            handle.upload_id !== payload.active_upload.upload_id
+          ) {
+            throw new AssetStorageIntegrityError(
+              "Storage Driver returned an inconsistent Asset upload handle",
+            );
+          }
+          return Object.freeze({ kind: "success", value: handle });
+        } finally {
+          await session.release();
+        }
+      },
+    );
+    return uploadResult<AssetUploadHandle>(result);
+  }
+
+  async function stage(
+    handle: AssetUploadHandle,
+    inputBytes: Uint8Array,
+    failIntegrity?: Parameters<CoreAssetUploadPort["stage"]>[2],
+  ): ReturnType<CoreAssetUploadPort["stage"]> {
+    if (!isAssetUploadHandle(handle)) {
+      return Object.freeze({
+        error: Object.freeze({ code: "ASSET_UPLOAD_NOT_ACTIVE" }),
+        ok: false,
+      });
+    }
+    if (!(inputBytes instanceof Uint8Array)) {
+      return Object.freeze({
+        error: Object.freeze({ code: "STORAGE_WRITE_FAILED" }),
+        ok: false,
+      });
+    }
+    try {
+      validateAssetUploadBytes(inputBytes);
+    } catch {
+      return Object.freeze({
+        error: Object.freeze({ code: "STORAGE_WRITE_FAILED" }),
+        ok: false,
+      });
+    }
+    const bytes = new Uint8Array(inputBytes);
+    const result = await engine.execute<UploadAttempt<AssetUploadStageSuccess>>(
+      {
+        ...(failIntegrity === undefined
+          ? {}
+          : { fail_integrity: failIntegrity }),
+        lock_keys: [`resource:${handle.resource_id}`],
+        resource_hints: [handle.resource_id],
+        type: "asset.upload.stage",
+      },
+      async (scope) => {
+        let session: ResourceStorageSession;
+        try {
+          session = await driver.acquireStorageSession(scope.signal);
+        } catch (error) {
+          if (error instanceof ResourceRuntimeIntegrityError) throw error;
+          return uploadFailure("STORAGE_LOCK_FAILED");
+        }
+        try {
+          const state = await loadAssetState(session);
+          const owner = state.resourcesByID.get(handle.resource_id);
+          if (owner === undefined || owner.data.is_deleted) {
+            return uploadFailure("RESOURCE_NOT_FOUND");
+          }
+          const asset = owner.assets.find(
+            (candidate) => candidate.id === handle.asset_id,
+          );
+          if (asset === undefined) return uploadFailure("ASSET_NOT_FOUND");
+          const payload = state.payloadByAssetID.get(handle.asset_id);
+          if (
+            !asset.is_on_uploading ||
+            payload?.active_upload?.upload_id !== handle.upload_id
+          ) {
+            return uploadFailure("ASSET_UPLOAD_NOT_ACTIVE");
+          }
+          const capability = resolveAssetUploadSessionCapability(session);
+          if (capability === null) {
+            throw new AssetStorageIntegrityError(
+              "Storage Driver lacks Asset upload capability",
+            );
+          }
+          const staged = await capability.stageBytes(handle, bytes);
+          if (staged === null) return uploadFailure("ASSET_UPLOAD_NOT_ACTIVE");
+          return Object.freeze({
+            kind: "success",
+            value: Object.freeze({
+              byte_length: staged.byte_length,
+              digest: staged.digest,
+              handle,
+            }),
+          });
+        } finally {
+          await session.release();
+        }
+      },
+    );
+    return uploadResult<AssetUploadStageSuccess>(result);
+  }
+
+  async function read(
+    resourceId: IDString,
+    assetId: IDString,
+    failIntegrity?: Parameters<CoreAssetUploadPort["read"]>[2],
+  ): ReturnType<CoreAssetUploadPort["read"]> {
+    const result = await engine.execute<UploadAttempt<AssetUploadReadSuccess>>(
+      {
+        ...(failIntegrity === undefined
+          ? {}
+          : { fail_integrity: failIntegrity }),
+        lock_keys: [`resource:${resourceId}`],
+        resource_hints: [resourceId],
+        type: "asset.file.read",
+      },
+      async (scope) => {
+        let session: ResourceStorageSession;
+        try {
+          session = await driver.acquireStorageSession(scope.signal);
+        } catch (error) {
+          if (error instanceof ResourceRuntimeIntegrityError) throw error;
+          return uploadFailure("STORAGE_LOCK_FAILED");
+        }
+        try {
+          const state = await loadAssetState(session);
+          const owner = state.resourcesByID.get(resourceId);
+          if (owner === undefined || owner.data.is_deleted) {
+            return uploadFailure("RESOURCE_NOT_FOUND");
+          }
+          const asset = owner.assets.find(
+            (candidate) => candidate.id === assetId,
+          );
+          if (asset === undefined) return uploadFailure("ASSET_NOT_FOUND");
+          if (
+            asset.is_external ||
+            state.payloadByAssetID.get(assetId)?.committed !== true
+          ) {
+            return uploadFailure("ASSET_FILE_NOT_READY");
+          }
+          const capability = resolveAssetUploadSessionCapability(session);
+          if (capability === null) {
+            throw new AssetStorageIntegrityError(
+              "Storage Driver lacks Asset upload capability",
+            );
+          }
+          const bytes = await capability.readCommitted(resourceId, assetId);
+          if (bytes === null) {
+            throw new AssetStorageIntegrityError(
+              "Committed Asset payload bytes are missing",
+            );
+          }
+          return Object.freeze({
+            kind: "success",
+            value: Object.freeze({
+              asset_id: assetId,
+              bytes: new Uint8Array(bytes),
+            }),
+          });
+        } finally {
+          await session.release();
+        }
+      },
+    );
+    return uploadResult<AssetUploadReadSuccess>(result);
+  }
+
+  async function begin(
+    resourceId: IDString,
+    assetId: IDString,
+    failIntegrity?: Parameters<CoreAssetUploadPort["begin"]>[2],
+  ): ReturnType<CoreAssetUploadPort["begin"]> {
+    const identity = Object.freeze(identities.create());
+    const now = parseTimestamp(Date.now());
+    let handle: AssetUploadHandle | null = null;
+    const result = await engine.execute<BaseAssetAttempt>(
+      {
+        ...(failIntegrity === undefined
+          ? {}
+          : { fail_integrity: failIntegrity }),
+        identity,
+        lock_keys: [`resource:${resourceId}`],
+        resource_hints: [resourceId],
+        type: "asset.upload.begin",
+      },
+      async (scope, plan) =>
+        withSession(driver, scope, async (session, state) => {
+          const owner = state.resourcesByID.get(resourceId);
+          if (owner === undefined || owner.data.is_deleted) {
+            await session.release();
+            return failure("RESOURCE_NOT_FOUND");
+          }
+          const asset = owner.assets.find(
+            (candidate) => candidate.id === assetId,
+          );
+          if (asset === undefined) {
+            await session.release();
+            return failure("ASSET_NOT_FOUND");
+          }
+          if (asset.is_external) {
+            await session.release();
+            return failure("ASSET_NOT_READY");
+          }
+          if (asset.is_on_uploading) {
+            await session.release();
+            return failure("ASSET_UPLOAD_ALREADY_ACTIVE");
+          }
+          const payload = state.payloadByAssetID.get(assetId);
+          if (payload?.committed !== true || payload.active_upload !== null) {
+            throw new AssetStorageIntegrityError(
+              "Ready internal Asset has invalid payload state",
+            );
+          }
+          const uploadId = createUniqueUploadID(state);
+          if (uploadId === null) {
+            await session.release();
+            return failure("STORAGE_WRITE_FAILED");
+          }
+          const capability = resolveAssetUploadSessionCapability(session);
+          if (capability === null) {
+            throw new AssetStorageIntegrityError(
+              "Storage Driver lacks Asset upload capability",
+            );
+          }
+          handle = capability.issueHandle(resourceId, assetId, uploadId);
+          const next = buildAssetSnapshot({
+            ...asset,
+            is_on_uploading: true,
+            updated_at: now,
+          });
+          const resource = buildResourceSnapshot({
+            ...owner,
+            assets: owner.assets.map((candidate) =>
+              candidate.id === assetId ? next : candidate,
+            ),
+            data: { ...owner.data, updated_at: now },
+          });
+          const committed = await commitPrepared(
+            session,
+            scope,
+            plan,
+            index,
+            state.resources,
+            [resource],
+            [
+              {
+                asset_id: assetId,
+                owner_after: resourceId,
+                owner_before: resourceId,
+                payload_action: {
+                  kind: "generation.create",
+                  upload_id: uploadId,
+                },
+                state_after: "replacement-uploading",
+                state_before: "ready",
+              },
+            ],
+            next,
+            now,
+          );
+          return committed;
+        }),
+    );
+    if (!result.ok) {
+      return Object.freeze({
+        error: Object.freeze({
+          code:
+            result.code === "OPERATION_INTEGRITY_FAILED"
+              ? "STORAGE_INTEGRITY_FAILED"
+              : "STORAGE_WRITE_FAILED",
+        }),
+        ok: false,
+      });
+    }
+    if (result.value.kind !== "success") {
+      return Object.freeze({
+        error: Object.freeze({
+          code:
+            result.value.kind === "failure"
+              ? (result.value.code as CoreAssetUploadFailureCode)
+              : "STORAGE_WRITE_FAILED",
+        }),
+        ok: false,
+      });
+    }
+    if (handle === null) {
+      throw new Error("Committed Asset upload begin has no handle");
+    }
+    return Object.freeze({
+      ok: true,
+      value: Object.freeze({
+        handle,
+        write: committedUploadWrite(result.value, result.warnings),
+      }),
+    });
+  }
+
+  async function finish(
+    handle: AssetUploadHandle,
+    failIntegrity?: Parameters<CoreAssetUploadPort["finish"]>[1],
+  ): ReturnType<CoreAssetUploadPort["finish"]> {
+    return transition(handle, "finish", failIntegrity);
+  }
+
+  async function abort(
+    handle: AssetUploadHandle,
+    failIntegrity?: Parameters<CoreAssetUploadPort["abort"]>[1],
+  ): ReturnType<CoreAssetUploadPort["abort"]> {
+    return transition(handle, "abort", failIntegrity);
+  }
+
+  async function transition(
+    handle: AssetUploadHandle,
+    kind: "finish" | "abort",
+    failIntegrity?: Parameters<CoreAssetUploadPort["finish"]>[1],
+  ): Promise<CoreAssetUploadResult<ReturnType<typeof committedUploadWrite>>> {
+    if (!isAssetUploadHandle(handle)) {
+      return Object.freeze({
+        error: Object.freeze({ code: "ASSET_UPLOAD_NOT_ACTIVE" }),
+        ok: false,
+      });
+    }
+    const identity = Object.freeze(identities.create());
+    const now = parseTimestamp(Date.now());
+    const result = await engine.execute<BaseAssetAttempt>(
+      {
+        ...(failIntegrity === undefined
+          ? {}
+          : { fail_integrity: failIntegrity }),
+        identity,
+        lock_keys: [`resource:${handle.resource_id}`],
+        resource_hints: [handle.resource_id],
+        type: `asset.upload.${kind}`,
+      },
+      async (scope, plan) =>
+        withSession(driver, scope, async (session, state) => {
+          const owner = state.resourcesByID.get(handle.resource_id);
+          if (owner === undefined || owner.data.is_deleted) {
+            await session.release();
+            return failure("RESOURCE_NOT_FOUND");
+          }
+          const asset = owner.assets.find(
+            (candidate) => candidate.id === handle.asset_id,
+          );
+          if (asset === undefined) {
+            await session.release();
+            return failure("ASSET_NOT_FOUND");
+          }
+          const payload = state.payloadByAssetID.get(handle.asset_id);
+          if (
+            !asset.is_on_uploading ||
+            payload?.active_upload?.upload_id !== handle.upload_id
+          ) {
+            await session.release();
+            return failure("ASSET_UPLOAD_NOT_ACTIVE");
+          }
+          const before = lifecycleState(asset, payload);
+          const capability = resolveAssetUploadSessionCapability(session);
+          if (capability === null) {
+            throw new AssetStorageIntegrityError(
+              "Storage Driver lacks Asset upload capability",
+            );
+          }
+          if (!capability.ownsHandle(handle)) {
+            await session.release();
+            return failure("ASSET_UPLOAD_NOT_ACTIVE");
+          }
+          if (kind === "finish") {
+            if ((await capability.inspectStagedUpload(handle)) === null) {
+              await session.release();
+              return failure("ASSET_UPLOAD_INCOMPLETE");
+            }
+          }
+          const initial = before === "initial-uploading";
+          const next =
+            initial && kind === "abort"
+              ? null
+              : buildAssetSnapshot({
+                  ...asset,
+                  is_on_uploading: false,
+                  updated_at: now,
+                });
+          const resource = buildResourceSnapshot({
+            ...owner,
+            assets:
+              next === null
+                ? owner.assets.filter(
+                    (candidate) => candidate.id !== handle.asset_id,
+                  )
+                : owner.assets.map((candidate) =>
+                    candidate.id === handle.asset_id ? next : candidate,
+                  ),
+            data: { ...owner.data, updated_at: now },
+          });
+          const committed = await commitPrepared(
+            session,
+            scope,
+            plan,
+            index,
+            state.resources,
+            [resource],
+            [
+              {
+                asset_id: handle.asset_id,
+                owner_after: next === null ? null : handle.resource_id,
+                owner_before: handle.resource_id,
+                payload_action:
+                  kind === "finish"
+                    ? {
+                        kind: "generation.publish",
+                        replaces_committed: payload.committed,
+                        upload_id: handle.upload_id,
+                      }
+                    : {
+                        kind: "generation.discard",
+                        upload_id: handle.upload_id,
+                      },
+                state_after: next === null ? null : "ready",
+                state_before: before,
+              },
+            ],
+            next,
+            now,
+          );
+          return committed;
+        }),
+    );
+    if (!result.ok) {
+      return Object.freeze({
+        error: Object.freeze({
+          code:
+            result.code === "OPERATION_INTEGRITY_FAILED"
+              ? "STORAGE_INTEGRITY_FAILED"
+              : "STORAGE_WRITE_FAILED",
+        }),
+        ok: false,
+      });
+    }
+    if (result.value.kind !== "success") {
+      return Object.freeze({
+        error: Object.freeze({
+          code:
+            result.value.kind === "failure"
+              ? (result.value.code as CoreAssetUploadFailureCode)
+              : "STORAGE_WRITE_FAILED",
+        }),
+        ok: false,
+      });
+    }
+    return Object.freeze({
+      ok: true,
+      value: committedUploadWrite(result.value, result.warnings),
+    });
+  }
+
+  return Object.freeze({ abort, begin, finish, read, resolve, stage });
 }

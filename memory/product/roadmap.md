@@ -2,7 +2,7 @@
 
 Status: accepted implementation sequence
 Target Release: `0.1.0`
-Updated: 2026-07-16
+Updated: 2026-07-17
 
 Цей roadmap задає компактну послідовність залежностей і decision gates без календарних обіцянок. Детальний rolling-wave backlog, complexity rubric і dependency register зберігаються в [planning report TASK-07.26-0003](../reports/research/2026-07-09-extensia-v0-1-0-delivery-plan.md); implementation tasks створюються поступово після gate попередньої хвилі.
 
@@ -77,13 +77,14 @@ Gate: кожний Resource write journal-backed; committed entry є publication
 
 ## Фаза 4 — Assets і перший concrete durable Storage Driver
 
-Стан: P4-DG1/P4-DG2 approved/applied; P4-WP1 concrete driver, P4-VS1 Resource durability і P4-VS2 Asset metadata lifecycle accepted. P4-VS3 upload bytes/finalization та P4-STAB лишаються pending.
+Стан: P4-DG1/P4-DG2 approved/applied; P4-WP1 concrete driver, P4-VS1 Resource durability і P4-VS2 Asset metadata lifecycle accepted; P4-VS3 internal bounded upload bytes/finalization implementation accepted. P4-STAB лишається pending і не активована.
 
 Wave IDs: паралельні `P4-DG1` concrete storage protocol і `P4-DG2` Asset contracts; `P4-DG1 -> P4-WP1` concrete driver -> `P4-VS1` Resource durability, після чого гілка приєднує погоджений `P4-DG2` перед `P4-VS2/VS3` Asset metadata/upload -> `P4-STAB`.
 
 - Реалізовано first/default internal `embedded-transactional/local-sqlite-v1` profile з atomic SQLite persistence, committed journal, exclusive storage session і recovery primitives у P4-WP1.
 - Реалізовано повну Resource durability parity у P4-VS1 та Asset metadata invariants, internal/external assets, primary/reassign/delete й staged generation persistence у P4-VS2.
-- Лишаються P4-VS3 bytes transport/finalization та P4-STAB повна crash/recovery stabilization; current evidence не розширюється до destructive power-loss або universal-platform claim.
+- P4-VS3 реалізувала exact opaque adapter як first deliverable, internal begin/stage/finish/abort/read, last-ready replacement semantics, atomic payload actions та bounded recovery/pressure/package evidence через той самий Core/Operation Engine/SQLite authority.
+- Лишаються P4-STAB повна crash/recovery stabilization, ordinary public bytes/file API та broader platform/power-loss certification; Phase 4 не є done до окремої P4-STAB activation/acceptance і Phase 4 human gate.
 
 Gate: successful operation означає durable committed state на concrete storage; incomplete artifacts не стають visible; restart recovery та `readonly` behavior покриті tests.
 
