@@ -2,7 +2,7 @@
 
 ## Призначення
 
-Finalizing corrected run для P4-VS3: implementation accepted і FIX-001 applied; bounded post-application Asset-contract correction очікує FIX-002 decision.
+Completed corrected run для P4-VS3: implementation accepted, FIX-001/FIX-002 applied; final repeated audit `PASS`.
 
 ## Папки
 
@@ -11,4 +11,4 @@ Finalizing corrected run для P4-VS3: implementation accepted і FIX-001 appli
 ## Файли
 
 - [Context](context.md) - Frozen snapshot corrected ownership, capability-first sequence, acceptance і verification.
-- [Result](result.md) - Accepted implementation, verification, audits and finalization record.
+- [Result](result.md) - Completed implementation, verification, approvals, fixations and final audit record.

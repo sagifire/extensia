@@ -159,7 +159,7 @@ Kind conversion internal↔external заборонена; caller створює 
 - Abort initial видаляє Asset metadata; abort replacement відновлює flag false без зміни old payload.
 - Crash before commit не змінює visible state; crash after commit відновлює exact committed state до ready.
 
-Transport, chunk API, streaming, hashing/deduplication, antivirus/transcoding і signed URL не визначаються. P4-VS3 materialize-ить internal Core↔driver upload port; ordinary application API для передачі bytes потребує окремого bounded design у межах P4-VS3 і не може розкрити path/session/transaction.
+Ordinary application-facing transport, caller-facing chunk API, streaming, content-identity hashing/deduplication, antivirus/transcoding і signed URL не визначаються. P4-VS3 materialize-ила internal Core↔driver upload port, bounded whole-payload transport і SHA-256 integrity verification; ordinary application API для передачі bytes потребує окремого future bounded design owner після P4-VS3 і не може розкрити path/session/transaction.
 
 ### 6.4 Exhaustive transition/payload matrix
 
@@ -350,7 +350,7 @@ type AssetUploadHandleResult = ExtensiaResult<AssetUploadHandle, AssetUploadErro
 - `ASSET_UPLOAD_ALREADY_ACTIVE`
 - `ASSET_UPLOAD_NOT_ACTIVE`
 - `ASSET_UPLOAD_INCOMPLETE`
-- `ASSET_FILE_NOT_READY` — normalized future file-read failure P4-VS3; не входить metadata write unions.
+- `ASSET_FILE_NOT_READY` — normalized internal file-read failure, materialized у P4-VS3; входить internal upload-port failure union, але ordinary public bytes/file method не додається і metadata write unions не змінюються.
 - `RESOURCE_ASSET_UPLOAD_ACTIVE` — Phase 4 `deleteResource` conflict before mutation.
 
 Shared `MODULE_NOT_READY`, `STORAGE_READONLY`, `RESOURCE_NOT_FOUND`, `STORAGE_LOCK_FAILED`, `STORAGE_WRITE_FAILED`, `STORAGE_INTEGRITY_FAILED` зберігаються.

@@ -1,6 +1,6 @@
 # P4-VS3 / TASK-07.26-0052: Internal Asset upload lifecycle
 
-Task Status: review
+Task Status: done
 Type: implementation
 Created: 2026-07-15
 Owner Role: Agent Implementer
@@ -8,13 +8,13 @@ Current Run: RUN-002
 
 ## Поточний стан
 
-Run Status: finalizing
-Progress: whole-task result і FIX-001 approved; FIX-001 applied. Independent post-application audit підтвердив implementation/boundaries, але виявив два stale Asset-contract ownership statements поза approved FIX-001 scope; required FIX-002 підготовлено proposal-only.
-Acceptance: 9/9; whole-task human approval recorded, closure gate pending FIX-002 decision and repeated post-application audit.
+Run Status: completed
+Progress: RUN-002 implementation/gates accepted; FIX-001/FIX-002 approved/applied; final repeated post-application audit `PASS`, open P0-P3 none.
+Acceptance: 9/9; whole-task human approval and both required fixation approvals recorded.
 Blockers: none.
 Blocked Phase: n/a
-Pending Decisions: required proposal-only `FIX-002: approve | reject`.
-Next Action: after FIX-002 decision, apply/reject disposition and repeat independent post-application audit; task не переходить у `done`, поки open P2 не закритий. P4-STAB не активується.
+Pending Decisions: none for TASK-0052.
+Next Action: none for TASK-0052; P4-STAB remains backlog and requires separate explicit activation.
 
 ## Мета
 
@@ -95,7 +95,7 @@ P4-VS2 володіє Asset metadata semantics, а P4-VS3 materialize-ить phy
 ## Прогони
 
 - [RUN-001](RUN-001/index.md) - blocked на activation capability gate; production execution не починалося.
-- [RUN-002](RUN-002/index.md) - finalizing; adapter-first lifecycle accepted, FIX-001 applied, FIX-002 decision pending.
+- [RUN-002](RUN-002/index.md) - completed; adapter-first lifecycle accepted, FIX-001/FIX-002 applied, final audit `PASS`.
 
 ## Дослідження
 
@@ -104,7 +104,7 @@ P4-VS2 володіє Asset metadata semantics, а P4-VS3 materialize-ить phy
 ## Фіксації
 
 - [FIX-001](FIX-001.md) - required / approved / applied; post-application audit findings outside its approved rewrite scope tracked by FIX-002.
-- [FIX-002](FIX-002.md) - required / proposed; minimal Asset-contract ownership correction після post-application P2 audit finding.
+- [FIX-002](FIX-002.md) - required / approved / applied; exact two-sentence Asset-contract ownership correction, final audit `PASS`.
 
 ## Запити на рішення
 
@@ -116,18 +116,18 @@ P4-VS2 володіє Asset metadata semantics, а P4-VS3 materialize-ить phy
 
 ## Human Review
 
-Status: accepted; closure-finalization pending
+Status: accepted
 Requested: 2026-07-17
 Reviewed: 2026-07-17
 Approval Source: explicit user decision `Task: approve`
-Approved Fixations: FIX-001
+Approved Fixations: FIX-001, FIX-002
 Rejected Fixations: none
-Follow-up Decisions: FIX-002 pending
-Decision Notes: RUN-001 blocked audit accepted as evidence. Explicit human decision 2026-07-17 активувало RUN-002 з capability materialization як first in-run deliverable. User separately approved whole-task result and FIX-001. Initial post-application audit found a bounded canonical ownership contradiction outside FIX-001 scope; task remains finalizing pending FIX-002.
+Follow-up Decisions: none
+Decision Notes: RUN-001 blocked audit accepted as evidence. Explicit human decision 2026-07-17 активувало RUN-002 з capability materialization як first in-run deliverable. User separately approved whole-task result, FIX-001 and FIX-002. Both fixations applied; final repeated post-application audit `PASS`, P4-STAB not activated.
 
 ## Фінальний результат
 
-Completed: n/a
-Final Run: n/a
-Summary: n/a
-Residual Risks: n/a
+Completed: 2026-07-17
+Final Run: RUN-002
+Summary: Exact adapter-first internal Asset upload lifecycle accepted; focused 80/full 286 tests and package/double-pack gates passed; FIX-001/FIX-002 applied; final repeated post-application audit `PASS`.
+Residual Risks: synchronous bounded 16 MiB whole-payload path, ordinary public bytes/file API, broader platform/performance and destructive power-loss certification remain deferred; P4-STAB is backlog/inactive.

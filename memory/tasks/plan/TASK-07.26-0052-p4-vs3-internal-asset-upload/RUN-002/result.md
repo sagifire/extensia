@@ -1,10 +1,10 @@
 # Результат виконання: RUN-002
 
-Status: finalizing
+Status: completed
 Related Task: [P4-VS3 / TASK-07.26-0052](../task.md)
 Started: 2026-07-17
 Prepared For Review: 2026-07-17
-Completed: n/a
+Completed: 2026-07-17
 Agent Role: Agent Implementer
 Review Method: self-review + independent-subagent implementation audit + independent post-application audit
 Auditor: `/root/p4_vs3_run2_audit` / Agent Auditor
@@ -12,13 +12,13 @@ Review Limitation: implementation auditor independently repeated typecheck, sour
 
 ## Основні показники
 
-Outcome: implementation accepted; closure finalizing after post-application P2 finding
+Outcome: success / completed / accepted
 Summary: Exact adapter-first internal Asset upload lifecycle materialized через один shared Core/Operation Engine/driver path; initial/replacement bytes, atomic publish/discard, stale-safe adapter-epoch handles і recovery/pressure/package evidence зелені.
 Acceptance: 9/9; AC1–AC9 passed and whole-task human approval recorded
 Verification: focused `5` files / `80` tests; full `27` files / `286` tests; full package gate and deterministic double pack passed
-Memory Fixation: [FIX-001](../FIX-001.md) approved/applied; [FIX-002](../FIX-002.md) required/proposed after post-application audit
-Open Risks: synchronous whole-payload 16 MiB envelope (`stage` ~82 ms, `finish` ~575 ms у recorded current-host sample), ordinary public transfer API deferred, broader physical/power-loss certification deferred; open post-application P2: stale canonical ownership wording pending FIX-002.
-Next Action: separate `FIX-002: approve | reject`, then repeated post-application audit and closure.
+Memory Fixation: [FIX-001](../FIX-001.md) approved/applied; [FIX-002](../FIX-002.md) approved/applied
+Open Risks: synchronous whole-payload 16 MiB envelope (`stage` ~82 ms, `finish` ~575 ms у recorded current-host sample), ordinary public transfer API deferred, broader physical/power-loss certification deferred; semantic post-application P0-P3: none.
+Next Action: none; P4-STAB requires a separate explicit activation.
 
 ## Виконана робота
 
@@ -92,10 +92,10 @@ Next Action: separate `FIX-002: approve | reject`, then repeated post-applicatio
 
 ## Memory impact
 
-Status: FIX-001 applied; FIX-002 proposal-only
-Fixations: [FIX-001](../FIX-001.md) required / approved / applied; [FIX-002](../FIX-002.md) required / proposed
+Status: FIX-001 and FIX-002 applied
+Fixations: [FIX-001](../FIX-001.md) required / approved / applied; [FIX-002](../FIX-002.md) required / approved / applied
 General-Level Impact: checked
-Notes: approved FIX-001 synchronized current implementation, architecture, Asset downstream disposition, write/recovery current fact, ADR-0010, technical open questions і Phase 4 roadmap. Independent post-application audit found two stale Asset-contract ownership sentences outside FIX-001 rewrite scope; exact minimal FIX-002 prepared proposal-only. Technical/domain rules already contain applied P4-DG2 invariants; knowledge/project rules/index structure не змінюються.
+Notes: approved FIX-001 synchronized current implementation, architecture, Asset downstream disposition, write/recovery current fact, ADR-0010, technical open questions і Phase 4 roadmap. Separately approved FIX-002 corrected two stale Asset-contract ownership sentences outside FIX-001 rewrite scope. Technical/domain rules already contain applied P4-DG2 invariants; knowledge/project rules/index structure не змінюються.
 
 ## Self-review
 
@@ -113,7 +113,7 @@ Implementation зберігає один write authority та materialize-ить
 - [closed] Global handle brand не доводив runtime ownership: pre-crash handle міг пройти ID/state checks у fresh adapter. Додано storage-issued adapter-open-epoch authority, `ownsHandle` gate для finish і abort та fresh-runtime stale-handle regressions.
 - [closed] SQLite chunk insertion створював зайву 64 KiB copy для кожного chunk; `slice` замінено на bounded `subarray`, caller detachment лишається Core-owned. Dedicated observed external-memory delta для 16 MiB stage — близько 2× payload.
 - [closed] Package exact allowlist не містив два нові internal emitted modules; allowlist synchronized без зміни package export map.
-- [closed] Canonical memory lag оформлено required proposal-only FIX-001; application до approval не виконувалася.
+- [closed] Canonical memory lag оформлено required FIX-001, approved/applied; bounded out-of-scope ownership correction оформлена й approved/applied як FIX-002.
 - [closed, audit P1] Error paths `begin`/`finish`/`abort` могли не звільнити session lease; lifecycle transitions переведено на shared `withSession`, додано regression coverage.
 - [closed, audit P2] Active upload ID міг alias-ити Asset ID іншого Asset; global invariant тепер відхиляє будь-яке таке aliasing, додано regression.
 - [closed, audit P2] Додано Asset-specific real child-process crash proof до і після `generation.publish` COMMIT з fresh-process recovery assertions.
@@ -141,9 +141,11 @@ Open findings: none (P0–P3: 0). Initial P1/P2/P2/P3 findings remediated and in
 
 ### Post-application audit
 
-Verdict: `CHANGES_REQUIRED`.
+Audit sequence: initial post-application `CHANGES_REQUIRED`; FIX-002 proposal `REVIEW_READY`; applied semantic delta verified; final repeated post-application verdict `PASS`.
 
-- [open P2] `asset-contract.md` still assigns ordinary application bytes API design and a “future” file-read failure to completed P4-VS3. Approved FIX-001 explicitly excluded rewriting those normative sections, so the finding is prepared as separate required proposal-only [FIX-002](../FIX-002.md).
+Final verdict: `PASS`. Open P0-P3: none.
+
+- [closed P2] `asset-contract.md` stale ordinary application API ownership and “future” file-read wording corrected exactly by approved/applied [FIX-002](../FIX-002.md); independent repeat verified no semantic/public/downstream expansion.
 - [closed P2] Approval/application lifecycle metadata updated to match explicit user decisions.
 - [closed P3] Roadmap `accepted` wording recorded as a lifecycle-only deviation caused by simultaneous whole-task approval; P4-STAB remains pending/not activated.
 
@@ -153,4 +155,4 @@ Verdict: `CHANGES_REQUIRED`.
 
 ## Review Request
 
-Whole-task result і FIX-001 approved. Для closure потрібне окреме рішення щодо required proposal-only [FIX-002](../FIX-002.md): `approve | reject`. До disposition і repeated post-application audit задача лишається `review/finalizing`; P4-STAB не активується.
+Whole-task result, FIX-001 and FIX-002 approved; both fixations applied; final repeated independent post-application audit `PASS`. RUN-002 completed and TASK-0052 closed as `done`. P4-STAB не активована.
