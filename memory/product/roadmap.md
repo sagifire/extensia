@@ -90,9 +90,9 @@ Gate: successful operation означає durable committed state на concrete 
 
 ## Фаза 5 — Повний read model і синхронізація кількох instances
 
-Стан: P5-RS1 accepted; P5-DG1/P5-DG2 exact targets accepted/applied; P5-WP1, P5-HARD1, P5-VS1 і P5-VS2 accepted; TASK-0060/FIX-001 applied, TASK-0061/FIX-001 applied. P5-STAB/P5-AUD1 inactive.
+Стан: P5-RS1 accepted; P5-DG1/P5-DG2 exact targets accepted/applied; P5-WP1, P5-HARD1, P5-VS1, P5-VS2 і P5-STAB accepted/completed; TASK-0060/FIX-001 і TASK-0061/FIX-001 applied. Початковий аудит P5-AUD1 у TASK-0063 виявив два зауваження рівня P2. Усунення зауважень фіксує TASK-0064; незалежну повторну перевірку та її результат фіксує TASK-0063. Human gate фази 5 і фаза 6 неактивні; канонічну підтримку топологій не заявлено до прийнятого P5-AUD1 та явного human gate фази 5.
 
-Wave IDs: `P5-RS1` + `P5-DG1` + `P5-DG2` -> `P5-WP1` generation/coordinator foundation -> `P5-HARD1` internal retry/single-flight/lifecycle -> `P5-VS1` lazy + public explicit refresh/config -> completed `P5-VS2` concrete multi-instance sync/polling/contention -> pending `P5-STAB` -> `P5-AUD1` -> human gate.
+Wave IDs: `P5-RS1` + `P5-DG1` + `P5-DG2` -> `P5-WP1` generation/coordinator foundation -> `P5-HARD1` internal retry/single-flight/lifecycle -> `P5-VS1` lazy + public explicit refresh/config -> completed `P5-VS2` concrete multi-instance sync/polling/contention -> завершений `P5-STAB` (`full/full` unsupported; designated-writer `full/readonly` — єдиний кандидат) -> початковий аудит `P5-AUD1` у TASK-0063 (два зауваження P2) -> розподіл відповідальності (Усунення зауважень фіксує TASK-0064; незалежну повторну перевірку та її результат фіксує TASK-0063) -> human gate.
 
 - P5-WP1 реалізувала одну coherent generation для Resource/tree, Asset owner/primary/lineage і Mark projections та structural-sharing local publication.
 - P5-VS1 реалізувала `greedy` complete і `lazy` selective internal coverage з complete-only existing Resource query success та exact internal Asset-owner/Mark-global selector results; Mark-global потребує exact selector capability й не запускає implicit full scan, а unknown дає explicit query-unavailable/read failure без partial success.

@@ -103,9 +103,10 @@ Allowed parallelism: P4-DG1 і P4-DG2 могли активуватися окр
 - [x] **[Done]** [P5-VS1 / TASK-07.26-0060](TASK-07.26-0060-p5-vs1-lazy-refresh-public-integration/index.md) - Whole-task approved: 10/10 acceptance, 359-test full gate, FIX-001 applied exactly, post-application audit `PASS`; downstream не активовано.
 - [x] **[Done]** [P5-VS2 / TASK-07.26-0061](TASK-07.26-0061-p5-vs2-local-sqlite-multi-instance-sync/index.md) - Whole-task/FIX-001/FIX-002 approved, both fixations applied exact, repeated post-application audit `PASS`; support unclaimed, downstream inactive.
 - [x] **[Done]** [P5-STAB / TASK-07.26-0062](TASK-07.26-0062-p5-stab-phase-5-stabilization/index.md) - Whole-task approved: 10/10, full/focused/package/process gates green, symmetric `full/full` unsupported, independent `REVIEW_READY`; P5-AUD1 inactive.
-- [ ] **[Backlog]** [P5-AUD1 / TASK-07.26-0063](TASK-07.26-0063-p5-aud1-independent-phase-5-audit/index.md) - Prepared independent Phase 5 audit/human-gate recommendation; P5-STAB dependency satisfied, separate explicit activation required.
+- [x] **[Done]** [P5-AUD1 / TASK-07.26-0063](TASK-07.26-0063-p5-aud1-independent-phase-5-audit/index.md) - RUN-002 whole-task approved; recommendation `pass`, acceptance 10/10, open ledger `0/0/0/0`; human gate і Phase 6 inactive.
+- [x] **[Done]** [P5-AUD1 remediation / TASK-07.26-0064](TASK-07.26-0064-p5-aud1-consistency-remediation/index.md) - RUN-001 whole-task approved; FIX-001 applied/post-audited `PASS`, TASK-0063 reverification pass, acceptance 10/10.
 
-Canonical-now boundary: `P5-RS1`, `P5-DG1`, `P5-DG2`, `P5-WP1 / TASK-0058`, `P5-HARD1 / TASK-0059`, `P5-VS1 / TASK-0060`, `P5-VS2 / TASK-0061` і `P5-STAB / TASK-0062` accepted/completed; relevant fixations applied. `P5-AUD1` лишається backlog/prepared та доступна лише за окремим explicit activation decision.
+Canonical-now boundary: `P5-RS1`, `P5-DG1`, `P5-DG2`, `P5-WP1 / TASK-0058`, `P5-HARD1 / TASK-0059`, `P5-VS1 / TASK-0060`, `P5-VS2 / TASK-0061`, `P5-STAB / TASK-0062`, remediation `TASK-0064` і `P5-AUD1 / TASK-0063 / RUN-002` accepted/completed; relevant fixations applied, audit ledger `0/0/0/0`. Human Phase 5 gate і Phase 6 inactive.
 
 ## Фаза 6 — Базова extension ecosystem
 

@@ -68,7 +68,8 @@
 - [TASK-07.26-0060-p5-vs1-lazy-refresh-public-integration](TASK-07.26-0060-p5-vs1-lazy-refresh-public-integration/index.md) - Backlog/prepared `P5-VS1`; lazy completeness and experimental refresh/config/inspection after P5-HARD1.
 - [TASK-07.26-0061-p5-vs2-local-sqlite-multi-instance-sync](TASK-07.26-0061-p5-vs2-local-sqlite-multi-instance-sync/index.md) - Backlog/prepared `P5-VS2`; concrete local SQLite multi-instance sync/polling/contention evidence after P5-VS1.
 - [TASK-07.26-0062-p5-stab-phase-5-stabilization](TASK-07.26-0062-p5-stab-phase-5-stabilization/index.md) - Done `P5-STAB`; whole-task approved, 10/10, independent `REVIEW_READY`, designated-writer candidate and unsupported symmetric topology verdict.
-- [TASK-07.26-0063-p5-aud1-independent-phase-5-audit](TASK-07.26-0063-p5-aud1-independent-phase-5-audit/index.md) - Backlog/prepared `P5-AUD1`; P5-STAB dependency satisfied, separate explicit activation required.
+- [TASK-07.26-0063-p5-aud1-independent-phase-5-audit](TASK-07.26-0063-p5-aud1-independent-phase-5-audit/index.md) - Done RUN-002; recommendation `pass`, acceptance 10/10, ledger `0/0/0/0`, whole-task approved; RUN-001 historical fail preserved.
+- [TASK-07.26-0064-p5-aud1-consistency-remediation](TASK-07.26-0064-p5-aud1-consistency-remediation/index.md) - Done remediation; FIX-001 applied/post-audited `PASS`, TASK-0063 reverification pass, acceptance 10/10, whole-task approved.
 
 ## Файли
 

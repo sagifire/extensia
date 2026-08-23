@@ -347,8 +347,8 @@ Use at least small/current parity, medium and pressure ladders chosen by impleme
 
 ## 14. Downstream contract
 
-`P5-WP1`, `P5-HARD1`, `P5-VS1` і `P5-VS2` materialized та accepted у TASK-0058/0059/0060/0061; відповідні required fixations applied. `P5-STAB` -> `P5-AUD1` лишаються prepared, inactive й потребують separate explicit activation. P5-VS2 acceptance/application не активує downstream packages.
+`P5-WP1`, `P5-HARD1`, `P5-VS1`, `P5-VS2` і `P5-STAB` materialized та accepted/completed у TASK-0058/0059/0060/0061/0062; відповідні required fixations applied. Початковий аудит P5-AUD1 у TASK-0063 виявив два зауваження рівня P2. Усунення зауважень фіксує TASK-0064; незалежну повторну перевірку та її результат фіксує TASK-0063. Канонічну підтримку топологій не заявлено до прийнятого P5-AUD1 та явного human gate фази 5; симетрична `full/full` лишається unsupported, designated-writer `full/readonly` — єдиний кандидат. Приймання/застосування P5-VS2 не активувало наступні пакети; кожна їх активація потребувала окремого явного рішення owner.
 
 ## 15. Memory impact
 
-P5-VS1 current/materialization sync застосовано через TASK-0060/FIX-001; P5-VS2 current/materialization sync застосовується exact через TASK-0061/FIX-001 у domain current state, architecture, P5 contracts і roadmap. Product requirements, target domain invariants і normative completeness rules не змінюються.
+P5-VS1 current/materialization sync застосовано через TASK-0060/FIX-001; P5-VS2 current/materialization sync застосовано exact через TASK-0061/FIX-001 у domain current state, architecture, P5 contracts і roadmap. TASK-0064/FIX-001 зберігає канонічний запис актуального стану для accepted/completed P5-STAB і зауважень початкового аудиту P5-AUD1. Усунення зауважень фіксує TASK-0064; незалежну повторну перевірку та її результат фіксує TASK-0063. Product requirements, target domain invariants і normative completeness rules не змінюються.

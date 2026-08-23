@@ -82,7 +82,7 @@ Updated: 2026-07-17
 - Optional public config path `readModel.loading`, default `greedy`; additions experimental до P7.
 - Resource/children, Asset owner, primary, same-Resource lineage reverse і exact Mark lookup належать одній atomic generation.
 - Consumer-owned full/readonly observation port не відкриває raw session/transaction/cursor; local delta publication не робить required O(N) rebuild.
-- P5-DG2 accepted target owns supported volatile cursor, legacy `static-unsupported` branch, admission-epoch explicit refresh + opt-in polling, bounded startup/refresh retry, topology gate і one local/external coordinator; implementation/support evidence remains pending.
+- P5-DG2 accepted target owns supported volatile cursor, legacy `static-unsupported` branch, admission-epoch explicit refresh + opt-in polling, bounded startup/refresh retry, topology gate і one local/external coordinator; докази реалізації матеріалізовано й прийнято у P5-WP1/P5-HARD1/P5-VS1/P5-VS2, а докази стабілізації прийнято й завершено у P5-STAB. Початковий аудит P5-AUD1 у TASK-0063 виявив два зауваження рівня P2. Усунення зауважень фіксує TASK-0064; незалежну повторну перевірку та її результат фіксує TASK-0063. Канонічну підтримку топологій не заявлено до прийнятого P5-AUD1 та явного human gate фази 5.
 
 ## Закритий P5-DG2 baseline
 
@@ -91,5 +91,5 @@ Updated: 2026-07-17
 - Explicit `query.refresh()` accepted as correctness primitive, default manual; opt-in polling is bounded admission-epoch/coalesced trigger with serialized trailing epoch, notification implementation deferred.
 - One full/readonly committed-change observation seam and one publication coordinator own local/external/lazy ordering; readonly zero-write, raw session/cursor public leakage forbidden.
 - Supported startup observation and refresh retry bounded; write lock failure caller-managed; SQLite fairness/SLA not claimed.
-- Initial two-process `full/full`/`full/readonly` candidates remain unsupported until P5 implementation, stabilization, audit and human gate; designated writer recommended.
-- Still open: executable support verdict/budgets, arbitrary instance count, retention/compaction, durable checkpoint, notification implementation, multi-host/HA і broader profiles.
+- P5-STAB accepted/completed: симетрична двопроцесна `full/full` лишається unsupported; designated-writer `full/readonly` — єдиний кандидат, а не supported topology. Початковий аудит P5-AUD1 у TASK-0063 виявив два зауваження рівня P2. Усунення зауважень фіксує TASK-0064; незалежну повторну перевірку та її результат фіксує TASK-0063. Канонічну підтримку не заявлено до прийнятого P5-AUD1 та явного human gate фази 5.
+- Досі відкрито: явне рішення human gate фази 5 щодо підтримки, довільна кількість екземплярів, збереження/компакція, durable checkpoint, реалізація сповіщень, multi-host/HA і ширші профілі.

@@ -1,0 +1,103 @@
+{
+  "schema": "extensia.p5-aud1-rerun-summary.v2",
+  "record_classification": {
+    "full_repository_gate": "verifiable command/result record",
+    "raw_process_rerun": "operator-attested supporting corroboration; raw artifact, temporary harness and exact invocation not retained",
+    "frozen_packed_evidence_review": "persistent evidence independently validated by task-local validator"
+  },
+  "provenance": {
+    "repository_head": "732ce7d43b1d7c3ced8c098896427c6b6b7e4f59",
+    "branch": "develop",
+    "node": "v24.19.0",
+    "npm": "11.17.0",
+    "sqlite": "3.53.3",
+    "platform": "win32",
+    "arch": "x64",
+    "filesystem_profile": "windows-local-ntfs-v1",
+    "sync_backed": false,
+    "sync_backed_verification": "task-run-attested-false"
+  },
+  "full_repository_gate": {
+    "command": "npm.cmd run check",
+    "status": "PASS",
+    "test_files": 32,
+    "tests": 366,
+    "coverage_percent": {
+      "statements": 86.74,
+      "branches": 81.43,
+      "functions": 92.2,
+      "lines": 88.2
+    },
+    "pack_dry_run_files": 206,
+    "publint": "PASS",
+    "attw": "PASS",
+    "package_smoke": "PASS"
+  },
+  "raw_process_rerun": {
+    "status": "OPERATOR_ATTESTED_PASS",
+    "evidence_role": "supporting-corroboration-only",
+    "raw_artifact_retained": false,
+    "temporary_harness_retained": false,
+    "exact_invocation_retained": false,
+    "sha256_currently_reverifiable": false,
+    "runtime_source": "workspace-dist",
+    "repetitions": 2,
+    "raw_evidence_sha256": "ebdfd35e5a576cfad98c388b16764c8d46396832dfed8c861d201d3f2bb3848b",
+    "harness_adaptation": "operator record says path/output-root-only mechanical copy; temporary copy was removed",
+    "full_full": {
+      "successes": 19,
+      "lock_failures": 13,
+      "calls": 32
+    },
+    "full_readonly": {
+      "zero_write_runs": 2,
+      "strategy_runs": [
+        ["at-head", "delta", "delta", "delta", "rebuild"],
+        ["at-head", "delta", "delta", "delta", "rebuild"]
+      ],
+      "refresh_exhaustion_runs": 2,
+      "lock_to_success_recovery_runs": 2,
+      "polling_visibility_runs": 2,
+      "restart_runs": 2
+    },
+    "long_contention": [
+      {
+        "first": { "successes": 32, "lock_failures": 0, "max_failure_run": 0 },
+        "second": { "successes": 29, "lock_failures": 3, "max_failure_run": 1 },
+        "starvation_observed": false
+      },
+      {
+        "first": { "successes": 31, "lock_failures": 1, "max_failure_run": 1 },
+        "second": { "successes": 30, "lock_failures": 2, "max_failure_run": 2 },
+        "starvation_observed": false
+      }
+    ],
+    "polling_herd": [
+      { "eventual_visibility": true, "stale_age_ms": 2.5835000000006403, "aligned_spread_ms": 0 },
+      { "eventual_visibility": true, "stale_age_ms": 256.7847000000038, "aligned_spread_ms": 1 }
+    ],
+    "max_actual_wait_ms": 318.1144000000022,
+    "cleanup": {
+      "all_workers_clean_exit": true,
+      "forced_kills": 0,
+      "pending_requests_after_exit": 0,
+      "task_local_storage_roots_removed": true
+    }
+  },
+  "independent_packed_rerun": {
+    "status": "INCOMPLETE",
+    "reason": "sandbox npm cache EPERM; requested elevated retry was canceled by the user",
+    "claimed_as_pass": false
+  },
+  "frozen_packed_evidence_review": {
+    "status": "PASS",
+    "validator": "audit-evidence-validate.mjs",
+    "package_evidence_sha256": "da8af60c0e56cab24b1e6a81343a38354de9100d4b2badb0269e03875ecdf0b3",
+    "packed_process_evidence_sha256": "9907e307cedc0d9b1e643be30a02c32395f03e8900329f18417c62e7cf0b3d01",
+    "archive_sha256": "eff88293652bedd17448686921a6871f63435704b946f1b1844e14422a3ab118",
+    "archive_entries": 206,
+    "archive_bytes": 312767,
+    "double_pack_byte_content_npm_manifest_equal": true,
+    "installed_process_matrix": "PASS"
+  }
+}

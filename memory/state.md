@@ -8,7 +8,7 @@ Internal Stage: `v2`
 
 ## Поточний фокус
 
-Phase 1, Phase 2, Phase 3 і Phase 4 завершені. `P5-RS1 / TASK-0055`, `P5-DG1 / TASK-0056`, `P5-DG2 / TASK-0057`, `P5-WP1 / TASK-0058`, `P5-HARD1 / TASK-0059`, `P5-VS1 / TASK-0060`, `P5-VS2 / TASK-0061` і `P5-STAB / TASK-0062` accepted/completed; relevant fixations applied. `P5-AUD1` лишається backlog/prepared та не активована.
+Phase 1, Phase 2, Phase 3 і Phase 4 завершені. `P5-RS1 / TASK-0055`, `P5-DG1 / TASK-0056`, `P5-DG2 / TASK-0057`, `P5-WP1 / TASK-0058`, `P5-HARD1 / TASK-0059`, `P5-VS1 / TASK-0060`, `P5-VS2 / TASK-0061`, `P5-STAB / TASK-0062`, remediation `TASK-0064` і `P5-AUD1 / TASK-0063 / RUN-002` accepted/completed; relevant fixations applied, audit ledger `0/0/0/0`. Human Phase 5 gate і Phase 6 inactive.
 
 ## Поточний стан продукту
 
@@ -37,7 +37,8 @@ Phase 1, Phase 2, Phase 3 і Phase 4 завершені. `P5-RS1 / TASK-0055`, `
 - `P5-VS1 / TASK-0060 / RUN-001` done/completed: 10/10 acceptance, 359-test full gate, whole-task approved, FIX-001 applied exactly, independent post-application `PASS`; downstream inactive.
 - `P5-VS2 / TASK-0061 / RUN-001` done/completed: acceptance 10/10, whole-task/FIX-001/FIX-002 approved, both fixations applied exact, repeated post-application audit `PASS`. Support claim відсутній, downstream inactive.
 - `P5-STAB / TASK-0062 / RUN-001` done/completed: whole-task approved, acceptance 10/10, full/package/process gates green, final independent `REVIEW_READY`; designated-writer `full/readonly` recommended candidate, symmetric `full/full` unsupported, canonical support unclaimed.
-- `P5-AUD1 / TASK-0063 / RUN-001` backlog/prepared: independent Phase 5 audit/human-gate recommendation; P5-STAB dependency satisfied, separate explicit activation required.
+- `P5-AUD1 / TASK-0063 / RUN-002` done/completed: whole-task approved, independent recommendation `pass`, acceptance 10/10, open P0/P1/P2/P3 `0/0/0/0`; RUN-001 remains historical blocked/fail record.
+- `P5-AUD1 remediation / TASK-0064 / RUN-001` done/completed: whole-task approved, FIX-001 approved/applied/post-audited `PASS`; TASK-0063 reverification pass; acceptance 10/10.
 - `TASK-07.26-0038` done: Phase 4 planning і canonical preparation двох owner gates прийняті whole-task human review; repeated independent audit без open P0-P3.
 - `P4-DG1 / TASK-07.26-0039` done: FIX-001/FIX-002 applied, final post-application audit `PASS`, `APP-07.26-0039-001` published; downstream не активовано.
 - `P4-DG2 / TASK-07.26-0040` done: FIX-001/FIX-002/FIX-003 approved and applied; final repeated post-application audit `PASS`, downstream не активовано.
@@ -79,6 +80,12 @@ Phase 1, Phase 2, Phase 3 і Phase 4 завершені. `P5-RS1 / TASK-0055`, `
 
 ## Останні рішення
 
+- Користувач 2026-08-23 явно схвалив whole-task results `TASK-0064` і `TASK-0063`; обидві task/run закриті як `done/completed`. Approval не є human Phase 5 gate, не оголошує topology support і не активує Phase 6.
+- `P5-AUD1 / TASK-0063 / RUN-002` 2026-08-23 independently закрив P2-001/P2-002 після TASK-0064 remediation: recommendation `pass`, acceptance 10/10, ledger `0/0/0/0`; final bounded lifecycle/meta-review `REVIEW_READY`, згодом прийнятий whole-task approval.
+- Користувач 2026-08-23 explicit `FIX-001: approve` схвалив required TASK-0064 fixation; exact application/post-validation і repeated independent post-audit `PASS` завершені, TASK-0063/RUN-002 активовано за попередньо наданою reverification command. Whole-task approvals, human Phase 5 gate і Phase 6 activation не надані.
+- Користувач 2026-08-23 прямо доручив створити й виконати окрему TASK-0064 remediation для P5-AUD1 P2-001/P2-002, потім повторно перевірити TASK-0063, і дозволив субагентів. Команда є activation authorization, але atomic creation спочатку фіксує `backlog/prepared`; FIX-001 approval, whole-task approval, human Phase 5 gate і Phase 6 activation не надані.
+- `P5-AUD1 / TASK-0063 / RUN-001` завершила substantive audit і repeated audit-artifact meta-review: recommendation `fail / changes required`, acceptance 7/10, open substantive P2 `2`, meta-review `REVIEW_READY`; task/run blocked до owner remediation/reverification, human gate і Phase 6 inactive.
+- Користувач 2026-08-23 окремо активував `P5-AUD1 / TASK-0063 / RUN-001` і дозволив субагентів; independent audit виконується, human Phase 5 gate і Phase 6 лишаються inactive.
 - Користувач 2026-08-23 явно схвалив whole-task result `P5-STAB / TASK-0062`; run/task завершені як completed/done без fixations, P5-AUD1 не активована.
 - `P5-STAB / TASK-0062 / RUN-001` передано в human review після 366-test full gate, 119-test focused gate, byte-identical double pack, 3+1 process repetitions, exact topology verdict і repeated independent `REVIEW_READY`; P5-AUD1 inactive.
 - Користувач 2026-08-23 явно активував `P5-STAB / TASK-0062 / RUN-001` і дозволив субагентів; це не активує P5-AUD1, human Phase 5 gate або Phase 6.
@@ -183,7 +190,7 @@ Phase 1, Phase 2, Phase 3 і Phase 4 завершені. `P5-RS1 / TASK-0055`, `
 
 ## Наступні кроки
 
-1. За окремим explicit owner рішенням активувати або лишити backlog `P5-AUD1 / TASK-0063`; approval P5-STAB її автоматично не активував.
+1. Окремо вирішити human Phase 5 gate і exact topology support disposition. Phase 6 не активувати неявно.
 2. За окремим owner рішенням можна активувати TASK-0044 або TASK-0048; client-server vendor tasks потребують окремого створення/activation.
 
 ## Відкриті питання

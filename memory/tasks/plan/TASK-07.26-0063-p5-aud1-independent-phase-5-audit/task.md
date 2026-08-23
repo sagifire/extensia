@@ -1,20 +1,20 @@
 # P5-AUD1 / TASK-07.26-0063: Провести незалежний аудит фази 5
 
-Task Status: backlog
+Task Status: done
 Type: audit/research
 Created: 2026-07-18
 Owner Role: Agent Auditor
-Current Run: RUN-001
+Current Run: RUN-002
 
 ## Поточний стан
 
-Run Status: prepared
-Progress: package prepared; audit не активовано.
-Acceptance: 0/10.
-Blockers: P5-STAB / TASK-07.26-0062 має бути завершена й прийнята людиною.
-Blocked Phase: activation gate.
-Pending Decisions: окреме explicit рішення активувати P5-AUD1 після accepted P5-STAB.
-Next Action: після accepted P5-STAB перевірити frozen stabilization evidence і окремо активувати RUN-001 незалежним auditor.
+Run Status: completed
+Progress: whole-task approved; RUN-002 independently закрив P2-001/P2-002 після TASK-0064 remediation; recommendation `pass`, acceptance 10/10, open P0/P1/P2/P3 = `0/0/0/0`.
+Acceptance: 10/10.
+Blockers: немає.
+Blocked Phase: немає в межах task; human Phase 5 gate очікує окремого owner decision, Phase 6 inactive.
+Pending Decisions: human Phase 5 gate/support disposition лишається окремим рішенням.
+Next Action: окремо вирішити human Phase 5 gate; Phase 6 не активовано.
 
 ## Мета
 
@@ -97,21 +97,25 @@ Next Action: після accepted P5-STAB перевірити frozen stabilizati
 
 ## Прогони
 
-- [RUN-001](RUN-001/index.md) - prepared; не активований.
+- [RUN-001](RUN-001/index.md) - historical blocked result; substantive audit `fail / changes required`, two P2 remediated by TASK-0064.
+- [RUN-002](RUN-002/index.md) - review-ready; independent `pass`, acceptance 10/10, ledger `0/0/0/0`.
 
 ## Дослідження й аудит
 
-Немає; після activation RUN-001 має створити task-local `RSCH-*` за потреби formal audit research і detailed report у `memory/reports/audits/`.
+- [RSCH-001](RSCH-001.md) - completed historical RUN-001 result; initial substantive audit і remediation handoff, superseded for current gate by RSCH-002.
+- [Detailed audit report](../../../reports/audits/2026-08-23-extensia-phase-5-independent-audit.md) - historical RUN-001 `fail / changes required`, initial open P2 `2`; current authority is RUN-002/reverification report.
+- [RSCH-002](RSCH-002.md) - completed / `final-result`; independent remediation reverification.
+- [Detailed reverification report](../../../reports/audits/2026-08-23-extensia-phase-5-remediation-reverification.md) - recommendation `pass`, acceptance 10/10, ledger `0/0/0/0`.
 
 ## Фіксації
 
-Немає; auditor не застосовує remediation. Required canonical consistency changes оформлює відповідний owning task/new run через окремий `FIX-*`.
+Task-local fixations немає; required remediation оформлено й approved/applied у TASK-0064/FIX-001.
 
 ## Запити на рішення
 
-- Поточне: не активувати до accepted P5-STAB і доступності незалежного auditor.
-- Після виконання dependency: окремо `activate | keep backlog | cancel`.
-- Після review-ready: `approve | request changes | cancel`; audit recommendation не замінює human Phase 5 gate.
+- Activation gate виконано 2026-08-23 explicit owner decision після accepted P5-STAB.
+- Поточна RUN-002 recommendation: `pass`; whole-task approval TASK-0063 pending. Human Phase 5 gate не є частиною цього approval.
+- Owner direction виконано: TASK-0064 створена, FIX-001 approved/applied і post-audited PASS; RUN-002 reverify activation авторизована початковою командою користувача «потім повторно перевір TASK-0063».
 
 ## Запропоновані follow-up задачі
 
@@ -120,18 +124,18 @@ Next Action: після accepted P5-STAB перевірити frozen stabilizati
 
 ## Human Review
 
-Status: not-requested
-Requested: pending
-Reviewed: pending
-Approval Source: pending
-Approved Fixations: pending
-Rejected Fixations: pending
-Follow-up Decisions: pending
-Decision Notes: pending
+Status: approved
+Requested: 2026-08-23
+Reviewed: 2026-08-23
+Approval Source: explicit user command `TASK-0063: approve`
+Approved Fixations: none in TASK-0063; TASK-0064/FIX-001 already applied
+Rejected Fixations: none
+Follow-up Decisions: human Phase 5 gate not-decided; Phase 6 inactive
+Decision Notes: whole-task independent audit result accepted; approval не є human Phase 5 gate, не оголошує topology support і не активує Phase 6.
 
 ## Фінальний результат
 
-Completed: pending
-Final Run: pending
-Summary: pending
-Residual Risks: pending
+Completed: 2026-08-23
+Final Run: RUN-002
+Summary: P5-AUD1 прийнято з recommendation `pass`, acceptance 10/10 і open P0/P1/P2/P3 `0/0/0/0`; historical RUN-001 fail збережено, remediation closure authority — RUN-002/RSCH-002.
+Residual Risks: symmetric `full/full` unsupported; designated-writer `full/readonly` candidate only; arbitrary count, multi-host/HA, fairness/SLA та broader platform certification поза доказаною межею; topology support очікує human Phase 5 gate.

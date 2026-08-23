@@ -2,7 +2,7 @@
 
 ## Призначення
 
-Prepared independent audit run для Phase 5 evidence, contracts, implementation, topology verdict і human-gate recommendation.
+Blocked independent audit run: substantive Phase 5 audit завершено з двома open P2 findings, external owner remediation required.
 
 ## Папки
 
@@ -10,4 +10,7 @@ Prepared independent audit run для Phase 5 evidence, contracts, implementatio
 
 ## Файли
 
-- [Context](context.md) - frozen-on-activation audit requirements, independence boundary, acceptance і stop conditions.
+- [Context](context.md) - frozen audit requirements, independence boundary, acceptance і stop conditions.
+- [Result](result.md) - activation, execution, verification, findings, self-review і meta-review.
+- [Evidence validator](audit-evidence-validate.mjs) - task-local independent structural/hash validator frozen P5-STAB raw/package evidence.
+- [Rerun summary](audit-rerun-summary.json) - current full gate і non-retained operator-attested 2-run corroboration aggregate; frozen evidence owns AC4 provenance, packed-rerun limitation explicit.
