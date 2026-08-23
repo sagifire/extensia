@@ -1,6 +1,6 @@
 # P5-STAB / TASK-07.26-0062: Стабілізувати повний executable scope фази 5
 
-Task Status: backlog
+Task Status: done
 Type: stabilization
 Created: 2026-07-18
 Owner Role: Agent Stabilizer / Performance Engineer
@@ -8,13 +8,13 @@ Current Run: RUN-001
 
 ## Поточний стан
 
-Run Status: prepared
-Progress: package prepared; execution не активовано.
-Acceptance: 0/10.
-Blockers: TASK-07.26-0058, TASK-07.26-0059, TASK-07.26-0060 і TASK-07.26-0061 мають бути завершені та прийняті людиною.
-Blocked Phase: activation gate.
-Pending Decisions: окреме explicit рішення активувати P5-STAB після виконання dependencies.
-Next Action: після accepted TASK-0058..0061 перевірити frozen dependency results і окремо активувати RUN-001.
+Run Status: completed
+Progress: whole-task approved; RUN-001 completed, no fixations, P5-AUD1 не активована.
+Acceptance: 10/10.
+Blockers: немає; TASK-07.26-0058, TASK-07.26-0059, TASK-07.26-0060 і TASK-07.26-0061 завершені та прийняті людиною.
+Blocked Phase: none.
+Pending Decisions: separate activation decision for P5-AUD1.
+Next Action: за окремою explicit командою можна активувати P5-AUD1; зараз вона лишається backlog/prepared.
 
 ## Мета
 
@@ -95,11 +95,11 @@ Next Action: після accepted TASK-0058..0061 перевірити frozen dep
 
 ## Прогони
 
-- [RUN-001](RUN-001/index.md) - prepared; не активований.
+- [RUN-001](RUN-001/index.md) - completed після whole-task human approval; reviewed content preserved.
 
 ## Дослідження
 
-Немає; raw evidence і stabilization analysis належать RUN-001 result/evidence artifacts, якщо run буде активовано.
+Немає; raw evidence і stabilization analysis належать active RUN-001 result/evidence artifacts.
 
 ## Фіксації
 
@@ -107,8 +107,7 @@ Next Action: після accepted TASK-0058..0061 перевірити frozen dep
 
 ## Запити на рішення
 
-- Поточне: не активувати до accepted TASK-0058..0061.
-- Після виконання dependencies: окремо `activate | keep backlog | cancel`.
+- Activation: виконано 2026-08-23 за explicit командою користувача після accepted TASK-0058..0061.
 - Після review-ready: `approve | request changes | cancel` та окремі рішення для можливих `FIX-*`.
 
 ## Запропоновані follow-up задачі
@@ -118,18 +117,18 @@ Next Action: після accepted TASK-0058..0061 перевірити frozen dep
 
 ## Human Review
 
-Status: not-requested
-Requested: pending
-Reviewed: pending
-Approval Source: pending
-Approved Fixations: pending
-Rejected Fixations: pending
-Follow-up Decisions: pending
-Decision Notes: pending
+Status: approved
+Requested: 2026-08-23
+Reviewed: 2026-08-23
+Approval Source: explicit user command `approve`
+Approved Fixations: none
+Rejected Fixations: none
+Follow-up Decisions: P5-AUD1 not-decided; remains backlog/prepared
+Decision Notes: whole-task result approved without fixations; approval does not activate downstream tasks.
 
 ## Фінальний результат
 
-Completed: pending
-Final Run: pending
-Summary: pending
-Residual Risks: pending
+Completed: 2026-08-23
+Final Run: RUN-001
+Summary: Phase 5 stabilization accepted with designated-writer `full/readonly` as the only recommended support candidate; symmetric `full/full` and broader topologies remain unsupported, canonical support unclaimed pending P5-AUD1/human Phase 5 gate.
+Residual Risks: synchronous SQLite/event-loop pressure, no hard timeout/stale/fairness SLA, manual unbounded staleness, task-run `syncBacked: false` attestation and ambiguous-COMMIT safety-over-liveness wait.

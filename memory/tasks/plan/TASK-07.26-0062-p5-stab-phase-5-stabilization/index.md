@@ -2,11 +2,11 @@
 
 ## Призначення
 
-Навігація prepared stabilization gate повного executable scope фази 5.
+Навігація completed stabilization gate повного executable scope фази 5.
 
 ## Папки
 
-- [RUN-001](RUN-001/index.md) - prepared stabilization run; activation gated завершеними й прийнятими TASK-0058..0061.
+- [RUN-001](RUN-001/index.md) - completed stabilization run; acceptance 10/10, independent `REVIEW_READY`, whole-task approved.
 
 ## Файли
 

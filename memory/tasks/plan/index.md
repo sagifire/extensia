@@ -67,8 +67,8 @@
 - [TASK-07.26-0059-p5-hard1-sync-actor-retry-lifecycle](TASK-07.26-0059-p5-hard1-sync-actor-retry-lifecycle/index.md) - Backlog/prepared `P5-HARD1`; internal sync actor/retry/lifecycle hardening after accepted P5-WP1.
 - [TASK-07.26-0060-p5-vs1-lazy-refresh-public-integration](TASK-07.26-0060-p5-vs1-lazy-refresh-public-integration/index.md) - Backlog/prepared `P5-VS1`; lazy completeness and experimental refresh/config/inspection after P5-HARD1.
 - [TASK-07.26-0061-p5-vs2-local-sqlite-multi-instance-sync](TASK-07.26-0061-p5-vs2-local-sqlite-multi-instance-sync/index.md) - Backlog/prepared `P5-VS2`; concrete local SQLite multi-instance sync/polling/contention evidence after P5-VS1.
-- [TASK-07.26-0062-p5-stab-phase-5-stabilization](TASK-07.26-0062-p5-stab-phase-5-stabilization/index.md) - Backlog/prepared `P5-STAB`; phase-wide stabilization and truthful topology verdict after implementation waves.
-- [TASK-07.26-0063-p5-aud1-independent-phase-5-audit](TASK-07.26-0063-p5-aud1-independent-phase-5-audit/index.md) - Backlog/prepared `P5-AUD1`; independent Phase 5 audit and human-gate recommendation after P5-STAB.
+- [TASK-07.26-0062-p5-stab-phase-5-stabilization](TASK-07.26-0062-p5-stab-phase-5-stabilization/index.md) - Done `P5-STAB`; whole-task approved, 10/10, independent `REVIEW_READY`, designated-writer candidate and unsupported symmetric topology verdict.
+- [TASK-07.26-0063-p5-aud1-independent-phase-5-audit](TASK-07.26-0063-p5-aud1-independent-phase-5-audit/index.md) - Backlog/prepared `P5-AUD1`; P5-STAB dependency satisfied, separate explicit activation required.
 
 ## Файли
 

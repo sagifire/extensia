@@ -1,0 +1,4587 @@
+{
+  "archives": [
+    {
+      "archive_bytes": 312767,
+      "archive_sha256": "eff88293652bedd17448686921a6871f63435704b946f1b1844e14422a3ab118",
+      "content_manifest": [
+        {
+          "bytes": 1438,
+          "path": "dist/composition/diagnostics.d.ts",
+          "sha256": "87754c64576fb7ab3eea1a319a52bf3ab760718a5ef2446e2672219aa5fcf04c",
+          "type": "file"
+        },
+        {
+          "bytes": 1003,
+          "path": "dist/composition/diagnostics.d.ts.map",
+          "sha256": "f68ef1fd95480de9e943314bb2587b1c871cf235437426e27630a8859c8447f1",
+          "type": "file"
+        },
+        {
+          "bytes": 2500,
+          "path": "dist/composition/diagnostics.js",
+          "sha256": "ae5423530cda674b738d9666c1d2ef1f7657cf2510645cb43d7f748592d5c8ca",
+          "type": "file"
+        },
+        {
+          "bytes": 6150,
+          "path": "dist/composition/diagnostics.js.map",
+          "sha256": "98228ef2487c02c06c48ade83ba918749d8922fe90d8495116eaf5d2c2f37444",
+          "type": "file"
+        },
+        {
+          "bytes": 2516,
+          "path": "dist/composition/inspection.d.ts",
+          "sha256": "b623a8021df90feb2486f761e309781ce97624e625f451b81d26af9539a00a36",
+          "type": "file"
+        },
+        {
+          "bytes": 2281,
+          "path": "dist/composition/inspection.d.ts.map",
+          "sha256": "dfc3d83075322cb92d91c0796e13c292cb55a98940bb6d413f46863a8fb22097",
+          "type": "file"
+        },
+        {
+          "bytes": 2685,
+          "path": "dist/composition/inspection.js",
+          "sha256": "9eaf434ed1da5bd20f2d0385f67881f018a09d7e9a3db8023ca3d6fa24c3feba",
+          "type": "file"
+        },
+        {
+          "bytes": 7990,
+          "path": "dist/composition/inspection.js.map",
+          "sha256": "eeca6b05eb82545bbda228f1d164b2abd19804bc755428f47891f33bc0ba675b",
+          "type": "file"
+        },
+        {
+          "bytes": 950,
+          "path": "dist/composition/local-sqlite-runtime.d.ts",
+          "sha256": "11324d0ae42405c48e98b12572f0eb39eb7e9fcac2bd366dad1aab5739cdab91",
+          "type": "file"
+        },
+        {
+          "bytes": 616,
+          "path": "dist/composition/local-sqlite-runtime.d.ts.map",
+          "sha256": "5fef47b745cef7b8a20ade790309b55d5e3ecdf64dccc731b31114eb7a5e1260",
+          "type": "file"
+        },
+        {
+          "bytes": 1098,
+          "path": "dist/composition/local-sqlite-runtime.js",
+          "sha256": "579ee2ce4936a198ba59e5040d6f9ea3d6fc5ab4dc94a335eda2250d86f193d7",
+          "type": "file"
+        },
+        {
+          "bytes": 2436,
+          "path": "dist/composition/local-sqlite-runtime.js.map",
+          "sha256": "57db70afa796a6a40cb99427ae072c1e08543228e6f213ec385d10223bddd30b",
+          "type": "file"
+        },
+        {
+          "bytes": 3080,
+          "path": "dist/composition/root.d.ts",
+          "sha256": "67a745eb4d9368768a62d3302c3a38b829d2aac280a30f9637260451fecc087e",
+          "type": "file"
+        },
+        {
+          "bytes": 2870,
+          "path": "dist/composition/root.d.ts.map",
+          "sha256": "8ea9d38c88bffd51dfa607b6e6676ac752a8d9afa25dd6ca0e8a815e9ec3913a",
+          "type": "file"
+        },
+        {
+          "bytes": 5164,
+          "path": "dist/composition/root.js",
+          "sha256": "8eec67101c314370ff892607184703f188bf931cbeb427f7770deac21c164b6b",
+          "type": "file"
+        },
+        {
+          "bytes": 14473,
+          "path": "dist/composition/root.js.map",
+          "sha256": "227abbe3885256699b7d0a1837a33eaf7864d3e0de8d4cdea5b66fc463a999ba",
+          "type": "file"
+        },
+        {
+          "bytes": 652,
+          "path": "dist/composition/tokens.d.ts",
+          "sha256": "2b55eb25b9c4715ee9d225b942fce4fd488570bcca99608b3c78badd880dda2a",
+          "type": "file"
+        },
+        {
+          "bytes": 637,
+          "path": "dist/composition/tokens.d.ts.map",
+          "sha256": "658c194c04a44a387f115bec54dc4e67d3934c929fa752c8435928832b593f38",
+          "type": "file"
+        },
+        {
+          "bytes": 628,
+          "path": "dist/composition/tokens.js",
+          "sha256": "add51d37835b51d13f9c46c5fcb328d14b5885c89dbfd5cef6f27829202ad32a",
+          "type": "file"
+        },
+        {
+          "bytes": 1694,
+          "path": "dist/composition/tokens.js.map",
+          "sha256": "3f61ada43e1b8206551c1797f733a583cf87747745eedd6e177a5217810dc6b9",
+          "type": "file"
+        },
+        {
+          "bytes": 1256,
+          "path": "dist/core/asset-write-runtime.d.ts",
+          "sha256": "375efd81d480610dfc94d99fbfa5ebc528f6523d83f084db73e0b6fc7b313a8f",
+          "type": "file"
+        },
+        {
+          "bytes": 975,
+          "path": "dist/core/asset-write-runtime.d.ts.map",
+          "sha256": "aa568c979240e873c7983943b35ebe631001887e4eb80bbc76dea8e54eaf7aec",
+          "type": "file"
+        },
+        {
+          "bytes": 45012,
+          "path": "dist/core/asset-write-runtime.js",
+          "sha256": "30612ab26dac3a28a45152334126893fba54bc17d9a6fe02aba71586e9fc6625",
+          "type": "file"
+        },
+        {
+          "bytes": 87712,
+          "path": "dist/core/asset-write-runtime.js.map",
+          "sha256": "b74f4d025fbef8c14238a7c78699b40cde9edced337c8ab9a28fae77ce1ed249",
+          "type": "file"
+        },
+        {
+          "bytes": 1587,
+          "path": "dist/core/deterministic-read-model-observation.d.ts",
+          "sha256": "12e5abf96f2e9017364a9e167e82d177f7b25300e5fe4047cbeeecef5fbd8e2a",
+          "type": "file"
+        },
+        {
+          "bytes": 1221,
+          "path": "dist/core/deterministic-read-model-observation.d.ts.map",
+          "sha256": "5e7d6ef12463bf4421f498036fb7fbc0261a2368f24c17f16503f7fd9e5c6c9e",
+          "type": "file"
+        },
+        {
+          "bytes": 4942,
+          "path": "dist/core/deterministic-read-model-observation.js",
+          "sha256": "592346a1f33dfbd7c2e746ecc77889e23fbedfc9a5a0d02e14ffeaffb96c1fa2",
+          "type": "file"
+        },
+        {
+          "bytes": 11156,
+          "path": "dist/core/deterministic-read-model-observation.js.map",
+          "sha256": "f4a7647a7dd5144493760ef9942933810af074d83ada58862c7198ec9b66e863",
+          "type": "file"
+        },
+        {
+          "bytes": 831,
+          "path": "dist/core/deterministic-read-model-synchronization.d.ts",
+          "sha256": "5f6d3d657251a083998b21e439c5c17db71553c3a1640f02007f334864a50bb5",
+          "type": "file"
+        },
+        {
+          "bytes": 671,
+          "path": "dist/core/deterministic-read-model-synchronization.d.ts.map",
+          "sha256": "9c310914f1e837d0912ff8d3ecfd8933c034c938e70062cbf1ada35415e773fe",
+          "type": "file"
+        },
+        {
+          "bytes": 3221,
+          "path": "dist/core/deterministic-read-model-synchronization.js",
+          "sha256": "4f9cfd7fb602cba6860e6ce3a7cd8a28e6a095d351b50115eba5b9916bd07989",
+          "type": "file"
+        },
+        {
+          "bytes": 6963,
+          "path": "dist/core/deterministic-read-model-synchronization.js.map",
+          "sha256": "87bdec4aece3641435fe2239f2c6bd8ee0b72bdbe3f9aa44a7670465e237ea91",
+          "type": "file"
+        },
+        {
+          "bytes": 873,
+          "path": "dist/core/persistent-string-map.d.ts",
+          "sha256": "c0b01991daecc511eaed31d8d987fe41bdcfefcb6d07ce86edca044edaae4601",
+          "type": "file"
+        },
+        {
+          "bytes": 1187,
+          "path": "dist/core/persistent-string-map.d.ts.map",
+          "sha256": "6d60811d566dd766e08cffddab1da3b1b5e1abc9b76aadda035650c248c0e90c",
+          "type": "file"
+        },
+        {
+          "bytes": 4568,
+          "path": "dist/core/persistent-string-map.js",
+          "sha256": "6537d1efe93f6eb1655f66621e137190500e6c282f6b0d1651763a380a1d286f",
+          "type": "file"
+        },
+        {
+          "bytes": 11551,
+          "path": "dist/core/persistent-string-map.js.map",
+          "sha256": "76d1c889ce7d166e724060d584d85f34e766f001929de1cb133306b14e2d9ce7",
+          "type": "file"
+        },
+        {
+          "bytes": 1859,
+          "path": "dist/core/read-model-coordinator.d.ts",
+          "sha256": "f7c5a7d5b048dc4dbdca098c3c4fb850acfdac3f3be1eef5c1955f18972e22c9",
+          "type": "file"
+        },
+        {
+          "bytes": 1587,
+          "path": "dist/core/read-model-coordinator.d.ts.map",
+          "sha256": "8a97c27e30ce09b1b75444c88c3f2b857946ba7d42371bd48846955e3c02abd8",
+          "type": "file"
+        },
+        {
+          "bytes": 7264,
+          "path": "dist/core/read-model-coordinator.js",
+          "sha256": "24903d500dda77eab9ce15ef729a3c7e8f6a357894674db6326a8bf87ec95ebe",
+          "type": "file"
+        },
+        {
+          "bytes": 14765,
+          "path": "dist/core/read-model-coordinator.js.map",
+          "sha256": "d1d2d8ad526e4434527ee86802e769873f925fa805888d95a8f31660d75b8f5c",
+          "type": "file"
+        },
+        {
+          "bytes": 4458,
+          "path": "dist/core/read-model-generation.d.ts",
+          "sha256": "a97e1d8e626dd030169ef62725afee03d86ee5de6c1342f8adc9829cadc84324",
+          "type": "file"
+        },
+        {
+          "bytes": 3785,
+          "path": "dist/core/read-model-generation.d.ts.map",
+          "sha256": "f45e2f1a891559bcc3436337b30175686fc789d519161090f1f2af7a45d7a4ba",
+          "type": "file"
+        },
+        {
+          "bytes": 25431,
+          "path": "dist/core/read-model-generation.js",
+          "sha256": "ace3f996517c1b859cee5508327358692ac9124eeaae82622bac60152d308a09",
+          "type": "file"
+        },
+        {
+          "bytes": 59887,
+          "path": "dist/core/read-model-generation.js.map",
+          "sha256": "93fb4b321fc3b5ec15d73fbb0360d165502e280bcf82a103172e681bb805806f",
+          "type": "file"
+        },
+        {
+          "bytes": 5468,
+          "path": "dist/core/read-model-observation.d.ts",
+          "sha256": "f0d1e02496317330be1360c40bcf6c68de4648ebf1393225a0a439acb3762c52",
+          "type": "file"
+        },
+        {
+          "bytes": 4330,
+          "path": "dist/core/read-model-observation.d.ts.map",
+          "sha256": "99dd852e442b46f09a3ba19de3ad82f1eb023c6cebccb65d6ed5b721f375a457",
+          "type": "file"
+        },
+        {
+          "bytes": 7287,
+          "path": "dist/core/read-model-observation.js",
+          "sha256": "af7c125dae12b79a15d0c1312bff0516cec08434a386dcc00d736734b55ca672",
+          "type": "file"
+        },
+        {
+          "bytes": 18351,
+          "path": "dist/core/read-model-observation.js.map",
+          "sha256": "ae4bdd5b17aef01506312e1c6a9a73401cbc6f77ef8fceeb3195cdf41cfe3220",
+          "type": "file"
+        },
+        {
+          "bytes": 799,
+          "path": "dist/core/read-model-polling.d.ts",
+          "sha256": "754db5fe463bc92e8074dd50bc5a87757b68e466ee49bce6acac94f190bbfc08",
+          "type": "file"
+        },
+        {
+          "bytes": 737,
+          "path": "dist/core/read-model-polling.d.ts.map",
+          "sha256": "9910ca17ea63aed3fa8db9bde582313a9d48afd6191cc86511c1c92199028770",
+          "type": "file"
+        },
+        {
+          "bytes": 2113,
+          "path": "dist/core/read-model-polling.js",
+          "sha256": "3a5ba61cef3140894b5563da1702b597bd3a357b98e10796bbd9d8c5bc65e1c6",
+          "type": "file"
+        },
+        {
+          "bytes": 5238,
+          "path": "dist/core/read-model-polling.js.map",
+          "sha256": "d414f48a0a17a442051413a6787406eac64076ee3023835280d7b01a16dddc9c",
+          "type": "file"
+        },
+        {
+          "bytes": 1685,
+          "path": "dist/core/read-model-query.d.ts",
+          "sha256": "a16e94baa8248ca6cf5ca96492c5c25f1f36cd878762fc25f15b21338cc0d24a",
+          "type": "file"
+        },
+        {
+          "bytes": 1467,
+          "path": "dist/core/read-model-query.d.ts.map",
+          "sha256": "472cb43e21a04d3ab0f33e92ac4115619b829db8475ce736e2f5dbafee793fe2",
+          "type": "file"
+        },
+        {
+          "bytes": 5602,
+          "path": "dist/core/read-model-query.js",
+          "sha256": "52d8c68ce43dec97ae897e0d4ab9580d3b9a17ffce5304434a197272cfa1983a",
+          "type": "file"
+        },
+        {
+          "bytes": 13663,
+          "path": "dist/core/read-model-query.js.map",
+          "sha256": "d22d33e39171273f373076f77132f24cfdde2ed126c3fc6c78a4abc0c3a9aa6f",
+          "type": "file"
+        },
+        {
+          "bytes": 2717,
+          "path": "dist/core/read-model-runtime.d.ts",
+          "sha256": "00090a699d4e41402a6477507b844fc63b263ae1c87bb14fd40cb23f816c5ce5",
+          "type": "file"
+        },
+        {
+          "bytes": 2170,
+          "path": "dist/core/read-model-runtime.d.ts.map",
+          "sha256": "36bff928e25abb42860f872bfa7c0706c53374d03b10d572d83545479bfd2612",
+          "type": "file"
+        },
+        {
+          "bytes": 4057,
+          "path": "dist/core/read-model-runtime.js",
+          "sha256": "ee72c28e798657da4a75c9d486ff47e421b913dde85c418c58e6669ef3719289",
+          "type": "file"
+        },
+        {
+          "bytes": 10046,
+          "path": "dist/core/read-model-runtime.js.map",
+          "sha256": "6a3523667a0bd0fed14473eb0a276eda70e1fb8c77608cec4b1582308f1d655a",
+          "type": "file"
+        },
+        {
+          "bytes": 985,
+          "path": "dist/core/read-model-storage-observation.d.ts",
+          "sha256": "ecdae2a50c4f6daa379074b264f78f8f5cfff950d49297d73f5bc6dccf88ea45",
+          "type": "file"
+        },
+        {
+          "bytes": 681,
+          "path": "dist/core/read-model-storage-observation.d.ts.map",
+          "sha256": "32a5d6c089abf68313cef3fbd8b0519d8497b68e9481152fdf784f2f0274cbb9",
+          "type": "file"
+        },
+        {
+          "bytes": 10113,
+          "path": "dist/core/read-model-storage-observation.js",
+          "sha256": "f28340d351662d3cdf440a52e4f20b0e2b5d51dec2c8a1b687f24f5776705421",
+          "type": "file"
+        },
+        {
+          "bytes": 19097,
+          "path": "dist/core/read-model-storage-observation.js.map",
+          "sha256": "8bd0bb85d039b08a267118493a40879964b3cb530141ce1d51311a7bd5d3b153",
+          "type": "file"
+        },
+        {
+          "bytes": 4871,
+          "path": "dist/core/read-model-synchronization.d.ts",
+          "sha256": "ebf697a9fc6e425ffbc389ba5cd2e5fb648cd4215b820472ba4911ab961aca03",
+          "type": "file"
+        },
+        {
+          "bytes": 3882,
+          "path": "dist/core/read-model-synchronization.d.ts.map",
+          "sha256": "df529f8d776b62f12298d3505d9f88d70f7834fbd54f28ef647eda93bb715089",
+          "type": "file"
+        },
+        {
+          "bytes": 19652,
+          "path": "dist/core/read-model-synchronization.js",
+          "sha256": "d27926f09d9d6543e067e511d6e268e4494bbb3998fbca0dd595072fba5f7690",
+          "type": "file"
+        },
+        {
+          "bytes": 42561,
+          "path": "dist/core/read-model-synchronization.js.map",
+          "sha256": "6441118c2e9712b6324c61fd53f87ee16b91ca5d98606ee712a8d7faab6d5052",
+          "type": "file"
+        },
+        {
+          "bytes": 666,
+          "path": "dist/core/resource-index-write-contracts.d.ts",
+          "sha256": "f9b2c5ee415551646140d309cd878e3c8b8e4ab150b9bbe623012a9c0ac528d2",
+          "type": "file"
+        },
+        {
+          "bytes": 586,
+          "path": "dist/core/resource-index-write-contracts.d.ts.map",
+          "sha256": "874254dca0b1fe4950727fa13fba1418b7daa39aae9e47c9d17144a7e54301cb",
+          "type": "file"
+        },
+        {
+          "bytes": 69,
+          "path": "dist/core/resource-index-write-contracts.js",
+          "sha256": "9bb1e22e126008c823cb6a185cff24e4518912b179b2850928eead729df05de1",
+          "type": "file"
+        },
+        {
+          "bytes": 812,
+          "path": "dist/core/resource-index-write-contracts.js.map",
+          "sha256": "fdba7d41200a510f300845dde3fce2f316210edfeaf518fa0324f8283364805e",
+          "type": "file"
+        },
+        {
+          "bytes": 2092,
+          "path": "dist/core/resource-index.d.ts",
+          "sha256": "9edd0d5694b92c603294acb5050e6e488051cb6af1e706e1812ba2bb7624bba0",
+          "type": "file"
+        },
+        {
+          "bytes": 1731,
+          "path": "dist/core/resource-index.d.ts.map",
+          "sha256": "c62cf50b37e97884f4f78e60f16fda25804a65fba9ce0c0f9a0eaec1b2dc016b",
+          "type": "file"
+        },
+        {
+          "bytes": 9825,
+          "path": "dist/core/resource-index.js",
+          "sha256": "c9a5c1bd96384d412fd385d2aa0398578851bf619a97b0ccd66b009d0dc36550",
+          "type": "file"
+        },
+        {
+          "bytes": 19488,
+          "path": "dist/core/resource-index.js.map",
+          "sha256": "a4643e926985412a5d10ce4f44f4a0b55f78bacf26dcd508451a66f2d760db19",
+          "type": "file"
+        },
+        {
+          "bytes": 1238,
+          "path": "dist/core/resource-read-runtime.d.ts",
+          "sha256": "fa8bb1ed9ac38008da9ca9bf631d0e849905692f76f9d148d2364af14ab0cd19",
+          "type": "file"
+        },
+        {
+          "bytes": 953,
+          "path": "dist/core/resource-read-runtime.d.ts.map",
+          "sha256": "5bd136d2d1242047514c7f6baa2827277456b3d10798c7b7df629cac9588ad1e",
+          "type": "file"
+        },
+        {
+          "bytes": 10899,
+          "path": "dist/core/resource-read-runtime.js",
+          "sha256": "9de36bc216d08cae511eb4969ef3fc4db52c4f702759689e9de674874a54b60c",
+          "type": "file"
+        },
+        {
+          "bytes": 19842,
+          "path": "dist/core/resource-read-runtime.js.map",
+          "sha256": "34b9ba348f409d8d2cc1eb288aad5ba2ae73be4e196331e2a8d3ba2905055365",
+          "type": "file"
+        },
+        {
+          "bytes": 568,
+          "path": "dist/core/resource-write-runtime.d.ts",
+          "sha256": "1496ff84949f9efcbc48483f72192a6c4f30adeb5492f595bb6c559ef16041aa",
+          "type": "file"
+        },
+        {
+          "bytes": 501,
+          "path": "dist/core/resource-write-runtime.d.ts.map",
+          "sha256": "29e456ccc6473475758bb257e9f3e0b320dc86b67f59a1a5c399c98a8c45897f",
+          "type": "file"
+        },
+        {
+          "bytes": 38620,
+          "path": "dist/core/resource-write-runtime.js",
+          "sha256": "f517a449e918af642b068131737e9364b6be204dc3cd2a9043902d8c14cbbd45",
+          "type": "file"
+        },
+        {
+          "bytes": 70066,
+          "path": "dist/core/resource-write-runtime.js.map",
+          "sha256": "6f219ba30b5b3bb988b7e8230397715cee6e7bf1ff1badb4252354a3d4f71cd0",
+          "type": "file"
+        },
+        {
+          "bytes": 993,
+          "path": "dist/core/runtime-fault-sink.d.ts",
+          "sha256": "421ced51f7da36bac470649e0adfcbd397d0a8dc90954d1efa7503969b428cf0",
+          "type": "file"
+        },
+        {
+          "bytes": 1028,
+          "path": "dist/core/runtime-fault-sink.d.ts.map",
+          "sha256": "67616afc73ba88fd1839fbf8fca0bc8c3b9359e3b6f0e7c1eeb2f6528b94cd35",
+          "type": "file"
+        },
+        {
+          "bytes": 1566,
+          "path": "dist/core/runtime-fault-sink.js",
+          "sha256": "866bffaffe54ed4e46a2190ab24d78f5588b8306882888d2ba72496e57845fba",
+          "type": "file"
+        },
+        {
+          "bytes": 3851,
+          "path": "dist/core/runtime-fault-sink.js.map",
+          "sha256": "c4e5738cb9b03f9893c55172ef0b2e5d45729b1e84f1df81581f2afc078c9ab9",
+          "type": "file"
+        },
+        {
+          "bytes": 1649,
+          "path": "dist/domain/asset-metadata.d.ts",
+          "sha256": "be6a05dbcbd787ec472f3929b92e6e3b3a8a6242a853699f6d53b229e40245c9",
+          "type": "file"
+        },
+        {
+          "bytes": 1485,
+          "path": "dist/domain/asset-metadata.d.ts.map",
+          "sha256": "526849d075134c33b53a53db15c173181e34ff3c98fb35b8a17d55e2cea7348e",
+          "type": "file"
+        },
+        {
+          "bytes": 11393,
+          "path": "dist/domain/asset-metadata.js",
+          "sha256": "a62bbf29e7019c48cd1e5242d1755eacc0328736776f0d7f79d1774b2379eb80",
+          "type": "file"
+        },
+        {
+          "bytes": 23112,
+          "path": "dist/domain/asset-metadata.js.map",
+          "sha256": "ce15692e6332694fe1a09cae66ee3306eae9777231247fc1cae9437d60f8ddfd",
+          "type": "file"
+        },
+        {
+          "bytes": 806,
+          "path": "dist/domain/json.d.ts",
+          "sha256": "b487c93fb09a01834bb173b500999a9b08fa5881d539c572347cee2e6f5430ab",
+          "type": "file"
+        },
+        {
+          "bytes": 796,
+          "path": "dist/domain/json.d.ts.map",
+          "sha256": "0b6dd60233b935fab9f2527f6d59d3d51dd425f54feeb53e0e58bd95b141a0c0",
+          "type": "file"
+        },
+        {
+          "bytes": 4049,
+          "path": "dist/domain/json.js",
+          "sha256": "06f1aee48bfdc36a8194120df129a85e5a5aec45eeb4aae62ee40bdc69da1325",
+          "type": "file"
+        },
+        {
+          "bytes": 8833,
+          "path": "dist/domain/json.js.map",
+          "sha256": "6c9219b7dfc008ad72b23b92d8f95acce702f364c5fca813d704a35adfd63ac2",
+          "type": "file"
+        },
+        {
+          "bytes": 769,
+          "path": "dist/domain/resource-aggregates.d.ts",
+          "sha256": "346fc5c4666b1b0718416f7387d149d6818a8bcd3b439694091842e25fac39ff",
+          "type": "file"
+        },
+        {
+          "bytes": 862,
+          "path": "dist/domain/resource-aggregates.d.ts.map",
+          "sha256": "9d1187e2853946e1533d16d31b0f49c8b9343f35065ae570d01498de38e4d4b3",
+          "type": "file"
+        },
+        {
+          "bytes": 5473,
+          "path": "dist/domain/resource-aggregates.js",
+          "sha256": "85c3fd12155940f8cbb5d710dc6092490d5972bc3ee6453f10563b1a0477f487",
+          "type": "file"
+        },
+        {
+          "bytes": 12256,
+          "path": "dist/domain/resource-aggregates.js.map",
+          "sha256": "dea5b084d96280a98dc708fb62ffebd4486818845e7c02f59e79881d4b2add33",
+          "type": "file"
+        },
+        {
+          "bytes": 1061,
+          "path": "dist/domain/resource-hierarchy.d.ts",
+          "sha256": "2e224700d758642f36e2637f9caa49f7b00d73ecc0de95c763f3396be90259c2",
+          "type": "file"
+        },
+        {
+          "bytes": 1022,
+          "path": "dist/domain/resource-hierarchy.d.ts.map",
+          "sha256": "86667c45fd537a0c7875ec6996402d2382c3d4831cb7dd10b3ec38f56c64a3f4",
+          "type": "file"
+        },
+        {
+          "bytes": 5729,
+          "path": "dist/domain/resource-hierarchy.js",
+          "sha256": "e7b1442d20685d6917c14eb2839df2698014c3e19d35de8af6980d1a5b86a57a",
+          "type": "file"
+        },
+        {
+          "bytes": 13285,
+          "path": "dist/domain/resource-hierarchy.js.map",
+          "sha256": "c40ccc84c5b8ab2706d947fd21b9b8c316b17cb7ee385276314e10eda0b0d6ef",
+          "type": "file"
+        },
+        {
+          "bytes": 848,
+          "path": "dist/domain/scalars.d.ts",
+          "sha256": "f89eb8afcd26fc3c46bd3be425542372817f14260ee238a38ef2ffcd238d9afa",
+          "type": "file"
+        },
+        {
+          "bytes": 840,
+          "path": "dist/domain/scalars.d.ts.map",
+          "sha256": "36c41829d340e1f9136087490e16a6f9da08c207c65bfe1f449739e6986a8102",
+          "type": "file"
+        },
+        {
+          "bytes": 1485,
+          "path": "dist/domain/scalars.js",
+          "sha256": "03dc79ea3d7f639ae3dae1207cfc767ee6659c39728945e90d7499eaed436498",
+          "type": "file"
+        },
+        {
+          "bytes": 3287,
+          "path": "dist/domain/scalars.js.map",
+          "sha256": "ab0edf4e5a889e9259b51891fec818bab63338adba102b4c566b04dfff823747",
+          "type": "file"
+        },
+        {
+          "bytes": 3001,
+          "path": "dist/domain/snapshots.d.ts",
+          "sha256": "9dde1e5bcb26d430d7b5f8558bcf2ebf9b18c49da8947183d87434a2f144a4a8",
+          "type": "file"
+        },
+        {
+          "bytes": 2740,
+          "path": "dist/domain/snapshots.d.ts.map",
+          "sha256": "db35d7b88d30d2d6df165df7e66ba10f1978edf106dcabdf0e09320604e42130",
+          "type": "file"
+        },
+        {
+          "bytes": 8686,
+          "path": "dist/domain/snapshots.js",
+          "sha256": "99e383ae94f3f4fb8f2895e8b0ca25f9aa959f48b45513ef878f6bd5664291c7",
+          "type": "file"
+        },
+        {
+          "bytes": 20436,
+          "path": "dist/domain/snapshots.js.map",
+          "sha256": "ec3fb1957c25df67d6947c806b43a4fccf1e4cdef05b36b692a6fe9c726f9907",
+          "type": "file"
+        },
+        {
+          "bytes": 1631,
+          "path": "dist/index.d.ts",
+          "sha256": "28ca45a49927aeaab6772053046720dc22fda13f3dd16fbe1ab4dd38d1e249de",
+          "type": "file"
+        },
+        {
+          "bytes": 1089,
+          "path": "dist/index.d.ts.map",
+          "sha256": "6e3ffc3f317351b429ca9b6535baa69388271fe2e3bbc08ca719670e10b01232",
+          "type": "file"
+        },
+        {
+          "bytes": 165,
+          "path": "dist/index.js",
+          "sha256": "0573c2786ec456dbc9f624638a1c4bd35aa7099d2b53a88fde5d4374aacf05b7",
+          "type": "file"
+        },
+        {
+          "bytes": 2024,
+          "path": "dist/index.js.map",
+          "sha256": "bbeb2ec498b23e2f4d03fd9d004e1457b6312705e535fe7de1a7d36a6f4c517e",
+          "type": "file"
+        },
+        {
+          "bytes": 363,
+          "path": "dist/operations/async-lock-queue.d.ts",
+          "sha256": "fc85270bf968ed09da2cfb2ac4df2e236c7dbd3650a4272e00c88ee04c134294",
+          "type": "file"
+        },
+        {
+          "bytes": 389,
+          "path": "dist/operations/async-lock-queue.d.ts.map",
+          "sha256": "c8da36c67c0bc84accc5f1ea91e5f71cf2d7dc5db6d10ce8c2185dac8872b4b5",
+          "type": "file"
+        },
+        {
+          "bytes": 2754,
+          "path": "dist/operations/async-lock-queue.js",
+          "sha256": "6f9ed601623c01ce8b4c6e4a502448c7d124ecb415de261f1957eef6dab94ca2",
+          "type": "file"
+        },
+        {
+          "bytes": 5956,
+          "path": "dist/operations/async-lock-queue.js.map",
+          "sha256": "0e44a5d2177844d8906d9c0755f10b4b9522f0012fc703eff617bc377d8a9205",
+          "type": "file"
+        },
+        {
+          "bytes": 2963,
+          "path": "dist/operations/operation-engine.d.ts",
+          "sha256": "13c282ae67a52c6ac20fe3347940e6bbc5dba989e41d3d68ad5be94dbf74e661",
+          "type": "file"
+        },
+        {
+          "bytes": 2658,
+          "path": "dist/operations/operation-engine.d.ts.map",
+          "sha256": "cede7426dabd78d986df19383e1c66a91b1743c3117d0e1ce0f97b70ca019262",
+          "type": "file"
+        },
+        {
+          "bytes": 9905,
+          "path": "dist/operations/operation-engine.js",
+          "sha256": "3e90bb94d9d8ce520f12d58b17753fc41280db057c404a6c2b12d3574301be3e",
+          "type": "file"
+        },
+        {
+          "bytes": 19384,
+          "path": "dist/operations/operation-engine.js.map",
+          "sha256": "7db7ce1ecb8df56bb58ca1482241abd85b2095bb1a85f7cb5e88c0fbdb6d20cb",
+          "type": "file"
+        },
+        {
+          "bytes": 594,
+          "path": "dist/operations/resource-operation-contracts.d.ts",
+          "sha256": "fae08e067ec412f4840cedce6cbe08be981d5f6331bf06c8fa58686e3b0db370",
+          "type": "file"
+        },
+        {
+          "bytes": 580,
+          "path": "dist/operations/resource-operation-contracts.d.ts.map",
+          "sha256": "5b0cdbbf67189a298454e0f02d81a39e2376932a6373cae37f27572706c4b0ec",
+          "type": "file"
+        },
+        {
+          "bytes": 373,
+          "path": "dist/operations/resource-operation-contracts.js",
+          "sha256": "9aca0c1f7a9605174597cbe23eba5e92a744aaf64ea8b1613cb39c9e52fc8f61",
+          "type": "file"
+        },
+        {
+          "bytes": 1270,
+          "path": "dist/operations/resource-operation-contracts.js.map",
+          "sha256": "6e0d481a2f89807e01119bd70077c7470f5e185f4ee9b30218cb682d5353e5c4",
+          "type": "file"
+        },
+        {
+          "bytes": 13619,
+          "path": "dist/public/contracts.d.ts",
+          "sha256": "70070506013771a6290063d467b0d16f8fd3a4c2e77db5c1a1598653eb61e0a4",
+          "type": "file"
+        },
+        {
+          "bytes": 11055,
+          "path": "dist/public/contracts.d.ts.map",
+          "sha256": "7547db71d3f2cd8b35bc465047cb961a96f4a3a5c847fc52481ef06a376522dc",
+          "type": "file"
+        },
+        {
+          "bytes": 48,
+          "path": "dist/public/contracts.js",
+          "sha256": "427a6852d1b4fbc59c12b396120836e73895fb11bee3ec3841f58f9c9f32499d",
+          "type": "file"
+        },
+        {
+          "bytes": 15223,
+          "path": "dist/public/contracts.js.map",
+          "sha256": "5ce21555d1e6385c4779a73591bf4ca82408bdb5a8c288185829ef2000769204",
+          "type": "file"
+        },
+        {
+          "bytes": 394,
+          "path": "dist/public/extensia.d.ts",
+          "sha256": "a37084a720e26ee9bd38b586a4762f718fc35fa3964d8c5324994df4d8e1db52",
+          "type": "file"
+        },
+        {
+          "bytes": 354,
+          "path": "dist/public/extensia.d.ts.map",
+          "sha256": "69bc81b9e49c75f1ea43819d3faa5dc5d645d51f9c5bb22034ada0dedb11a57e",
+          "type": "file"
+        },
+        {
+          "bytes": 22807,
+          "path": "dist/public/extensia.js",
+          "sha256": "f3c1fb0df4a073e9bfc0e3e04c51476deb970cebe4ffba39fb3474269fc9cff5",
+          "type": "file"
+        },
+        {
+          "bytes": 43613,
+          "path": "dist/public/extensia.js.map",
+          "sha256": "c5819cc4105214210db8021ffb6ce615607dc52f7e6549c7baf1386bd9e6d79c",
+          "type": "file"
+        },
+        {
+          "bytes": 780,
+          "path": "dist/public/full-resource-driver.d.ts",
+          "sha256": "12aa88af75ce5c3760499149a1a7bc0d5fd54e3785658498ee13462e913caf81",
+          "type": "file"
+        },
+        {
+          "bytes": 689,
+          "path": "dist/public/full-resource-driver.d.ts.map",
+          "sha256": "c1f4a2105364f5a77dddea21ba48ad062873e2b12b199722ca0c891b196dc509",
+          "type": "file"
+        },
+        {
+          "bytes": 15240,
+          "path": "dist/public/full-resource-driver.js",
+          "sha256": "29e3f9f448e8f0063ffb3fb533fc77651f7e3236b9c63fe107bd93ce609d6016",
+          "type": "file"
+        },
+        {
+          "bytes": 29931,
+          "path": "dist/public/full-resource-driver.js.map",
+          "sha256": "b2faa8fa533fd7a9b48cdba15685acd06356ac8ece2f038f29ace637b8062e61",
+          "type": "file"
+        },
+        {
+          "bytes": 3552,
+          "path": "dist/runtime/facades.d.ts",
+          "sha256": "d0b370bd8e01837ee593786396e4097b8e813ba1b24b47adf2ba1e04fe56f0ae",
+          "type": "file"
+        },
+        {
+          "bytes": 3001,
+          "path": "dist/runtime/facades.d.ts.map",
+          "sha256": "208d98be300063b97903b30737a24f9e5439d42c7c1b908475cb3b7c1d67e704",
+          "type": "file"
+        },
+        {
+          "bytes": 13064,
+          "path": "dist/runtime/facades.js",
+          "sha256": "74078ffa0a669dfc6fb71fa76aa5c63c1fc1000619443ec04d89ac58400ea4a8",
+          "type": "file"
+        },
+        {
+          "bytes": 28594,
+          "path": "dist/runtime/facades.js.map",
+          "sha256": "e07f13a2c9c08c8c8f1fc7211d54242d9fdc3b9ec22e8c546cfd982dcfa6f032",
+          "type": "file"
+        },
+        {
+          "bytes": 2577,
+          "path": "dist/runtime/lifecycle.d.ts",
+          "sha256": "e0133236ecc9e1d821cfde91c1e887964e82b78f61e04eef18af776663c2c810",
+          "type": "file"
+        },
+        {
+          "bytes": 2236,
+          "path": "dist/runtime/lifecycle.d.ts.map",
+          "sha256": "4a3922527553f27f6c84514bec02e6083b8d74250a62e6d2791a084a696b6c36",
+          "type": "file"
+        },
+        {
+          "bytes": 8765,
+          "path": "dist/runtime/lifecycle.js",
+          "sha256": "bc5ef1df1c2ac4f12af189b3b7e693349f3e0fe54cab23ba0bd2af8ae96f755f",
+          "type": "file"
+        },
+        {
+          "bytes": 20154,
+          "path": "dist/runtime/lifecycle.js.map",
+          "sha256": "7e5d1357ef0c9b4ce2620fe9b11d0d7607ad31682b4e065b4de84b0bc935a6eb",
+          "type": "file"
+        },
+        {
+          "bytes": 2064,
+          "path": "dist/storage/asset-upload-capability.d.ts",
+          "sha256": "3715a31ddaf048dc8e9b463ddc8347543b159d7dff8146a250af944eebffb767",
+          "type": "file"
+        },
+        {
+          "bytes": 1777,
+          "path": "dist/storage/asset-upload-capability.d.ts.map",
+          "sha256": "74c9aa92d48657e37c44ddb6da77f32ed6e9d371633e52008ce3d0a2bd1a5aba",
+          "type": "file"
+        },
+        {
+          "bytes": 2198,
+          "path": "dist/storage/asset-upload-capability.js",
+          "sha256": "0dd3bdaeed2f2bc1a8169a4dc926aeb595366b6851f644e0712acb3699e8b31a",
+          "type": "file"
+        },
+        {
+          "bytes": 5863,
+          "path": "dist/storage/asset-upload-capability.js.map",
+          "sha256": "558dde01dbfb2f83b734a6ba327a1818eb89106f3d91bf98715eef15c1664172",
+          "type": "file"
+        },
+        {
+          "bytes": 2624,
+          "path": "dist/storage/deterministic-full-resource-driver.d.ts",
+          "sha256": "1cd764a2bd024028ab3b8f1229ab13490b801652908e5e58e9dbb50c6f6ed639",
+          "type": "file"
+        },
+        {
+          "bytes": 1996,
+          "path": "dist/storage/deterministic-full-resource-driver.d.ts.map",
+          "sha256": "b38c1126ead5e70adafab3dcab524dd1fa3b3e7e4fb844368c8375825c38f397",
+          "type": "file"
+        },
+        {
+          "bytes": 27601,
+          "path": "dist/storage/deterministic-full-resource-driver.js",
+          "sha256": "9c4a9423b3359349d68009f65da0dfd2560f1811e06a588eb8d9b4c0fd5ccf5c",
+          "type": "file"
+        },
+        {
+          "bytes": 53017,
+          "path": "dist/storage/deterministic-full-resource-driver.js.map",
+          "sha256": "c9a89059fd3f6f55f93eb913ab3928a4dd790a7a23a53f52c780c10a9896d58e",
+          "type": "file"
+        },
+        {
+          "bytes": 640,
+          "path": "dist/storage/full-resource-driver-adapter.d.ts",
+          "sha256": "674d4f7237a08080dcc7927f2c6ed96e08869ad593355af13f6646727318899e",
+          "type": "file"
+        },
+        {
+          "bytes": 581,
+          "path": "dist/storage/full-resource-driver-adapter.d.ts.map",
+          "sha256": "fa97b88b5bc3e28b23c37aa672db82cec240c04d579138014f95e14357c886c3",
+          "type": "file"
+        },
+        {
+          "bytes": 336,
+          "path": "dist/storage/full-resource-driver-adapter.js",
+          "sha256": "48fbd4fefaffe8d4338cf0c152c689e773beba6c1036dcd98e851b1168bf1fd9",
+          "type": "file"
+        },
+        {
+          "bytes": 1129,
+          "path": "dist/storage/full-resource-driver-adapter.js.map",
+          "sha256": "05bfbfd0deb659b859fb2738d6744d1f5129ebad77233fbf97150067054ad632",
+          "type": "file"
+        },
+        {
+          "bytes": 2415,
+          "path": "dist/storage/local-sqlite-resource-driver.d.ts",
+          "sha256": "4078726ad5bbf91ed8ee050427029c8c8b0ecc41f75cf9edc2857175e308d2b7",
+          "type": "file"
+        },
+        {
+          "bytes": 1877,
+          "path": "dist/storage/local-sqlite-resource-driver.d.ts.map",
+          "sha256": "41875afd632472dc6cbf0311bfcd9f9d5befd3675d148b43217611865081bb3c",
+          "type": "file"
+        },
+        {
+          "bytes": 74442,
+          "path": "dist/storage/local-sqlite-resource-driver.js",
+          "sha256": "1d84025fa220340fcba8de1130d78e73c3b41d159f87058e709a5d5e65ffc331",
+          "type": "file"
+        },
+        {
+          "bytes": 140488,
+          "path": "dist/storage/local-sqlite-resource-driver.js.map",
+          "sha256": "4b31c9462291b4b25e02f942f51cd9e498983f187749b5b245f8047575ccdbd0",
+          "type": "file"
+        },
+        {
+          "bytes": 1688,
+          "path": "dist/storage/resource-journal-integrity.d.ts",
+          "sha256": "a9ef172505570a41b22661e9f39577f30c2a47cd009f82c77565c86cb6825599",
+          "type": "file"
+        },
+        {
+          "bytes": 1199,
+          "path": "dist/storage/resource-journal-integrity.d.ts.map",
+          "sha256": "9ced75818b54d4199aea46bffa3007b919d5d12d72eea33e92b316ca74ccc797",
+          "type": "file"
+        },
+        {
+          "bytes": 6465,
+          "path": "dist/storage/resource-journal-integrity.js",
+          "sha256": "977bb004add701ae4b892da0f737f47a16befbe7a8edaef67935baa8338916ba",
+          "type": "file"
+        },
+        {
+          "bytes": 13676,
+          "path": "dist/storage/resource-journal-integrity.js.map",
+          "sha256": "dddef92e32b94f352580dc9113342b0d4878a04e0d461ceadbf76e75e44014f6",
+          "type": "file"
+        },
+        {
+          "bytes": 867,
+          "path": "dist/storage/resource-recovery-coordinator.d.ts",
+          "sha256": "9f7d6fc80f00eb8f5acce5299fe815e82e0fd783924ec4649e8d726e41fb75b0",
+          "type": "file"
+        },
+        {
+          "bytes": 749,
+          "path": "dist/storage/resource-recovery-coordinator.d.ts.map",
+          "sha256": "6bf90f3364824ef541722c8c89f05064638acb2f2d73c671bd7f971917310694",
+          "type": "file"
+        },
+        {
+          "bytes": 1985,
+          "path": "dist/storage/resource-recovery-coordinator.js",
+          "sha256": "865f7aa5192a4c803ba3731776e8c5027144171099b6f7618dccc92a242dbfcc",
+          "type": "file"
+        },
+        {
+          "bytes": 4422,
+          "path": "dist/storage/resource-recovery-coordinator.js.map",
+          "sha256": "7702c97d61d8eec2c219827f858c79f17938e406c49d81f24b0b2902c45ba4e6",
+          "type": "file"
+        },
+        {
+          "bytes": 658,
+          "path": "dist/storage/resource-runtime-integrity.d.ts",
+          "sha256": "0306d5b818fe9b5de384e15abc2e9964c69795b1683a3155dea8aee233390043",
+          "type": "file"
+        },
+        {
+          "bytes": 480,
+          "path": "dist/storage/resource-runtime-integrity.d.ts.map",
+          "sha256": "51fbbcd3f5df8456f52e87bdbd4b34eb667fe36d729bd40c828b2765df33b3c8",
+          "type": "file"
+        },
+        {
+          "bytes": 734,
+          "path": "dist/storage/resource-runtime-integrity.js",
+          "sha256": "9704537e985ac2e2ef2bb8d233d79d06ab9c92e662efbfbb6ee27022dc5d92a8",
+          "type": "file"
+        },
+        {
+          "bytes": 1619,
+          "path": "dist/storage/resource-runtime-integrity.js.map",
+          "sha256": "195afcd8cf807a5a9127309c615580bb00da46892168bb57be36da2d84444569",
+          "type": "file"
+        },
+        {
+          "bytes": 3826,
+          "path": "dist/storage/resource-write-protocol.d.ts",
+          "sha256": "42a7d681215d3513a72ec5030aa0fe8a8d3f3d47f3d0ed3a32b2729544ac979e",
+          "type": "file"
+        },
+        {
+          "bytes": 3309,
+          "path": "dist/storage/resource-write-protocol.d.ts.map",
+          "sha256": "95369fd56be9ed886b883f942409d3885ea9ee8e20b8129263bacf9dcb0fe081",
+          "type": "file"
+        },
+        {
+          "bytes": 62,
+          "path": "dist/storage/resource-write-protocol.js",
+          "sha256": "698c0590b1067fab4bf485b5e9c5f462118134734acaee4aad4f023f3da53190",
+          "type": "file"
+        },
+        {
+          "bytes": 4111,
+          "path": "dist/storage/resource-write-protocol.js.map",
+          "sha256": "e339f36bad1f4d150e68bf4654ce5b164ab9330e355c79625e157d8d1d57edaf",
+          "type": "file"
+        },
+        {
+          "bytes": 647,
+          "path": "dist/system-extensions/default-api/asset-input.d.ts",
+          "sha256": "c33cba58504d1dc5bbb586cadfe3a85493be7b2cb1a0c521827dddcbe3ff66cb",
+          "type": "file"
+        },
+        {
+          "bytes": 650,
+          "path": "dist/system-extensions/default-api/asset-input.d.ts.map",
+          "sha256": "ef1e3f483dae7c459579a8728a5a1221ead3f63d91b4c1e26f57cb7849eca1fd",
+          "type": "file"
+        },
+        {
+          "bytes": 5949,
+          "path": "dist/system-extensions/default-api/asset-input.js",
+          "sha256": "57012bdae98eb72655f88af46403e09686b7c8777aa2b817777ddbaf2645f154",
+          "type": "file"
+        },
+        {
+          "bytes": 12330,
+          "path": "dist/system-extensions/default-api/asset-input.js.map",
+          "sha256": "def04ba1c3dc9509b2097916f40c13d6ef6545b6553d48828099329c4f2f8d1a",
+          "type": "file"
+        },
+        {
+          "bytes": 2292,
+          "path": "dist/system-extensions/default-api/asset-upload-port.d.ts",
+          "sha256": "fbadbafce5a4b6ffbfcac65596db5f5eea4468fce7717f4fde691b9f20154309",
+          "type": "file"
+        },
+        {
+          "bytes": 1972,
+          "path": "dist/system-extensions/default-api/asset-upload-port.d.ts.map",
+          "sha256": "7f8758ac5a68e91b4096212b294a4a9db3a99a21a72b5bf660b6e77ae1a4b22a",
+          "type": "file"
+        },
+        {
+          "bytes": 278,
+          "path": "dist/system-extensions/default-api/asset-upload-port.js",
+          "sha256": "abf6c1c84a6a29048be12939597fe4884bee03ec229f6ae11a51ca2d95c56c9e",
+          "type": "file"
+        },
+        {
+          "bytes": 3017,
+          "path": "dist/system-extensions/default-api/asset-upload-port.js.map",
+          "sha256": "c930012195f4dcb0dc6da5e83a01e6ce14306913e05bb816d1256ab889b4b8c4",
+          "type": "file"
+        },
+        {
+          "bytes": 3176,
+          "path": "dist/system-extensions/default-api/asset-write-port.d.ts",
+          "sha256": "3efa83a64faa45d1fa33253934b47bbde6bf0f75507087e5c10e2b525c0e9e9e",
+          "type": "file"
+        },
+        {
+          "bytes": 2950,
+          "path": "dist/system-extensions/default-api/asset-write-port.d.ts.map",
+          "sha256": "b0d956b801b1e13c5191e43eabc814be804a4bcdf000ac06b541b0ba9c20968d",
+          "type": "file"
+        },
+        {
+          "bytes": 300,
+          "path": "dist/system-extensions/default-api/asset-write-port.js",
+          "sha256": "33c6abe8ac6edf443fb75fe60f3db946163b71e4712a9f05ec6fcabc2002bb48",
+          "type": "file"
+        },
+        {
+          "bytes": 3982,
+          "path": "dist/system-extensions/default-api/asset-write-port.js.map",
+          "sha256": "ffe7589b8c0dee65da8b72761a2086b79441d02626216a379d8da8b50a0624e0",
+          "type": "file"
+        },
+        {
+          "bytes": 6395,
+          "path": "dist/system-extensions/default-api/facades.d.ts",
+          "sha256": "bc69fe854f9736f483d3fc9471a78230dd89feb5bd196645d3c7457aec3dd7e5",
+          "type": "file"
+        },
+        {
+          "bytes": 4846,
+          "path": "dist/system-extensions/default-api/facades.d.ts.map",
+          "sha256": "c2714a7b84b1f58d7b021643caf1e79f06e568479344cdb6bf0c02a755e83e91",
+          "type": "file"
+        },
+        {
+          "bytes": 39486,
+          "path": "dist/system-extensions/default-api/facades.js",
+          "sha256": "1be30bd1e120fef85c658ca2d988838ace91fca34e026f24680d924e47b8bab6",
+          "type": "file"
+        },
+        {
+          "bytes": 77923,
+          "path": "dist/system-extensions/default-api/facades.js.map",
+          "sha256": "5d4af2871529dfe9c0ed9d3fb50c9851f4966603aa766a296d996c1340f92663",
+          "type": "file"
+        },
+        {
+          "bytes": 1045,
+          "path": "dist/system-extensions/default-api/resource-read-port.d.ts",
+          "sha256": "737ebb9b91db7be81946eaa4ba0408be3fe4d96a654824ee2437d2f6fab23d0d",
+          "type": "file"
+        },
+        {
+          "bytes": 1056,
+          "path": "dist/system-extensions/default-api/resource-read-port.d.ts.map",
+          "sha256": "aa9ad6b85ba28e268adb7bd8f0e3c101dff179b5476a05aa0004d2f77781fc44",
+          "type": "file"
+        },
+        {
+          "bytes": 338,
+          "path": "dist/system-extensions/default-api/resource-read-port.js",
+          "sha256": "4bdc4e2aaf1ededa48079107b7dba8b5378ab86b44693e14f50277ac2bef471f",
+          "type": "file"
+        },
+        {
+          "bytes": 1701,
+          "path": "dist/system-extensions/default-api/resource-read-port.js.map",
+          "sha256": "da263ef8f3f92b38a134cec6e023288c6df199c10777ae61146c9994ce21fd01",
+          "type": "file"
+        },
+        {
+          "bytes": 3187,
+          "path": "dist/system-extensions/default-api/resource-write-port.d.ts",
+          "sha256": "988ad70355d5a45bb0606f467853bf0b710610d2f906b769c96e5c8263026e13",
+          "type": "file"
+        },
+        {
+          "bytes": 2691,
+          "path": "dist/system-extensions/default-api/resource-write-port.d.ts.map",
+          "sha256": "c27756154f15b0f1c526996e961415e6dbf5a273a8437855240a6731f6b399be",
+          "type": "file"
+        },
+        {
+          "bytes": 309,
+          "path": "dist/system-extensions/default-api/resource-write-port.js",
+          "sha256": "8374df693d71d7b1463e22c9a463ac9a7dc817433a1a53aecc882fe48873c2ba",
+          "type": "file"
+        },
+        {
+          "bytes": 3900,
+          "path": "dist/system-extensions/default-api/resource-write-port.js.map",
+          "sha256": "92ad21ecb9a55a9381bfec5fa93c462c7729d4d8e414226935b2b1c3739ccd73",
+          "type": "file"
+        },
+        {
+          "bytes": 1071,
+          "path": "LICENSE",
+          "sha256": "e299261fc810865a630f72b3d5aabf5bca609b0dcc1ba1aa03f7c4feb57a0da3",
+          "type": "file"
+        },
+        {
+          "bytes": 1723,
+          "path": "package.json",
+          "sha256": "429b22aa1327cd5a0f669b6223fcfd06084807c47ed79d22ae3cbccd6040e6b4",
+          "type": "file"
+        }
+      ],
+      "entry_count": 206,
+      "filename": "sagifire-extensia-0.1.0.tgz",
+      "label": "A",
+      "npm_manifest": [
+        {
+          "bytes": 1438,
+          "mode": 420,
+          "path": "dist/composition/diagnostics.d.ts"
+        },
+        {
+          "bytes": 1003,
+          "mode": 420,
+          "path": "dist/composition/diagnostics.d.ts.map"
+        },
+        {
+          "bytes": 2500,
+          "mode": 420,
+          "path": "dist/composition/diagnostics.js"
+        },
+        {
+          "bytes": 6150,
+          "mode": 420,
+          "path": "dist/composition/diagnostics.js.map"
+        },
+        {
+          "bytes": 2516,
+          "mode": 420,
+          "path": "dist/composition/inspection.d.ts"
+        },
+        {
+          "bytes": 2281,
+          "mode": 420,
+          "path": "dist/composition/inspection.d.ts.map"
+        },
+        {
+          "bytes": 2685,
+          "mode": 420,
+          "path": "dist/composition/inspection.js"
+        },
+        {
+          "bytes": 7990,
+          "mode": 420,
+          "path": "dist/composition/inspection.js.map"
+        },
+        {
+          "bytes": 950,
+          "mode": 420,
+          "path": "dist/composition/local-sqlite-runtime.d.ts"
+        },
+        {
+          "bytes": 616,
+          "mode": 420,
+          "path": "dist/composition/local-sqlite-runtime.d.ts.map"
+        },
+        {
+          "bytes": 1098,
+          "mode": 420,
+          "path": "dist/composition/local-sqlite-runtime.js"
+        },
+        {
+          "bytes": 2436,
+          "mode": 420,
+          "path": "dist/composition/local-sqlite-runtime.js.map"
+        },
+        {
+          "bytes": 3080,
+          "mode": 420,
+          "path": "dist/composition/root.d.ts"
+        },
+        {
+          "bytes": 2870,
+          "mode": 420,
+          "path": "dist/composition/root.d.ts.map"
+        },
+        {
+          "bytes": 5164,
+          "mode": 420,
+          "path": "dist/composition/root.js"
+        },
+        {
+          "bytes": 14473,
+          "mode": 420,
+          "path": "dist/composition/root.js.map"
+        },
+        {
+          "bytes": 652,
+          "mode": 420,
+          "path": "dist/composition/tokens.d.ts"
+        },
+        {
+          "bytes": 637,
+          "mode": 420,
+          "path": "dist/composition/tokens.d.ts.map"
+        },
+        {
+          "bytes": 628,
+          "mode": 420,
+          "path": "dist/composition/tokens.js"
+        },
+        {
+          "bytes": 1694,
+          "mode": 420,
+          "path": "dist/composition/tokens.js.map"
+        },
+        {
+          "bytes": 1256,
+          "mode": 420,
+          "path": "dist/core/asset-write-runtime.d.ts"
+        },
+        {
+          "bytes": 975,
+          "mode": 420,
+          "path": "dist/core/asset-write-runtime.d.ts.map"
+        },
+        {
+          "bytes": 45012,
+          "mode": 420,
+          "path": "dist/core/asset-write-runtime.js"
+        },
+        {
+          "bytes": 87712,
+          "mode": 420,
+          "path": "dist/core/asset-write-runtime.js.map"
+        },
+        {
+          "bytes": 1587,
+          "mode": 420,
+          "path": "dist/core/deterministic-read-model-observation.d.ts"
+        },
+        {
+          "bytes": 1221,
+          "mode": 420,
+          "path": "dist/core/deterministic-read-model-observation.d.ts.map"
+        },
+        {
+          "bytes": 4942,
+          "mode": 420,
+          "path": "dist/core/deterministic-read-model-observation.js"
+        },
+        {
+          "bytes": 11156,
+          "mode": 420,
+          "path": "dist/core/deterministic-read-model-observation.js.map"
+        },
+        {
+          "bytes": 831,
+          "mode": 420,
+          "path": "dist/core/deterministic-read-model-synchronization.d.ts"
+        },
+        {
+          "bytes": 671,
+          "mode": 420,
+          "path": "dist/core/deterministic-read-model-synchronization.d.ts.map"
+        },
+        {
+          "bytes": 3221,
+          "mode": 420,
+          "path": "dist/core/deterministic-read-model-synchronization.js"
+        },
+        {
+          "bytes": 6963,
+          "mode": 420,
+          "path": "dist/core/deterministic-read-model-synchronization.js.map"
+        },
+        {
+          "bytes": 873,
+          "mode": 420,
+          "path": "dist/core/persistent-string-map.d.ts"
+        },
+        {
+          "bytes": 1187,
+          "mode": 420,
+          "path": "dist/core/persistent-string-map.d.ts.map"
+        },
+        {
+          "bytes": 4568,
+          "mode": 420,
+          "path": "dist/core/persistent-string-map.js"
+        },
+        {
+          "bytes": 11551,
+          "mode": 420,
+          "path": "dist/core/persistent-string-map.js.map"
+        },
+        {
+          "bytes": 1859,
+          "mode": 420,
+          "path": "dist/core/read-model-coordinator.d.ts"
+        },
+        {
+          "bytes": 1587,
+          "mode": 420,
+          "path": "dist/core/read-model-coordinator.d.ts.map"
+        },
+        {
+          "bytes": 7264,
+          "mode": 420,
+          "path": "dist/core/read-model-coordinator.js"
+        },
+        {
+          "bytes": 14765,
+          "mode": 420,
+          "path": "dist/core/read-model-coordinator.js.map"
+        },
+        {
+          "bytes": 4458,
+          "mode": 420,
+          "path": "dist/core/read-model-generation.d.ts"
+        },
+        {
+          "bytes": 3785,
+          "mode": 420,
+          "path": "dist/core/read-model-generation.d.ts.map"
+        },
+        {
+          "bytes": 25431,
+          "mode": 420,
+          "path": "dist/core/read-model-generation.js"
+        },
+        {
+          "bytes": 59887,
+          "mode": 420,
+          "path": "dist/core/read-model-generation.js.map"
+        },
+        {
+          "bytes": 5468,
+          "mode": 420,
+          "path": "dist/core/read-model-observation.d.ts"
+        },
+        {
+          "bytes": 4330,
+          "mode": 420,
+          "path": "dist/core/read-model-observation.d.ts.map"
+        },
+        {
+          "bytes": 7287,
+          "mode": 420,
+          "path": "dist/core/read-model-observation.js"
+        },
+        {
+          "bytes": 18351,
+          "mode": 420,
+          "path": "dist/core/read-model-observation.js.map"
+        },
+        {
+          "bytes": 799,
+          "mode": 420,
+          "path": "dist/core/read-model-polling.d.ts"
+        },
+        {
+          "bytes": 737,
+          "mode": 420,
+          "path": "dist/core/read-model-polling.d.ts.map"
+        },
+        {
+          "bytes": 2113,
+          "mode": 420,
+          "path": "dist/core/read-model-polling.js"
+        },
+        {
+          "bytes": 5238,
+          "mode": 420,
+          "path": "dist/core/read-model-polling.js.map"
+        },
+        {
+          "bytes": 1685,
+          "mode": 420,
+          "path": "dist/core/read-model-query.d.ts"
+        },
+        {
+          "bytes": 1467,
+          "mode": 420,
+          "path": "dist/core/read-model-query.d.ts.map"
+        },
+        {
+          "bytes": 5602,
+          "mode": 420,
+          "path": "dist/core/read-model-query.js"
+        },
+        {
+          "bytes": 13663,
+          "mode": 420,
+          "path": "dist/core/read-model-query.js.map"
+        },
+        {
+          "bytes": 2717,
+          "mode": 420,
+          "path": "dist/core/read-model-runtime.d.ts"
+        },
+        {
+          "bytes": 2170,
+          "mode": 420,
+          "path": "dist/core/read-model-runtime.d.ts.map"
+        },
+        {
+          "bytes": 4057,
+          "mode": 420,
+          "path": "dist/core/read-model-runtime.js"
+        },
+        {
+          "bytes": 10046,
+          "mode": 420,
+          "path": "dist/core/read-model-runtime.js.map"
+        },
+        {
+          "bytes": 985,
+          "mode": 420,
+          "path": "dist/core/read-model-storage-observation.d.ts"
+        },
+        {
+          "bytes": 681,
+          "mode": 420,
+          "path": "dist/core/read-model-storage-observation.d.ts.map"
+        },
+        {
+          "bytes": 10113,
+          "mode": 420,
+          "path": "dist/core/read-model-storage-observation.js"
+        },
+        {
+          "bytes": 19097,
+          "mode": 420,
+          "path": "dist/core/read-model-storage-observation.js.map"
+        },
+        {
+          "bytes": 4871,
+          "mode": 420,
+          "path": "dist/core/read-model-synchronization.d.ts"
+        },
+        {
+          "bytes": 3882,
+          "mode": 420,
+          "path": "dist/core/read-model-synchronization.d.ts.map"
+        },
+        {
+          "bytes": 19652,
+          "mode": 420,
+          "path": "dist/core/read-model-synchronization.js"
+        },
+        {
+          "bytes": 42561,
+          "mode": 420,
+          "path": "dist/core/read-model-synchronization.js.map"
+        },
+        {
+          "bytes": 666,
+          "mode": 420,
+          "path": "dist/core/resource-index-write-contracts.d.ts"
+        },
+        {
+          "bytes": 586,
+          "mode": 420,
+          "path": "dist/core/resource-index-write-contracts.d.ts.map"
+        },
+        {
+          "bytes": 69,
+          "mode": 420,
+          "path": "dist/core/resource-index-write-contracts.js"
+        },
+        {
+          "bytes": 812,
+          "mode": 420,
+          "path": "dist/core/resource-index-write-contracts.js.map"
+        },
+        {
+          "bytes": 2092,
+          "mode": 420,
+          "path": "dist/core/resource-index.d.ts"
+        },
+        {
+          "bytes": 1731,
+          "mode": 420,
+          "path": "dist/core/resource-index.d.ts.map"
+        },
+        {
+          "bytes": 9825,
+          "mode": 420,
+          "path": "dist/core/resource-index.js"
+        },
+        {
+          "bytes": 19488,
+          "mode": 420,
+          "path": "dist/core/resource-index.js.map"
+        },
+        {
+          "bytes": 1238,
+          "mode": 420,
+          "path": "dist/core/resource-read-runtime.d.ts"
+        },
+        {
+          "bytes": 953,
+          "mode": 420,
+          "path": "dist/core/resource-read-runtime.d.ts.map"
+        },
+        {
+          "bytes": 10899,
+          "mode": 420,
+          "path": "dist/core/resource-read-runtime.js"
+        },
+        {
+          "bytes": 19842,
+          "mode": 420,
+          "path": "dist/core/resource-read-runtime.js.map"
+        },
+        {
+          "bytes": 568,
+          "mode": 420,
+          "path": "dist/core/resource-write-runtime.d.ts"
+        },
+        {
+          "bytes": 501,
+          "mode": 420,
+          "path": "dist/core/resource-write-runtime.d.ts.map"
+        },
+        {
+          "bytes": 38620,
+          "mode": 420,
+          "path": "dist/core/resource-write-runtime.js"
+        },
+        {
+          "bytes": 70066,
+          "mode": 420,
+          "path": "dist/core/resource-write-runtime.js.map"
+        },
+        {
+          "bytes": 993,
+          "mode": 420,
+          "path": "dist/core/runtime-fault-sink.d.ts"
+        },
+        {
+          "bytes": 1028,
+          "mode": 420,
+          "path": "dist/core/runtime-fault-sink.d.ts.map"
+        },
+        {
+          "bytes": 1566,
+          "mode": 420,
+          "path": "dist/core/runtime-fault-sink.js"
+        },
+        {
+          "bytes": 3851,
+          "mode": 420,
+          "path": "dist/core/runtime-fault-sink.js.map"
+        },
+        {
+          "bytes": 1649,
+          "mode": 420,
+          "path": "dist/domain/asset-metadata.d.ts"
+        },
+        {
+          "bytes": 1485,
+          "mode": 420,
+          "path": "dist/domain/asset-metadata.d.ts.map"
+        },
+        {
+          "bytes": 11393,
+          "mode": 420,
+          "path": "dist/domain/asset-metadata.js"
+        },
+        {
+          "bytes": 23112,
+          "mode": 420,
+          "path": "dist/domain/asset-metadata.js.map"
+        },
+        {
+          "bytes": 806,
+          "mode": 420,
+          "path": "dist/domain/json.d.ts"
+        },
+        {
+          "bytes": 796,
+          "mode": 420,
+          "path": "dist/domain/json.d.ts.map"
+        },
+        {
+          "bytes": 4049,
+          "mode": 420,
+          "path": "dist/domain/json.js"
+        },
+        {
+          "bytes": 8833,
+          "mode": 420,
+          "path": "dist/domain/json.js.map"
+        },
+        {
+          "bytes": 769,
+          "mode": 420,
+          "path": "dist/domain/resource-aggregates.d.ts"
+        },
+        {
+          "bytes": 862,
+          "mode": 420,
+          "path": "dist/domain/resource-aggregates.d.ts.map"
+        },
+        {
+          "bytes": 5473,
+          "mode": 420,
+          "path": "dist/domain/resource-aggregates.js"
+        },
+        {
+          "bytes": 12256,
+          "mode": 420,
+          "path": "dist/domain/resource-aggregates.js.map"
+        },
+        {
+          "bytes": 1061,
+          "mode": 420,
+          "path": "dist/domain/resource-hierarchy.d.ts"
+        },
+        {
+          "bytes": 1022,
+          "mode": 420,
+          "path": "dist/domain/resource-hierarchy.d.ts.map"
+        },
+        {
+          "bytes": 5729,
+          "mode": 420,
+          "path": "dist/domain/resource-hierarchy.js"
+        },
+        {
+          "bytes": 13285,
+          "mode": 420,
+          "path": "dist/domain/resource-hierarchy.js.map"
+        },
+        {
+          "bytes": 848,
+          "mode": 420,
+          "path": "dist/domain/scalars.d.ts"
+        },
+        {
+          "bytes": 840,
+          "mode": 420,
+          "path": "dist/domain/scalars.d.ts.map"
+        },
+        {
+          "bytes": 1485,
+          "mode": 420,
+          "path": "dist/domain/scalars.js"
+        },
+        {
+          "bytes": 3287,
+          "mode": 420,
+          "path": "dist/domain/scalars.js.map"
+        },
+        {
+          "bytes": 3001,
+          "mode": 420,
+          "path": "dist/domain/snapshots.d.ts"
+        },
+        {
+          "bytes": 2740,
+          "mode": 420,
+          "path": "dist/domain/snapshots.d.ts.map"
+        },
+        {
+          "bytes": 8686,
+          "mode": 420,
+          "path": "dist/domain/snapshots.js"
+        },
+        {
+          "bytes": 20436,
+          "mode": 420,
+          "path": "dist/domain/snapshots.js.map"
+        },
+        {
+          "bytes": 1631,
+          "mode": 420,
+          "path": "dist/index.d.ts"
+        },
+        {
+          "bytes": 1089,
+          "mode": 420,
+          "path": "dist/index.d.ts.map"
+        },
+        {
+          "bytes": 165,
+          "mode": 420,
+          "path": "dist/index.js"
+        },
+        {
+          "bytes": 2024,
+          "mode": 420,
+          "path": "dist/index.js.map"
+        },
+        {
+          "bytes": 363,
+          "mode": 420,
+          "path": "dist/operations/async-lock-queue.d.ts"
+        },
+        {
+          "bytes": 389,
+          "mode": 420,
+          "path": "dist/operations/async-lock-queue.d.ts.map"
+        },
+        {
+          "bytes": 2754,
+          "mode": 420,
+          "path": "dist/operations/async-lock-queue.js"
+        },
+        {
+          "bytes": 5956,
+          "mode": 420,
+          "path": "dist/operations/async-lock-queue.js.map"
+        },
+        {
+          "bytes": 2963,
+          "mode": 420,
+          "path": "dist/operations/operation-engine.d.ts"
+        },
+        {
+          "bytes": 2658,
+          "mode": 420,
+          "path": "dist/operations/operation-engine.d.ts.map"
+        },
+        {
+          "bytes": 9905,
+          "mode": 420,
+          "path": "dist/operations/operation-engine.js"
+        },
+        {
+          "bytes": 19384,
+          "mode": 420,
+          "path": "dist/operations/operation-engine.js.map"
+        },
+        {
+          "bytes": 594,
+          "mode": 420,
+          "path": "dist/operations/resource-operation-contracts.d.ts"
+        },
+        {
+          "bytes": 580,
+          "mode": 420,
+          "path": "dist/operations/resource-operation-contracts.d.ts.map"
+        },
+        {
+          "bytes": 373,
+          "mode": 420,
+          "path": "dist/operations/resource-operation-contracts.js"
+        },
+        {
+          "bytes": 1270,
+          "mode": 420,
+          "path": "dist/operations/resource-operation-contracts.js.map"
+        },
+        {
+          "bytes": 13619,
+          "mode": 420,
+          "path": "dist/public/contracts.d.ts"
+        },
+        {
+          "bytes": 11055,
+          "mode": 420,
+          "path": "dist/public/contracts.d.ts.map"
+        },
+        {
+          "bytes": 48,
+          "mode": 420,
+          "path": "dist/public/contracts.js"
+        },
+        {
+          "bytes": 15223,
+          "mode": 420,
+          "path": "dist/public/contracts.js.map"
+        },
+        {
+          "bytes": 394,
+          "mode": 420,
+          "path": "dist/public/extensia.d.ts"
+        },
+        {
+          "bytes": 354,
+          "mode": 420,
+          "path": "dist/public/extensia.d.ts.map"
+        },
+        {
+          "bytes": 22807,
+          "mode": 420,
+          "path": "dist/public/extensia.js"
+        },
+        {
+          "bytes": 43613,
+          "mode": 420,
+          "path": "dist/public/extensia.js.map"
+        },
+        {
+          "bytes": 780,
+          "mode": 420,
+          "path": "dist/public/full-resource-driver.d.ts"
+        },
+        {
+          "bytes": 689,
+          "mode": 420,
+          "path": "dist/public/full-resource-driver.d.ts.map"
+        },
+        {
+          "bytes": 15240,
+          "mode": 420,
+          "path": "dist/public/full-resource-driver.js"
+        },
+        {
+          "bytes": 29931,
+          "mode": 420,
+          "path": "dist/public/full-resource-driver.js.map"
+        },
+        {
+          "bytes": 3552,
+          "mode": 420,
+          "path": "dist/runtime/facades.d.ts"
+        },
+        {
+          "bytes": 3001,
+          "mode": 420,
+          "path": "dist/runtime/facades.d.ts.map"
+        },
+        {
+          "bytes": 13064,
+          "mode": 420,
+          "path": "dist/runtime/facades.js"
+        },
+        {
+          "bytes": 28594,
+          "mode": 420,
+          "path": "dist/runtime/facades.js.map"
+        },
+        {
+          "bytes": 2577,
+          "mode": 420,
+          "path": "dist/runtime/lifecycle.d.ts"
+        },
+        {
+          "bytes": 2236,
+          "mode": 420,
+          "path": "dist/runtime/lifecycle.d.ts.map"
+        },
+        {
+          "bytes": 8765,
+          "mode": 420,
+          "path": "dist/runtime/lifecycle.js"
+        },
+        {
+          "bytes": 20154,
+          "mode": 420,
+          "path": "dist/runtime/lifecycle.js.map"
+        },
+        {
+          "bytes": 2064,
+          "mode": 420,
+          "path": "dist/storage/asset-upload-capability.d.ts"
+        },
+        {
+          "bytes": 1777,
+          "mode": 420,
+          "path": "dist/storage/asset-upload-capability.d.ts.map"
+        },
+        {
+          "bytes": 2198,
+          "mode": 420,
+          "path": "dist/storage/asset-upload-capability.js"
+        },
+        {
+          "bytes": 5863,
+          "mode": 420,
+          "path": "dist/storage/asset-upload-capability.js.map"
+        },
+        {
+          "bytes": 2624,
+          "mode": 420,
+          "path": "dist/storage/deterministic-full-resource-driver.d.ts"
+        },
+        {
+          "bytes": 1996,
+          "mode": 420,
+          "path": "dist/storage/deterministic-full-resource-driver.d.ts.map"
+        },
+        {
+          "bytes": 27601,
+          "mode": 420,
+          "path": "dist/storage/deterministic-full-resource-driver.js"
+        },
+        {
+          "bytes": 53017,
+          "mode": 420,
+          "path": "dist/storage/deterministic-full-resource-driver.js.map"
+        },
+        {
+          "bytes": 640,
+          "mode": 420,
+          "path": "dist/storage/full-resource-driver-adapter.d.ts"
+        },
+        {
+          "bytes": 581,
+          "mode": 420,
+          "path": "dist/storage/full-resource-driver-adapter.d.ts.map"
+        },
+        {
+          "bytes": 336,
+          "mode": 420,
+          "path": "dist/storage/full-resource-driver-adapter.js"
+        },
+        {
+          "bytes": 1129,
+          "mode": 420,
+          "path": "dist/storage/full-resource-driver-adapter.js.map"
+        },
+        {
+          "bytes": 2415,
+          "mode": 420,
+          "path": "dist/storage/local-sqlite-resource-driver.d.ts"
+        },
+        {
+          "bytes": 1877,
+          "mode": 420,
+          "path": "dist/storage/local-sqlite-resource-driver.d.ts.map"
+        },
+        {
+          "bytes": 74442,
+          "mode": 420,
+          "path": "dist/storage/local-sqlite-resource-driver.js"
+        },
+        {
+          "bytes": 140488,
+          "mode": 420,
+          "path": "dist/storage/local-sqlite-resource-driver.js.map"
+        },
+        {
+          "bytes": 1688,
+          "mode": 420,
+          "path": "dist/storage/resource-journal-integrity.d.ts"
+        },
+        {
+          "bytes": 1199,
+          "mode": 420,
+          "path": "dist/storage/resource-journal-integrity.d.ts.map"
+        },
+        {
+          "bytes": 6465,
+          "mode": 420,
+          "path": "dist/storage/resource-journal-integrity.js"
+        },
+        {
+          "bytes": 13676,
+          "mode": 420,
+          "path": "dist/storage/resource-journal-integrity.js.map"
+        },
+        {
+          "bytes": 867,
+          "mode": 420,
+          "path": "dist/storage/resource-recovery-coordinator.d.ts"
+        },
+        {
+          "bytes": 749,
+          "mode": 420,
+          "path": "dist/storage/resource-recovery-coordinator.d.ts.map"
+        },
+        {
+          "bytes": 1985,
+          "mode": 420,
+          "path": "dist/storage/resource-recovery-coordinator.js"
+        },
+        {
+          "bytes": 4422,
+          "mode": 420,
+          "path": "dist/storage/resource-recovery-coordinator.js.map"
+        },
+        {
+          "bytes": 658,
+          "mode": 420,
+          "path": "dist/storage/resource-runtime-integrity.d.ts"
+        },
+        {
+          "bytes": 480,
+          "mode": 420,
+          "path": "dist/storage/resource-runtime-integrity.d.ts.map"
+        },
+        {
+          "bytes": 734,
+          "mode": 420,
+          "path": "dist/storage/resource-runtime-integrity.js"
+        },
+        {
+          "bytes": 1619,
+          "mode": 420,
+          "path": "dist/storage/resource-runtime-integrity.js.map"
+        },
+        {
+          "bytes": 3826,
+          "mode": 420,
+          "path": "dist/storage/resource-write-protocol.d.ts"
+        },
+        {
+          "bytes": 3309,
+          "mode": 420,
+          "path": "dist/storage/resource-write-protocol.d.ts.map"
+        },
+        {
+          "bytes": 62,
+          "mode": 420,
+          "path": "dist/storage/resource-write-protocol.js"
+        },
+        {
+          "bytes": 4111,
+          "mode": 420,
+          "path": "dist/storage/resource-write-protocol.js.map"
+        },
+        {
+          "bytes": 647,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/asset-input.d.ts"
+        },
+        {
+          "bytes": 650,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/asset-input.d.ts.map"
+        },
+        {
+          "bytes": 5949,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/asset-input.js"
+        },
+        {
+          "bytes": 12330,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/asset-input.js.map"
+        },
+        {
+          "bytes": 2292,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/asset-upload-port.d.ts"
+        },
+        {
+          "bytes": 1972,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/asset-upload-port.d.ts.map"
+        },
+        {
+          "bytes": 278,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/asset-upload-port.js"
+        },
+        {
+          "bytes": 3017,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/asset-upload-port.js.map"
+        },
+        {
+          "bytes": 3176,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/asset-write-port.d.ts"
+        },
+        {
+          "bytes": 2950,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/asset-write-port.d.ts.map"
+        },
+        {
+          "bytes": 300,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/asset-write-port.js"
+        },
+        {
+          "bytes": 3982,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/asset-write-port.js.map"
+        },
+        {
+          "bytes": 6395,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/facades.d.ts"
+        },
+        {
+          "bytes": 4846,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/facades.d.ts.map"
+        },
+        {
+          "bytes": 39486,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/facades.js"
+        },
+        {
+          "bytes": 77923,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/facades.js.map"
+        },
+        {
+          "bytes": 1045,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/resource-read-port.d.ts"
+        },
+        {
+          "bytes": 1056,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/resource-read-port.d.ts.map"
+        },
+        {
+          "bytes": 338,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/resource-read-port.js"
+        },
+        {
+          "bytes": 1701,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/resource-read-port.js.map"
+        },
+        {
+          "bytes": 3187,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/resource-write-port.d.ts"
+        },
+        {
+          "bytes": 2691,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/resource-write-port.d.ts.map"
+        },
+        {
+          "bytes": 309,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/resource-write-port.js"
+        },
+        {
+          "bytes": 3900,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/resource-write-port.js.map"
+        },
+        {
+          "bytes": 1071,
+          "mode": 420,
+          "path": "LICENSE"
+        },
+        {
+          "bytes": 1723,
+          "mode": 420,
+          "path": "package.json"
+        }
+      ]
+    },
+    {
+      "archive_bytes": 312767,
+      "archive_sha256": "eff88293652bedd17448686921a6871f63435704b946f1b1844e14422a3ab118",
+      "content_manifest": [
+        {
+          "bytes": 1438,
+          "path": "dist/composition/diagnostics.d.ts",
+          "sha256": "87754c64576fb7ab3eea1a319a52bf3ab760718a5ef2446e2672219aa5fcf04c",
+          "type": "file"
+        },
+        {
+          "bytes": 1003,
+          "path": "dist/composition/diagnostics.d.ts.map",
+          "sha256": "f68ef1fd95480de9e943314bb2587b1c871cf235437426e27630a8859c8447f1",
+          "type": "file"
+        },
+        {
+          "bytes": 2500,
+          "path": "dist/composition/diagnostics.js",
+          "sha256": "ae5423530cda674b738d9666c1d2ef1f7657cf2510645cb43d7f748592d5c8ca",
+          "type": "file"
+        },
+        {
+          "bytes": 6150,
+          "path": "dist/composition/diagnostics.js.map",
+          "sha256": "98228ef2487c02c06c48ade83ba918749d8922fe90d8495116eaf5d2c2f37444",
+          "type": "file"
+        },
+        {
+          "bytes": 2516,
+          "path": "dist/composition/inspection.d.ts",
+          "sha256": "b623a8021df90feb2486f761e309781ce97624e625f451b81d26af9539a00a36",
+          "type": "file"
+        },
+        {
+          "bytes": 2281,
+          "path": "dist/composition/inspection.d.ts.map",
+          "sha256": "dfc3d83075322cb92d91c0796e13c292cb55a98940bb6d413f46863a8fb22097",
+          "type": "file"
+        },
+        {
+          "bytes": 2685,
+          "path": "dist/composition/inspection.js",
+          "sha256": "9eaf434ed1da5bd20f2d0385f67881f018a09d7e9a3db8023ca3d6fa24c3feba",
+          "type": "file"
+        },
+        {
+          "bytes": 7990,
+          "path": "dist/composition/inspection.js.map",
+          "sha256": "eeca6b05eb82545bbda228f1d164b2abd19804bc755428f47891f33bc0ba675b",
+          "type": "file"
+        },
+        {
+          "bytes": 950,
+          "path": "dist/composition/local-sqlite-runtime.d.ts",
+          "sha256": "11324d0ae42405c48e98b12572f0eb39eb7e9fcac2bd366dad1aab5739cdab91",
+          "type": "file"
+        },
+        {
+          "bytes": 616,
+          "path": "dist/composition/local-sqlite-runtime.d.ts.map",
+          "sha256": "5fef47b745cef7b8a20ade790309b55d5e3ecdf64dccc731b31114eb7a5e1260",
+          "type": "file"
+        },
+        {
+          "bytes": 1098,
+          "path": "dist/composition/local-sqlite-runtime.js",
+          "sha256": "579ee2ce4936a198ba59e5040d6f9ea3d6fc5ab4dc94a335eda2250d86f193d7",
+          "type": "file"
+        },
+        {
+          "bytes": 2436,
+          "path": "dist/composition/local-sqlite-runtime.js.map",
+          "sha256": "57db70afa796a6a40cb99427ae072c1e08543228e6f213ec385d10223bddd30b",
+          "type": "file"
+        },
+        {
+          "bytes": 3080,
+          "path": "dist/composition/root.d.ts",
+          "sha256": "67a745eb4d9368768a62d3302c3a38b829d2aac280a30f9637260451fecc087e",
+          "type": "file"
+        },
+        {
+          "bytes": 2870,
+          "path": "dist/composition/root.d.ts.map",
+          "sha256": "8ea9d38c88bffd51dfa607b6e6676ac752a8d9afa25dd6ca0e8a815e9ec3913a",
+          "type": "file"
+        },
+        {
+          "bytes": 5164,
+          "path": "dist/composition/root.js",
+          "sha256": "8eec67101c314370ff892607184703f188bf931cbeb427f7770deac21c164b6b",
+          "type": "file"
+        },
+        {
+          "bytes": 14473,
+          "path": "dist/composition/root.js.map",
+          "sha256": "227abbe3885256699b7d0a1837a33eaf7864d3e0de8d4cdea5b66fc463a999ba",
+          "type": "file"
+        },
+        {
+          "bytes": 652,
+          "path": "dist/composition/tokens.d.ts",
+          "sha256": "2b55eb25b9c4715ee9d225b942fce4fd488570bcca99608b3c78badd880dda2a",
+          "type": "file"
+        },
+        {
+          "bytes": 637,
+          "path": "dist/composition/tokens.d.ts.map",
+          "sha256": "658c194c04a44a387f115bec54dc4e67d3934c929fa752c8435928832b593f38",
+          "type": "file"
+        },
+        {
+          "bytes": 628,
+          "path": "dist/composition/tokens.js",
+          "sha256": "add51d37835b51d13f9c46c5fcb328d14b5885c89dbfd5cef6f27829202ad32a",
+          "type": "file"
+        },
+        {
+          "bytes": 1694,
+          "path": "dist/composition/tokens.js.map",
+          "sha256": "3f61ada43e1b8206551c1797f733a583cf87747745eedd6e177a5217810dc6b9",
+          "type": "file"
+        },
+        {
+          "bytes": 1256,
+          "path": "dist/core/asset-write-runtime.d.ts",
+          "sha256": "375efd81d480610dfc94d99fbfa5ebc528f6523d83f084db73e0b6fc7b313a8f",
+          "type": "file"
+        },
+        {
+          "bytes": 975,
+          "path": "dist/core/asset-write-runtime.d.ts.map",
+          "sha256": "aa568c979240e873c7983943b35ebe631001887e4eb80bbc76dea8e54eaf7aec",
+          "type": "file"
+        },
+        {
+          "bytes": 45012,
+          "path": "dist/core/asset-write-runtime.js",
+          "sha256": "30612ab26dac3a28a45152334126893fba54bc17d9a6fe02aba71586e9fc6625",
+          "type": "file"
+        },
+        {
+          "bytes": 87712,
+          "path": "dist/core/asset-write-runtime.js.map",
+          "sha256": "b74f4d025fbef8c14238a7c78699b40cde9edced337c8ab9a28fae77ce1ed249",
+          "type": "file"
+        },
+        {
+          "bytes": 1587,
+          "path": "dist/core/deterministic-read-model-observation.d.ts",
+          "sha256": "12e5abf96f2e9017364a9e167e82d177f7b25300e5fe4047cbeeecef5fbd8e2a",
+          "type": "file"
+        },
+        {
+          "bytes": 1221,
+          "path": "dist/core/deterministic-read-model-observation.d.ts.map",
+          "sha256": "5e7d6ef12463bf4421f498036fb7fbc0261a2368f24c17f16503f7fd9e5c6c9e",
+          "type": "file"
+        },
+        {
+          "bytes": 4942,
+          "path": "dist/core/deterministic-read-model-observation.js",
+          "sha256": "592346a1f33dfbd7c2e746ecc77889e23fbedfc9a5a0d02e14ffeaffb96c1fa2",
+          "type": "file"
+        },
+        {
+          "bytes": 11156,
+          "path": "dist/core/deterministic-read-model-observation.js.map",
+          "sha256": "f4a7647a7dd5144493760ef9942933810af074d83ada58862c7198ec9b66e863",
+          "type": "file"
+        },
+        {
+          "bytes": 831,
+          "path": "dist/core/deterministic-read-model-synchronization.d.ts",
+          "sha256": "5f6d3d657251a083998b21e439c5c17db71553c3a1640f02007f334864a50bb5",
+          "type": "file"
+        },
+        {
+          "bytes": 671,
+          "path": "dist/core/deterministic-read-model-synchronization.d.ts.map",
+          "sha256": "9c310914f1e837d0912ff8d3ecfd8933c034c938e70062cbf1ada35415e773fe",
+          "type": "file"
+        },
+        {
+          "bytes": 3221,
+          "path": "dist/core/deterministic-read-model-synchronization.js",
+          "sha256": "4f9cfd7fb602cba6860e6ce3a7cd8a28e6a095d351b50115eba5b9916bd07989",
+          "type": "file"
+        },
+        {
+          "bytes": 6963,
+          "path": "dist/core/deterministic-read-model-synchronization.js.map",
+          "sha256": "87bdec4aece3641435fe2239f2c6bd8ee0b72bdbe3f9aa44a7670465e237ea91",
+          "type": "file"
+        },
+        {
+          "bytes": 873,
+          "path": "dist/core/persistent-string-map.d.ts",
+          "sha256": "c0b01991daecc511eaed31d8d987fe41bdcfefcb6d07ce86edca044edaae4601",
+          "type": "file"
+        },
+        {
+          "bytes": 1187,
+          "path": "dist/core/persistent-string-map.d.ts.map",
+          "sha256": "6d60811d566dd766e08cffddab1da3b1b5e1abc9b76aadda035650c248c0e90c",
+          "type": "file"
+        },
+        {
+          "bytes": 4568,
+          "path": "dist/core/persistent-string-map.js",
+          "sha256": "6537d1efe93f6eb1655f66621e137190500e6c282f6b0d1651763a380a1d286f",
+          "type": "file"
+        },
+        {
+          "bytes": 11551,
+          "path": "dist/core/persistent-string-map.js.map",
+          "sha256": "76d1c889ce7d166e724060d584d85f34e766f001929de1cb133306b14e2d9ce7",
+          "type": "file"
+        },
+        {
+          "bytes": 1859,
+          "path": "dist/core/read-model-coordinator.d.ts",
+          "sha256": "f7c5a7d5b048dc4dbdca098c3c4fb850acfdac3f3be1eef5c1955f18972e22c9",
+          "type": "file"
+        },
+        {
+          "bytes": 1587,
+          "path": "dist/core/read-model-coordinator.d.ts.map",
+          "sha256": "8a97c27e30ce09b1b75444c88c3f2b857946ba7d42371bd48846955e3c02abd8",
+          "type": "file"
+        },
+        {
+          "bytes": 7264,
+          "path": "dist/core/read-model-coordinator.js",
+          "sha256": "24903d500dda77eab9ce15ef729a3c7e8f6a357894674db6326a8bf87ec95ebe",
+          "type": "file"
+        },
+        {
+          "bytes": 14765,
+          "path": "dist/core/read-model-coordinator.js.map",
+          "sha256": "d1d2d8ad526e4434527ee86802e769873f925fa805888d95a8f31660d75b8f5c",
+          "type": "file"
+        },
+        {
+          "bytes": 4458,
+          "path": "dist/core/read-model-generation.d.ts",
+          "sha256": "a97e1d8e626dd030169ef62725afee03d86ee5de6c1342f8adc9829cadc84324",
+          "type": "file"
+        },
+        {
+          "bytes": 3785,
+          "path": "dist/core/read-model-generation.d.ts.map",
+          "sha256": "f45e2f1a891559bcc3436337b30175686fc789d519161090f1f2af7a45d7a4ba",
+          "type": "file"
+        },
+        {
+          "bytes": 25431,
+          "path": "dist/core/read-model-generation.js",
+          "sha256": "ace3f996517c1b859cee5508327358692ac9124eeaae82622bac60152d308a09",
+          "type": "file"
+        },
+        {
+          "bytes": 59887,
+          "path": "dist/core/read-model-generation.js.map",
+          "sha256": "93fb4b321fc3b5ec15d73fbb0360d165502e280bcf82a103172e681bb805806f",
+          "type": "file"
+        },
+        {
+          "bytes": 5468,
+          "path": "dist/core/read-model-observation.d.ts",
+          "sha256": "f0d1e02496317330be1360c40bcf6c68de4648ebf1393225a0a439acb3762c52",
+          "type": "file"
+        },
+        {
+          "bytes": 4330,
+          "path": "dist/core/read-model-observation.d.ts.map",
+          "sha256": "99dd852e442b46f09a3ba19de3ad82f1eb023c6cebccb65d6ed5b721f375a457",
+          "type": "file"
+        },
+        {
+          "bytes": 7287,
+          "path": "dist/core/read-model-observation.js",
+          "sha256": "af7c125dae12b79a15d0c1312bff0516cec08434a386dcc00d736734b55ca672",
+          "type": "file"
+        },
+        {
+          "bytes": 18351,
+          "path": "dist/core/read-model-observation.js.map",
+          "sha256": "ae4bdd5b17aef01506312e1c6a9a73401cbc6f77ef8fceeb3195cdf41cfe3220",
+          "type": "file"
+        },
+        {
+          "bytes": 799,
+          "path": "dist/core/read-model-polling.d.ts",
+          "sha256": "754db5fe463bc92e8074dd50bc5a87757b68e466ee49bce6acac94f190bbfc08",
+          "type": "file"
+        },
+        {
+          "bytes": 737,
+          "path": "dist/core/read-model-polling.d.ts.map",
+          "sha256": "9910ca17ea63aed3fa8db9bde582313a9d48afd6191cc86511c1c92199028770",
+          "type": "file"
+        },
+        {
+          "bytes": 2113,
+          "path": "dist/core/read-model-polling.js",
+          "sha256": "3a5ba61cef3140894b5563da1702b597bd3a357b98e10796bbd9d8c5bc65e1c6",
+          "type": "file"
+        },
+        {
+          "bytes": 5238,
+          "path": "dist/core/read-model-polling.js.map",
+          "sha256": "d414f48a0a17a442051413a6787406eac64076ee3023835280d7b01a16dddc9c",
+          "type": "file"
+        },
+        {
+          "bytes": 1685,
+          "path": "dist/core/read-model-query.d.ts",
+          "sha256": "a16e94baa8248ca6cf5ca96492c5c25f1f36cd878762fc25f15b21338cc0d24a",
+          "type": "file"
+        },
+        {
+          "bytes": 1467,
+          "path": "dist/core/read-model-query.d.ts.map",
+          "sha256": "472cb43e21a04d3ab0f33e92ac4115619b829db8475ce736e2f5dbafee793fe2",
+          "type": "file"
+        },
+        {
+          "bytes": 5602,
+          "path": "dist/core/read-model-query.js",
+          "sha256": "52d8c68ce43dec97ae897e0d4ab9580d3b9a17ffce5304434a197272cfa1983a",
+          "type": "file"
+        },
+        {
+          "bytes": 13663,
+          "path": "dist/core/read-model-query.js.map",
+          "sha256": "d22d33e39171273f373076f77132f24cfdde2ed126c3fc6c78a4abc0c3a9aa6f",
+          "type": "file"
+        },
+        {
+          "bytes": 2717,
+          "path": "dist/core/read-model-runtime.d.ts",
+          "sha256": "00090a699d4e41402a6477507b844fc63b263ae1c87bb14fd40cb23f816c5ce5",
+          "type": "file"
+        },
+        {
+          "bytes": 2170,
+          "path": "dist/core/read-model-runtime.d.ts.map",
+          "sha256": "36bff928e25abb42860f872bfa7c0706c53374d03b10d572d83545479bfd2612",
+          "type": "file"
+        },
+        {
+          "bytes": 4057,
+          "path": "dist/core/read-model-runtime.js",
+          "sha256": "ee72c28e798657da4a75c9d486ff47e421b913dde85c418c58e6669ef3719289",
+          "type": "file"
+        },
+        {
+          "bytes": 10046,
+          "path": "dist/core/read-model-runtime.js.map",
+          "sha256": "6a3523667a0bd0fed14473eb0a276eda70e1fb8c77608cec4b1582308f1d655a",
+          "type": "file"
+        },
+        {
+          "bytes": 985,
+          "path": "dist/core/read-model-storage-observation.d.ts",
+          "sha256": "ecdae2a50c4f6daa379074b264f78f8f5cfff950d49297d73f5bc6dccf88ea45",
+          "type": "file"
+        },
+        {
+          "bytes": 681,
+          "path": "dist/core/read-model-storage-observation.d.ts.map",
+          "sha256": "32a5d6c089abf68313cef3fbd8b0519d8497b68e9481152fdf784f2f0274cbb9",
+          "type": "file"
+        },
+        {
+          "bytes": 10113,
+          "path": "dist/core/read-model-storage-observation.js",
+          "sha256": "f28340d351662d3cdf440a52e4f20b0e2b5d51dec2c8a1b687f24f5776705421",
+          "type": "file"
+        },
+        {
+          "bytes": 19097,
+          "path": "dist/core/read-model-storage-observation.js.map",
+          "sha256": "8bd0bb85d039b08a267118493a40879964b3cb530141ce1d51311a7bd5d3b153",
+          "type": "file"
+        },
+        {
+          "bytes": 4871,
+          "path": "dist/core/read-model-synchronization.d.ts",
+          "sha256": "ebf697a9fc6e425ffbc389ba5cd2e5fb648cd4215b820472ba4911ab961aca03",
+          "type": "file"
+        },
+        {
+          "bytes": 3882,
+          "path": "dist/core/read-model-synchronization.d.ts.map",
+          "sha256": "df529f8d776b62f12298d3505d9f88d70f7834fbd54f28ef647eda93bb715089",
+          "type": "file"
+        },
+        {
+          "bytes": 19652,
+          "path": "dist/core/read-model-synchronization.js",
+          "sha256": "d27926f09d9d6543e067e511d6e268e4494bbb3998fbca0dd595072fba5f7690",
+          "type": "file"
+        },
+        {
+          "bytes": 42561,
+          "path": "dist/core/read-model-synchronization.js.map",
+          "sha256": "6441118c2e9712b6324c61fd53f87ee16b91ca5d98606ee712a8d7faab6d5052",
+          "type": "file"
+        },
+        {
+          "bytes": 666,
+          "path": "dist/core/resource-index-write-contracts.d.ts",
+          "sha256": "f9b2c5ee415551646140d309cd878e3c8b8e4ab150b9bbe623012a9c0ac528d2",
+          "type": "file"
+        },
+        {
+          "bytes": 586,
+          "path": "dist/core/resource-index-write-contracts.d.ts.map",
+          "sha256": "874254dca0b1fe4950727fa13fba1418b7daa39aae9e47c9d17144a7e54301cb",
+          "type": "file"
+        },
+        {
+          "bytes": 69,
+          "path": "dist/core/resource-index-write-contracts.js",
+          "sha256": "9bb1e22e126008c823cb6a185cff24e4518912b179b2850928eead729df05de1",
+          "type": "file"
+        },
+        {
+          "bytes": 812,
+          "path": "dist/core/resource-index-write-contracts.js.map",
+          "sha256": "fdba7d41200a510f300845dde3fce2f316210edfeaf518fa0324f8283364805e",
+          "type": "file"
+        },
+        {
+          "bytes": 2092,
+          "path": "dist/core/resource-index.d.ts",
+          "sha256": "9edd0d5694b92c603294acb5050e6e488051cb6af1e706e1812ba2bb7624bba0",
+          "type": "file"
+        },
+        {
+          "bytes": 1731,
+          "path": "dist/core/resource-index.d.ts.map",
+          "sha256": "c62cf50b37e97884f4f78e60f16fda25804a65fba9ce0c0f9a0eaec1b2dc016b",
+          "type": "file"
+        },
+        {
+          "bytes": 9825,
+          "path": "dist/core/resource-index.js",
+          "sha256": "c9a5c1bd96384d412fd385d2aa0398578851bf619a97b0ccd66b009d0dc36550",
+          "type": "file"
+        },
+        {
+          "bytes": 19488,
+          "path": "dist/core/resource-index.js.map",
+          "sha256": "a4643e926985412a5d10ce4f44f4a0b55f78bacf26dcd508451a66f2d760db19",
+          "type": "file"
+        },
+        {
+          "bytes": 1238,
+          "path": "dist/core/resource-read-runtime.d.ts",
+          "sha256": "fa8bb1ed9ac38008da9ca9bf631d0e849905692f76f9d148d2364af14ab0cd19",
+          "type": "file"
+        },
+        {
+          "bytes": 953,
+          "path": "dist/core/resource-read-runtime.d.ts.map",
+          "sha256": "5bd136d2d1242047514c7f6baa2827277456b3d10798c7b7df629cac9588ad1e",
+          "type": "file"
+        },
+        {
+          "bytes": 10899,
+          "path": "dist/core/resource-read-runtime.js",
+          "sha256": "9de36bc216d08cae511eb4969ef3fc4db52c4f702759689e9de674874a54b60c",
+          "type": "file"
+        },
+        {
+          "bytes": 19842,
+          "path": "dist/core/resource-read-runtime.js.map",
+          "sha256": "34b9ba348f409d8d2cc1eb288aad5ba2ae73be4e196331e2a8d3ba2905055365",
+          "type": "file"
+        },
+        {
+          "bytes": 568,
+          "path": "dist/core/resource-write-runtime.d.ts",
+          "sha256": "1496ff84949f9efcbc48483f72192a6c4f30adeb5492f595bb6c559ef16041aa",
+          "type": "file"
+        },
+        {
+          "bytes": 501,
+          "path": "dist/core/resource-write-runtime.d.ts.map",
+          "sha256": "29e456ccc6473475758bb257e9f3e0b320dc86b67f59a1a5c399c98a8c45897f",
+          "type": "file"
+        },
+        {
+          "bytes": 38620,
+          "path": "dist/core/resource-write-runtime.js",
+          "sha256": "f517a449e918af642b068131737e9364b6be204dc3cd2a9043902d8c14cbbd45",
+          "type": "file"
+        },
+        {
+          "bytes": 70066,
+          "path": "dist/core/resource-write-runtime.js.map",
+          "sha256": "6f219ba30b5b3bb988b7e8230397715cee6e7bf1ff1badb4252354a3d4f71cd0",
+          "type": "file"
+        },
+        {
+          "bytes": 993,
+          "path": "dist/core/runtime-fault-sink.d.ts",
+          "sha256": "421ced51f7da36bac470649e0adfcbd397d0a8dc90954d1efa7503969b428cf0",
+          "type": "file"
+        },
+        {
+          "bytes": 1028,
+          "path": "dist/core/runtime-fault-sink.d.ts.map",
+          "sha256": "67616afc73ba88fd1839fbf8fca0bc8c3b9359e3b6f0e7c1eeb2f6528b94cd35",
+          "type": "file"
+        },
+        {
+          "bytes": 1566,
+          "path": "dist/core/runtime-fault-sink.js",
+          "sha256": "866bffaffe54ed4e46a2190ab24d78f5588b8306882888d2ba72496e57845fba",
+          "type": "file"
+        },
+        {
+          "bytes": 3851,
+          "path": "dist/core/runtime-fault-sink.js.map",
+          "sha256": "c4e5738cb9b03f9893c55172ef0b2e5d45729b1e84f1df81581f2afc078c9ab9",
+          "type": "file"
+        },
+        {
+          "bytes": 1649,
+          "path": "dist/domain/asset-metadata.d.ts",
+          "sha256": "be6a05dbcbd787ec472f3929b92e6e3b3a8a6242a853699f6d53b229e40245c9",
+          "type": "file"
+        },
+        {
+          "bytes": 1485,
+          "path": "dist/domain/asset-metadata.d.ts.map",
+          "sha256": "526849d075134c33b53a53db15c173181e34ff3c98fb35b8a17d55e2cea7348e",
+          "type": "file"
+        },
+        {
+          "bytes": 11393,
+          "path": "dist/domain/asset-metadata.js",
+          "sha256": "a62bbf29e7019c48cd1e5242d1755eacc0328736776f0d7f79d1774b2379eb80",
+          "type": "file"
+        },
+        {
+          "bytes": 23112,
+          "path": "dist/domain/asset-metadata.js.map",
+          "sha256": "ce15692e6332694fe1a09cae66ee3306eae9777231247fc1cae9437d60f8ddfd",
+          "type": "file"
+        },
+        {
+          "bytes": 806,
+          "path": "dist/domain/json.d.ts",
+          "sha256": "b487c93fb09a01834bb173b500999a9b08fa5881d539c572347cee2e6f5430ab",
+          "type": "file"
+        },
+        {
+          "bytes": 796,
+          "path": "dist/domain/json.d.ts.map",
+          "sha256": "0b6dd60233b935fab9f2527f6d59d3d51dd425f54feeb53e0e58bd95b141a0c0",
+          "type": "file"
+        },
+        {
+          "bytes": 4049,
+          "path": "dist/domain/json.js",
+          "sha256": "06f1aee48bfdc36a8194120df129a85e5a5aec45eeb4aae62ee40bdc69da1325",
+          "type": "file"
+        },
+        {
+          "bytes": 8833,
+          "path": "dist/domain/json.js.map",
+          "sha256": "6c9219b7dfc008ad72b23b92d8f95acce702f364c5fca813d704a35adfd63ac2",
+          "type": "file"
+        },
+        {
+          "bytes": 769,
+          "path": "dist/domain/resource-aggregates.d.ts",
+          "sha256": "346fc5c4666b1b0718416f7387d149d6818a8bcd3b439694091842e25fac39ff",
+          "type": "file"
+        },
+        {
+          "bytes": 862,
+          "path": "dist/domain/resource-aggregates.d.ts.map",
+          "sha256": "9d1187e2853946e1533d16d31b0f49c8b9343f35065ae570d01498de38e4d4b3",
+          "type": "file"
+        },
+        {
+          "bytes": 5473,
+          "path": "dist/domain/resource-aggregates.js",
+          "sha256": "85c3fd12155940f8cbb5d710dc6092490d5972bc3ee6453f10563b1a0477f487",
+          "type": "file"
+        },
+        {
+          "bytes": 12256,
+          "path": "dist/domain/resource-aggregates.js.map",
+          "sha256": "dea5b084d96280a98dc708fb62ffebd4486818845e7c02f59e79881d4b2add33",
+          "type": "file"
+        },
+        {
+          "bytes": 1061,
+          "path": "dist/domain/resource-hierarchy.d.ts",
+          "sha256": "2e224700d758642f36e2637f9caa49f7b00d73ecc0de95c763f3396be90259c2",
+          "type": "file"
+        },
+        {
+          "bytes": 1022,
+          "path": "dist/domain/resource-hierarchy.d.ts.map",
+          "sha256": "86667c45fd537a0c7875ec6996402d2382c3d4831cb7dd10b3ec38f56c64a3f4",
+          "type": "file"
+        },
+        {
+          "bytes": 5729,
+          "path": "dist/domain/resource-hierarchy.js",
+          "sha256": "e7b1442d20685d6917c14eb2839df2698014c3e19d35de8af6980d1a5b86a57a",
+          "type": "file"
+        },
+        {
+          "bytes": 13285,
+          "path": "dist/domain/resource-hierarchy.js.map",
+          "sha256": "c40ccc84c5b8ab2706d947fd21b9b8c316b17cb7ee385276314e10eda0b0d6ef",
+          "type": "file"
+        },
+        {
+          "bytes": 848,
+          "path": "dist/domain/scalars.d.ts",
+          "sha256": "f89eb8afcd26fc3c46bd3be425542372817f14260ee238a38ef2ffcd238d9afa",
+          "type": "file"
+        },
+        {
+          "bytes": 840,
+          "path": "dist/domain/scalars.d.ts.map",
+          "sha256": "36c41829d340e1f9136087490e16a6f9da08c207c65bfe1f449739e6986a8102",
+          "type": "file"
+        },
+        {
+          "bytes": 1485,
+          "path": "dist/domain/scalars.js",
+          "sha256": "03dc79ea3d7f639ae3dae1207cfc767ee6659c39728945e90d7499eaed436498",
+          "type": "file"
+        },
+        {
+          "bytes": 3287,
+          "path": "dist/domain/scalars.js.map",
+          "sha256": "ab0edf4e5a889e9259b51891fec818bab63338adba102b4c566b04dfff823747",
+          "type": "file"
+        },
+        {
+          "bytes": 3001,
+          "path": "dist/domain/snapshots.d.ts",
+          "sha256": "9dde1e5bcb26d430d7b5f8558bcf2ebf9b18c49da8947183d87434a2f144a4a8",
+          "type": "file"
+        },
+        {
+          "bytes": 2740,
+          "path": "dist/domain/snapshots.d.ts.map",
+          "sha256": "db35d7b88d30d2d6df165df7e66ba10f1978edf106dcabdf0e09320604e42130",
+          "type": "file"
+        },
+        {
+          "bytes": 8686,
+          "path": "dist/domain/snapshots.js",
+          "sha256": "99e383ae94f3f4fb8f2895e8b0ca25f9aa959f48b45513ef878f6bd5664291c7",
+          "type": "file"
+        },
+        {
+          "bytes": 20436,
+          "path": "dist/domain/snapshots.js.map",
+          "sha256": "ec3fb1957c25df67d6947c806b43a4fccf1e4cdef05b36b692a6fe9c726f9907",
+          "type": "file"
+        },
+        {
+          "bytes": 1631,
+          "path": "dist/index.d.ts",
+          "sha256": "28ca45a49927aeaab6772053046720dc22fda13f3dd16fbe1ab4dd38d1e249de",
+          "type": "file"
+        },
+        {
+          "bytes": 1089,
+          "path": "dist/index.d.ts.map",
+          "sha256": "6e3ffc3f317351b429ca9b6535baa69388271fe2e3bbc08ca719670e10b01232",
+          "type": "file"
+        },
+        {
+          "bytes": 165,
+          "path": "dist/index.js",
+          "sha256": "0573c2786ec456dbc9f624638a1c4bd35aa7099d2b53a88fde5d4374aacf05b7",
+          "type": "file"
+        },
+        {
+          "bytes": 2024,
+          "path": "dist/index.js.map",
+          "sha256": "bbeb2ec498b23e2f4d03fd9d004e1457b6312705e535fe7de1a7d36a6f4c517e",
+          "type": "file"
+        },
+        {
+          "bytes": 363,
+          "path": "dist/operations/async-lock-queue.d.ts",
+          "sha256": "fc85270bf968ed09da2cfb2ac4df2e236c7dbd3650a4272e00c88ee04c134294",
+          "type": "file"
+        },
+        {
+          "bytes": 389,
+          "path": "dist/operations/async-lock-queue.d.ts.map",
+          "sha256": "c8da36c67c0bc84accc5f1ea91e5f71cf2d7dc5db6d10ce8c2185dac8872b4b5",
+          "type": "file"
+        },
+        {
+          "bytes": 2754,
+          "path": "dist/operations/async-lock-queue.js",
+          "sha256": "6f9ed601623c01ce8b4c6e4a502448c7d124ecb415de261f1957eef6dab94ca2",
+          "type": "file"
+        },
+        {
+          "bytes": 5956,
+          "path": "dist/operations/async-lock-queue.js.map",
+          "sha256": "0e44a5d2177844d8906d9c0755f10b4b9522f0012fc703eff617bc377d8a9205",
+          "type": "file"
+        },
+        {
+          "bytes": 2963,
+          "path": "dist/operations/operation-engine.d.ts",
+          "sha256": "13c282ae67a52c6ac20fe3347940e6bbc5dba989e41d3d68ad5be94dbf74e661",
+          "type": "file"
+        },
+        {
+          "bytes": 2658,
+          "path": "dist/operations/operation-engine.d.ts.map",
+          "sha256": "cede7426dabd78d986df19383e1c66a91b1743c3117d0e1ce0f97b70ca019262",
+          "type": "file"
+        },
+        {
+          "bytes": 9905,
+          "path": "dist/operations/operation-engine.js",
+          "sha256": "3e90bb94d9d8ce520f12d58b17753fc41280db057c404a6c2b12d3574301be3e",
+          "type": "file"
+        },
+        {
+          "bytes": 19384,
+          "path": "dist/operations/operation-engine.js.map",
+          "sha256": "7db7ce1ecb8df56bb58ca1482241abd85b2095bb1a85f7cb5e88c0fbdb6d20cb",
+          "type": "file"
+        },
+        {
+          "bytes": 594,
+          "path": "dist/operations/resource-operation-contracts.d.ts",
+          "sha256": "fae08e067ec412f4840cedce6cbe08be981d5f6331bf06c8fa58686e3b0db370",
+          "type": "file"
+        },
+        {
+          "bytes": 580,
+          "path": "dist/operations/resource-operation-contracts.d.ts.map",
+          "sha256": "5b0cdbbf67189a298454e0f02d81a39e2376932a6373cae37f27572706c4b0ec",
+          "type": "file"
+        },
+        {
+          "bytes": 373,
+          "path": "dist/operations/resource-operation-contracts.js",
+          "sha256": "9aca0c1f7a9605174597cbe23eba5e92a744aaf64ea8b1613cb39c9e52fc8f61",
+          "type": "file"
+        },
+        {
+          "bytes": 1270,
+          "path": "dist/operations/resource-operation-contracts.js.map",
+          "sha256": "6e0d481a2f89807e01119bd70077c7470f5e185f4ee9b30218cb682d5353e5c4",
+          "type": "file"
+        },
+        {
+          "bytes": 13619,
+          "path": "dist/public/contracts.d.ts",
+          "sha256": "70070506013771a6290063d467b0d16f8fd3a4c2e77db5c1a1598653eb61e0a4",
+          "type": "file"
+        },
+        {
+          "bytes": 11055,
+          "path": "dist/public/contracts.d.ts.map",
+          "sha256": "7547db71d3f2cd8b35bc465047cb961a96f4a3a5c847fc52481ef06a376522dc",
+          "type": "file"
+        },
+        {
+          "bytes": 48,
+          "path": "dist/public/contracts.js",
+          "sha256": "427a6852d1b4fbc59c12b396120836e73895fb11bee3ec3841f58f9c9f32499d",
+          "type": "file"
+        },
+        {
+          "bytes": 15223,
+          "path": "dist/public/contracts.js.map",
+          "sha256": "5ce21555d1e6385c4779a73591bf4ca82408bdb5a8c288185829ef2000769204",
+          "type": "file"
+        },
+        {
+          "bytes": 394,
+          "path": "dist/public/extensia.d.ts",
+          "sha256": "a37084a720e26ee9bd38b586a4762f718fc35fa3964d8c5324994df4d8e1db52",
+          "type": "file"
+        },
+        {
+          "bytes": 354,
+          "path": "dist/public/extensia.d.ts.map",
+          "sha256": "69bc81b9e49c75f1ea43819d3faa5dc5d645d51f9c5bb22034ada0dedb11a57e",
+          "type": "file"
+        },
+        {
+          "bytes": 22807,
+          "path": "dist/public/extensia.js",
+          "sha256": "f3c1fb0df4a073e9bfc0e3e04c51476deb970cebe4ffba39fb3474269fc9cff5",
+          "type": "file"
+        },
+        {
+          "bytes": 43613,
+          "path": "dist/public/extensia.js.map",
+          "sha256": "c5819cc4105214210db8021ffb6ce615607dc52f7e6549c7baf1386bd9e6d79c",
+          "type": "file"
+        },
+        {
+          "bytes": 780,
+          "path": "dist/public/full-resource-driver.d.ts",
+          "sha256": "12aa88af75ce5c3760499149a1a7bc0d5fd54e3785658498ee13462e913caf81",
+          "type": "file"
+        },
+        {
+          "bytes": 689,
+          "path": "dist/public/full-resource-driver.d.ts.map",
+          "sha256": "c1f4a2105364f5a77dddea21ba48ad062873e2b12b199722ca0c891b196dc509",
+          "type": "file"
+        },
+        {
+          "bytes": 15240,
+          "path": "dist/public/full-resource-driver.js",
+          "sha256": "29e3f9f448e8f0063ffb3fb533fc77651f7e3236b9c63fe107bd93ce609d6016",
+          "type": "file"
+        },
+        {
+          "bytes": 29931,
+          "path": "dist/public/full-resource-driver.js.map",
+          "sha256": "b2faa8fa533fd7a9b48cdba15685acd06356ac8ece2f038f29ace637b8062e61",
+          "type": "file"
+        },
+        {
+          "bytes": 3552,
+          "path": "dist/runtime/facades.d.ts",
+          "sha256": "d0b370bd8e01837ee593786396e4097b8e813ba1b24b47adf2ba1e04fe56f0ae",
+          "type": "file"
+        },
+        {
+          "bytes": 3001,
+          "path": "dist/runtime/facades.d.ts.map",
+          "sha256": "208d98be300063b97903b30737a24f9e5439d42c7c1b908475cb3b7c1d67e704",
+          "type": "file"
+        },
+        {
+          "bytes": 13064,
+          "path": "dist/runtime/facades.js",
+          "sha256": "74078ffa0a669dfc6fb71fa76aa5c63c1fc1000619443ec04d89ac58400ea4a8",
+          "type": "file"
+        },
+        {
+          "bytes": 28594,
+          "path": "dist/runtime/facades.js.map",
+          "sha256": "e07f13a2c9c08c8c8f1fc7211d54242d9fdc3b9ec22e8c546cfd982dcfa6f032",
+          "type": "file"
+        },
+        {
+          "bytes": 2577,
+          "path": "dist/runtime/lifecycle.d.ts",
+          "sha256": "e0133236ecc9e1d821cfde91c1e887964e82b78f61e04eef18af776663c2c810",
+          "type": "file"
+        },
+        {
+          "bytes": 2236,
+          "path": "dist/runtime/lifecycle.d.ts.map",
+          "sha256": "4a3922527553f27f6c84514bec02e6083b8d74250a62e6d2791a084a696b6c36",
+          "type": "file"
+        },
+        {
+          "bytes": 8765,
+          "path": "dist/runtime/lifecycle.js",
+          "sha256": "bc5ef1df1c2ac4f12af189b3b7e693349f3e0fe54cab23ba0bd2af8ae96f755f",
+          "type": "file"
+        },
+        {
+          "bytes": 20154,
+          "path": "dist/runtime/lifecycle.js.map",
+          "sha256": "7e5d1357ef0c9b4ce2620fe9b11d0d7607ad31682b4e065b4de84b0bc935a6eb",
+          "type": "file"
+        },
+        {
+          "bytes": 2064,
+          "path": "dist/storage/asset-upload-capability.d.ts",
+          "sha256": "3715a31ddaf048dc8e9b463ddc8347543b159d7dff8146a250af944eebffb767",
+          "type": "file"
+        },
+        {
+          "bytes": 1777,
+          "path": "dist/storage/asset-upload-capability.d.ts.map",
+          "sha256": "74c9aa92d48657e37c44ddb6da77f32ed6e9d371633e52008ce3d0a2bd1a5aba",
+          "type": "file"
+        },
+        {
+          "bytes": 2198,
+          "path": "dist/storage/asset-upload-capability.js",
+          "sha256": "0dd3bdaeed2f2bc1a8169a4dc926aeb595366b6851f644e0712acb3699e8b31a",
+          "type": "file"
+        },
+        {
+          "bytes": 5863,
+          "path": "dist/storage/asset-upload-capability.js.map",
+          "sha256": "558dde01dbfb2f83b734a6ba327a1818eb89106f3d91bf98715eef15c1664172",
+          "type": "file"
+        },
+        {
+          "bytes": 2624,
+          "path": "dist/storage/deterministic-full-resource-driver.d.ts",
+          "sha256": "1cd764a2bd024028ab3b8f1229ab13490b801652908e5e58e9dbb50c6f6ed639",
+          "type": "file"
+        },
+        {
+          "bytes": 1996,
+          "path": "dist/storage/deterministic-full-resource-driver.d.ts.map",
+          "sha256": "b38c1126ead5e70adafab3dcab524dd1fa3b3e7e4fb844368c8375825c38f397",
+          "type": "file"
+        },
+        {
+          "bytes": 27601,
+          "path": "dist/storage/deterministic-full-resource-driver.js",
+          "sha256": "9c4a9423b3359349d68009f65da0dfd2560f1811e06a588eb8d9b4c0fd5ccf5c",
+          "type": "file"
+        },
+        {
+          "bytes": 53017,
+          "path": "dist/storage/deterministic-full-resource-driver.js.map",
+          "sha256": "c9a89059fd3f6f55f93eb913ab3928a4dd790a7a23a53f52c780c10a9896d58e",
+          "type": "file"
+        },
+        {
+          "bytes": 640,
+          "path": "dist/storage/full-resource-driver-adapter.d.ts",
+          "sha256": "674d4f7237a08080dcc7927f2c6ed96e08869ad593355af13f6646727318899e",
+          "type": "file"
+        },
+        {
+          "bytes": 581,
+          "path": "dist/storage/full-resource-driver-adapter.d.ts.map",
+          "sha256": "fa97b88b5bc3e28b23c37aa672db82cec240c04d579138014f95e14357c886c3",
+          "type": "file"
+        },
+        {
+          "bytes": 336,
+          "path": "dist/storage/full-resource-driver-adapter.js",
+          "sha256": "48fbd4fefaffe8d4338cf0c152c689e773beba6c1036dcd98e851b1168bf1fd9",
+          "type": "file"
+        },
+        {
+          "bytes": 1129,
+          "path": "dist/storage/full-resource-driver-adapter.js.map",
+          "sha256": "05bfbfd0deb659b859fb2738d6744d1f5129ebad77233fbf97150067054ad632",
+          "type": "file"
+        },
+        {
+          "bytes": 2415,
+          "path": "dist/storage/local-sqlite-resource-driver.d.ts",
+          "sha256": "4078726ad5bbf91ed8ee050427029c8c8b0ecc41f75cf9edc2857175e308d2b7",
+          "type": "file"
+        },
+        {
+          "bytes": 1877,
+          "path": "dist/storage/local-sqlite-resource-driver.d.ts.map",
+          "sha256": "41875afd632472dc6cbf0311bfcd9f9d5befd3675d148b43217611865081bb3c",
+          "type": "file"
+        },
+        {
+          "bytes": 74442,
+          "path": "dist/storage/local-sqlite-resource-driver.js",
+          "sha256": "1d84025fa220340fcba8de1130d78e73c3b41d159f87058e709a5d5e65ffc331",
+          "type": "file"
+        },
+        {
+          "bytes": 140488,
+          "path": "dist/storage/local-sqlite-resource-driver.js.map",
+          "sha256": "4b31c9462291b4b25e02f942f51cd9e498983f187749b5b245f8047575ccdbd0",
+          "type": "file"
+        },
+        {
+          "bytes": 1688,
+          "path": "dist/storage/resource-journal-integrity.d.ts",
+          "sha256": "a9ef172505570a41b22661e9f39577f30c2a47cd009f82c77565c86cb6825599",
+          "type": "file"
+        },
+        {
+          "bytes": 1199,
+          "path": "dist/storage/resource-journal-integrity.d.ts.map",
+          "sha256": "9ced75818b54d4199aea46bffa3007b919d5d12d72eea33e92b316ca74ccc797",
+          "type": "file"
+        },
+        {
+          "bytes": 6465,
+          "path": "dist/storage/resource-journal-integrity.js",
+          "sha256": "977bb004add701ae4b892da0f737f47a16befbe7a8edaef67935baa8338916ba",
+          "type": "file"
+        },
+        {
+          "bytes": 13676,
+          "path": "dist/storage/resource-journal-integrity.js.map",
+          "sha256": "dddef92e32b94f352580dc9113342b0d4878a04e0d461ceadbf76e75e44014f6",
+          "type": "file"
+        },
+        {
+          "bytes": 867,
+          "path": "dist/storage/resource-recovery-coordinator.d.ts",
+          "sha256": "9f7d6fc80f00eb8f5acce5299fe815e82e0fd783924ec4649e8d726e41fb75b0",
+          "type": "file"
+        },
+        {
+          "bytes": 749,
+          "path": "dist/storage/resource-recovery-coordinator.d.ts.map",
+          "sha256": "6bf90f3364824ef541722c8c89f05064638acb2f2d73c671bd7f971917310694",
+          "type": "file"
+        },
+        {
+          "bytes": 1985,
+          "path": "dist/storage/resource-recovery-coordinator.js",
+          "sha256": "865f7aa5192a4c803ba3731776e8c5027144171099b6f7618dccc92a242dbfcc",
+          "type": "file"
+        },
+        {
+          "bytes": 4422,
+          "path": "dist/storage/resource-recovery-coordinator.js.map",
+          "sha256": "7702c97d61d8eec2c219827f858c79f17938e406c49d81f24b0b2902c45ba4e6",
+          "type": "file"
+        },
+        {
+          "bytes": 658,
+          "path": "dist/storage/resource-runtime-integrity.d.ts",
+          "sha256": "0306d5b818fe9b5de384e15abc2e9964c69795b1683a3155dea8aee233390043",
+          "type": "file"
+        },
+        {
+          "bytes": 480,
+          "path": "dist/storage/resource-runtime-integrity.d.ts.map",
+          "sha256": "51fbbcd3f5df8456f52e87bdbd4b34eb667fe36d729bd40c828b2765df33b3c8",
+          "type": "file"
+        },
+        {
+          "bytes": 734,
+          "path": "dist/storage/resource-runtime-integrity.js",
+          "sha256": "9704537e985ac2e2ef2bb8d233d79d06ab9c92e662efbfbb6ee27022dc5d92a8",
+          "type": "file"
+        },
+        {
+          "bytes": 1619,
+          "path": "dist/storage/resource-runtime-integrity.js.map",
+          "sha256": "195afcd8cf807a5a9127309c615580bb00da46892168bb57be36da2d84444569",
+          "type": "file"
+        },
+        {
+          "bytes": 3826,
+          "path": "dist/storage/resource-write-protocol.d.ts",
+          "sha256": "42a7d681215d3513a72ec5030aa0fe8a8d3f3d47f3d0ed3a32b2729544ac979e",
+          "type": "file"
+        },
+        {
+          "bytes": 3309,
+          "path": "dist/storage/resource-write-protocol.d.ts.map",
+          "sha256": "95369fd56be9ed886b883f942409d3885ea9ee8e20b8129263bacf9dcb0fe081",
+          "type": "file"
+        },
+        {
+          "bytes": 62,
+          "path": "dist/storage/resource-write-protocol.js",
+          "sha256": "698c0590b1067fab4bf485b5e9c5f462118134734acaee4aad4f023f3da53190",
+          "type": "file"
+        },
+        {
+          "bytes": 4111,
+          "path": "dist/storage/resource-write-protocol.js.map",
+          "sha256": "e339f36bad1f4d150e68bf4654ce5b164ab9330e355c79625e157d8d1d57edaf",
+          "type": "file"
+        },
+        {
+          "bytes": 647,
+          "path": "dist/system-extensions/default-api/asset-input.d.ts",
+          "sha256": "c33cba58504d1dc5bbb586cadfe3a85493be7b2cb1a0c521827dddcbe3ff66cb",
+          "type": "file"
+        },
+        {
+          "bytes": 650,
+          "path": "dist/system-extensions/default-api/asset-input.d.ts.map",
+          "sha256": "ef1e3f483dae7c459579a8728a5a1221ead3f63d91b4c1e26f57cb7849eca1fd",
+          "type": "file"
+        },
+        {
+          "bytes": 5949,
+          "path": "dist/system-extensions/default-api/asset-input.js",
+          "sha256": "57012bdae98eb72655f88af46403e09686b7c8777aa2b817777ddbaf2645f154",
+          "type": "file"
+        },
+        {
+          "bytes": 12330,
+          "path": "dist/system-extensions/default-api/asset-input.js.map",
+          "sha256": "def04ba1c3dc9509b2097916f40c13d6ef6545b6553d48828099329c4f2f8d1a",
+          "type": "file"
+        },
+        {
+          "bytes": 2292,
+          "path": "dist/system-extensions/default-api/asset-upload-port.d.ts",
+          "sha256": "fbadbafce5a4b6ffbfcac65596db5f5eea4468fce7717f4fde691b9f20154309",
+          "type": "file"
+        },
+        {
+          "bytes": 1972,
+          "path": "dist/system-extensions/default-api/asset-upload-port.d.ts.map",
+          "sha256": "7f8758ac5a68e91b4096212b294a4a9db3a99a21a72b5bf660b6e77ae1a4b22a",
+          "type": "file"
+        },
+        {
+          "bytes": 278,
+          "path": "dist/system-extensions/default-api/asset-upload-port.js",
+          "sha256": "abf6c1c84a6a29048be12939597fe4884bee03ec229f6ae11a51ca2d95c56c9e",
+          "type": "file"
+        },
+        {
+          "bytes": 3017,
+          "path": "dist/system-extensions/default-api/asset-upload-port.js.map",
+          "sha256": "c930012195f4dcb0dc6da5e83a01e6ce14306913e05bb816d1256ab889b4b8c4",
+          "type": "file"
+        },
+        {
+          "bytes": 3176,
+          "path": "dist/system-extensions/default-api/asset-write-port.d.ts",
+          "sha256": "3efa83a64faa45d1fa33253934b47bbde6bf0f75507087e5c10e2b525c0e9e9e",
+          "type": "file"
+        },
+        {
+          "bytes": 2950,
+          "path": "dist/system-extensions/default-api/asset-write-port.d.ts.map",
+          "sha256": "b0d956b801b1e13c5191e43eabc814be804a4bcdf000ac06b541b0ba9c20968d",
+          "type": "file"
+        },
+        {
+          "bytes": 300,
+          "path": "dist/system-extensions/default-api/asset-write-port.js",
+          "sha256": "33c6abe8ac6edf443fb75fe60f3db946163b71e4712a9f05ec6fcabc2002bb48",
+          "type": "file"
+        },
+        {
+          "bytes": 3982,
+          "path": "dist/system-extensions/default-api/asset-write-port.js.map",
+          "sha256": "ffe7589b8c0dee65da8b72761a2086b79441d02626216a379d8da8b50a0624e0",
+          "type": "file"
+        },
+        {
+          "bytes": 6395,
+          "path": "dist/system-extensions/default-api/facades.d.ts",
+          "sha256": "bc69fe854f9736f483d3fc9471a78230dd89feb5bd196645d3c7457aec3dd7e5",
+          "type": "file"
+        },
+        {
+          "bytes": 4846,
+          "path": "dist/system-extensions/default-api/facades.d.ts.map",
+          "sha256": "c2714a7b84b1f58d7b021643caf1e79f06e568479344cdb6bf0c02a755e83e91",
+          "type": "file"
+        },
+        {
+          "bytes": 39486,
+          "path": "dist/system-extensions/default-api/facades.js",
+          "sha256": "1be30bd1e120fef85c658ca2d988838ace91fca34e026f24680d924e47b8bab6",
+          "type": "file"
+        },
+        {
+          "bytes": 77923,
+          "path": "dist/system-extensions/default-api/facades.js.map",
+          "sha256": "5d4af2871529dfe9c0ed9d3fb50c9851f4966603aa766a296d996c1340f92663",
+          "type": "file"
+        },
+        {
+          "bytes": 1045,
+          "path": "dist/system-extensions/default-api/resource-read-port.d.ts",
+          "sha256": "737ebb9b91db7be81946eaa4ba0408be3fe4d96a654824ee2437d2f6fab23d0d",
+          "type": "file"
+        },
+        {
+          "bytes": 1056,
+          "path": "dist/system-extensions/default-api/resource-read-port.d.ts.map",
+          "sha256": "aa9ad6b85ba28e268adb7bd8f0e3c101dff179b5476a05aa0004d2f77781fc44",
+          "type": "file"
+        },
+        {
+          "bytes": 338,
+          "path": "dist/system-extensions/default-api/resource-read-port.js",
+          "sha256": "4bdc4e2aaf1ededa48079107b7dba8b5378ab86b44693e14f50277ac2bef471f",
+          "type": "file"
+        },
+        {
+          "bytes": 1701,
+          "path": "dist/system-extensions/default-api/resource-read-port.js.map",
+          "sha256": "da263ef8f3f92b38a134cec6e023288c6df199c10777ae61146c9994ce21fd01",
+          "type": "file"
+        },
+        {
+          "bytes": 3187,
+          "path": "dist/system-extensions/default-api/resource-write-port.d.ts",
+          "sha256": "988ad70355d5a45bb0606f467853bf0b710610d2f906b769c96e5c8263026e13",
+          "type": "file"
+        },
+        {
+          "bytes": 2691,
+          "path": "dist/system-extensions/default-api/resource-write-port.d.ts.map",
+          "sha256": "c27756154f15b0f1c526996e961415e6dbf5a273a8437855240a6731f6b399be",
+          "type": "file"
+        },
+        {
+          "bytes": 309,
+          "path": "dist/system-extensions/default-api/resource-write-port.js",
+          "sha256": "8374df693d71d7b1463e22c9a463ac9a7dc817433a1a53aecc882fe48873c2ba",
+          "type": "file"
+        },
+        {
+          "bytes": 3900,
+          "path": "dist/system-extensions/default-api/resource-write-port.js.map",
+          "sha256": "92ad21ecb9a55a9381bfec5fa93c462c7729d4d8e414226935b2b1c3739ccd73",
+          "type": "file"
+        },
+        {
+          "bytes": 1071,
+          "path": "LICENSE",
+          "sha256": "e299261fc810865a630f72b3d5aabf5bca609b0dcc1ba1aa03f7c4feb57a0da3",
+          "type": "file"
+        },
+        {
+          "bytes": 1723,
+          "path": "package.json",
+          "sha256": "429b22aa1327cd5a0f669b6223fcfd06084807c47ed79d22ae3cbccd6040e6b4",
+          "type": "file"
+        }
+      ],
+      "entry_count": 206,
+      "filename": "sagifire-extensia-0.1.0.tgz",
+      "label": "B",
+      "npm_manifest": [
+        {
+          "bytes": 1438,
+          "mode": 420,
+          "path": "dist/composition/diagnostics.d.ts"
+        },
+        {
+          "bytes": 1003,
+          "mode": 420,
+          "path": "dist/composition/diagnostics.d.ts.map"
+        },
+        {
+          "bytes": 2500,
+          "mode": 420,
+          "path": "dist/composition/diagnostics.js"
+        },
+        {
+          "bytes": 6150,
+          "mode": 420,
+          "path": "dist/composition/diagnostics.js.map"
+        },
+        {
+          "bytes": 2516,
+          "mode": 420,
+          "path": "dist/composition/inspection.d.ts"
+        },
+        {
+          "bytes": 2281,
+          "mode": 420,
+          "path": "dist/composition/inspection.d.ts.map"
+        },
+        {
+          "bytes": 2685,
+          "mode": 420,
+          "path": "dist/composition/inspection.js"
+        },
+        {
+          "bytes": 7990,
+          "mode": 420,
+          "path": "dist/composition/inspection.js.map"
+        },
+        {
+          "bytes": 950,
+          "mode": 420,
+          "path": "dist/composition/local-sqlite-runtime.d.ts"
+        },
+        {
+          "bytes": 616,
+          "mode": 420,
+          "path": "dist/composition/local-sqlite-runtime.d.ts.map"
+        },
+        {
+          "bytes": 1098,
+          "mode": 420,
+          "path": "dist/composition/local-sqlite-runtime.js"
+        },
+        {
+          "bytes": 2436,
+          "mode": 420,
+          "path": "dist/composition/local-sqlite-runtime.js.map"
+        },
+        {
+          "bytes": 3080,
+          "mode": 420,
+          "path": "dist/composition/root.d.ts"
+        },
+        {
+          "bytes": 2870,
+          "mode": 420,
+          "path": "dist/composition/root.d.ts.map"
+        },
+        {
+          "bytes": 5164,
+          "mode": 420,
+          "path": "dist/composition/root.js"
+        },
+        {
+          "bytes": 14473,
+          "mode": 420,
+          "path": "dist/composition/root.js.map"
+        },
+        {
+          "bytes": 652,
+          "mode": 420,
+          "path": "dist/composition/tokens.d.ts"
+        },
+        {
+          "bytes": 637,
+          "mode": 420,
+          "path": "dist/composition/tokens.d.ts.map"
+        },
+        {
+          "bytes": 628,
+          "mode": 420,
+          "path": "dist/composition/tokens.js"
+        },
+        {
+          "bytes": 1694,
+          "mode": 420,
+          "path": "dist/composition/tokens.js.map"
+        },
+        {
+          "bytes": 1256,
+          "mode": 420,
+          "path": "dist/core/asset-write-runtime.d.ts"
+        },
+        {
+          "bytes": 975,
+          "mode": 420,
+          "path": "dist/core/asset-write-runtime.d.ts.map"
+        },
+        {
+          "bytes": 45012,
+          "mode": 420,
+          "path": "dist/core/asset-write-runtime.js"
+        },
+        {
+          "bytes": 87712,
+          "mode": 420,
+          "path": "dist/core/asset-write-runtime.js.map"
+        },
+        {
+          "bytes": 1587,
+          "mode": 420,
+          "path": "dist/core/deterministic-read-model-observation.d.ts"
+        },
+        {
+          "bytes": 1221,
+          "mode": 420,
+          "path": "dist/core/deterministic-read-model-observation.d.ts.map"
+        },
+        {
+          "bytes": 4942,
+          "mode": 420,
+          "path": "dist/core/deterministic-read-model-observation.js"
+        },
+        {
+          "bytes": 11156,
+          "mode": 420,
+          "path": "dist/core/deterministic-read-model-observation.js.map"
+        },
+        {
+          "bytes": 831,
+          "mode": 420,
+          "path": "dist/core/deterministic-read-model-synchronization.d.ts"
+        },
+        {
+          "bytes": 671,
+          "mode": 420,
+          "path": "dist/core/deterministic-read-model-synchronization.d.ts.map"
+        },
+        {
+          "bytes": 3221,
+          "mode": 420,
+          "path": "dist/core/deterministic-read-model-synchronization.js"
+        },
+        {
+          "bytes": 6963,
+          "mode": 420,
+          "path": "dist/core/deterministic-read-model-synchronization.js.map"
+        },
+        {
+          "bytes": 873,
+          "mode": 420,
+          "path": "dist/core/persistent-string-map.d.ts"
+        },
+        {
+          "bytes": 1187,
+          "mode": 420,
+          "path": "dist/core/persistent-string-map.d.ts.map"
+        },
+        {
+          "bytes": 4568,
+          "mode": 420,
+          "path": "dist/core/persistent-string-map.js"
+        },
+        {
+          "bytes": 11551,
+          "mode": 420,
+          "path": "dist/core/persistent-string-map.js.map"
+        },
+        {
+          "bytes": 1859,
+          "mode": 420,
+          "path": "dist/core/read-model-coordinator.d.ts"
+        },
+        {
+          "bytes": 1587,
+          "mode": 420,
+          "path": "dist/core/read-model-coordinator.d.ts.map"
+        },
+        {
+          "bytes": 7264,
+          "mode": 420,
+          "path": "dist/core/read-model-coordinator.js"
+        },
+        {
+          "bytes": 14765,
+          "mode": 420,
+          "path": "dist/core/read-model-coordinator.js.map"
+        },
+        {
+          "bytes": 4458,
+          "mode": 420,
+          "path": "dist/core/read-model-generation.d.ts"
+        },
+        {
+          "bytes": 3785,
+          "mode": 420,
+          "path": "dist/core/read-model-generation.d.ts.map"
+        },
+        {
+          "bytes": 25431,
+          "mode": 420,
+          "path": "dist/core/read-model-generation.js"
+        },
+        {
+          "bytes": 59887,
+          "mode": 420,
+          "path": "dist/core/read-model-generation.js.map"
+        },
+        {
+          "bytes": 5468,
+          "mode": 420,
+          "path": "dist/core/read-model-observation.d.ts"
+        },
+        {
+          "bytes": 4330,
+          "mode": 420,
+          "path": "dist/core/read-model-observation.d.ts.map"
+        },
+        {
+          "bytes": 7287,
+          "mode": 420,
+          "path": "dist/core/read-model-observation.js"
+        },
+        {
+          "bytes": 18351,
+          "mode": 420,
+          "path": "dist/core/read-model-observation.js.map"
+        },
+        {
+          "bytes": 799,
+          "mode": 420,
+          "path": "dist/core/read-model-polling.d.ts"
+        },
+        {
+          "bytes": 737,
+          "mode": 420,
+          "path": "dist/core/read-model-polling.d.ts.map"
+        },
+        {
+          "bytes": 2113,
+          "mode": 420,
+          "path": "dist/core/read-model-polling.js"
+        },
+        {
+          "bytes": 5238,
+          "mode": 420,
+          "path": "dist/core/read-model-polling.js.map"
+        },
+        {
+          "bytes": 1685,
+          "mode": 420,
+          "path": "dist/core/read-model-query.d.ts"
+        },
+        {
+          "bytes": 1467,
+          "mode": 420,
+          "path": "dist/core/read-model-query.d.ts.map"
+        },
+        {
+          "bytes": 5602,
+          "mode": 420,
+          "path": "dist/core/read-model-query.js"
+        },
+        {
+          "bytes": 13663,
+          "mode": 420,
+          "path": "dist/core/read-model-query.js.map"
+        },
+        {
+          "bytes": 2717,
+          "mode": 420,
+          "path": "dist/core/read-model-runtime.d.ts"
+        },
+        {
+          "bytes": 2170,
+          "mode": 420,
+          "path": "dist/core/read-model-runtime.d.ts.map"
+        },
+        {
+          "bytes": 4057,
+          "mode": 420,
+          "path": "dist/core/read-model-runtime.js"
+        },
+        {
+          "bytes": 10046,
+          "mode": 420,
+          "path": "dist/core/read-model-runtime.js.map"
+        },
+        {
+          "bytes": 985,
+          "mode": 420,
+          "path": "dist/core/read-model-storage-observation.d.ts"
+        },
+        {
+          "bytes": 681,
+          "mode": 420,
+          "path": "dist/core/read-model-storage-observation.d.ts.map"
+        },
+        {
+          "bytes": 10113,
+          "mode": 420,
+          "path": "dist/core/read-model-storage-observation.js"
+        },
+        {
+          "bytes": 19097,
+          "mode": 420,
+          "path": "dist/core/read-model-storage-observation.js.map"
+        },
+        {
+          "bytes": 4871,
+          "mode": 420,
+          "path": "dist/core/read-model-synchronization.d.ts"
+        },
+        {
+          "bytes": 3882,
+          "mode": 420,
+          "path": "dist/core/read-model-synchronization.d.ts.map"
+        },
+        {
+          "bytes": 19652,
+          "mode": 420,
+          "path": "dist/core/read-model-synchronization.js"
+        },
+        {
+          "bytes": 42561,
+          "mode": 420,
+          "path": "dist/core/read-model-synchronization.js.map"
+        },
+        {
+          "bytes": 666,
+          "mode": 420,
+          "path": "dist/core/resource-index-write-contracts.d.ts"
+        },
+        {
+          "bytes": 586,
+          "mode": 420,
+          "path": "dist/core/resource-index-write-contracts.d.ts.map"
+        },
+        {
+          "bytes": 69,
+          "mode": 420,
+          "path": "dist/core/resource-index-write-contracts.js"
+        },
+        {
+          "bytes": 812,
+          "mode": 420,
+          "path": "dist/core/resource-index-write-contracts.js.map"
+        },
+        {
+          "bytes": 2092,
+          "mode": 420,
+          "path": "dist/core/resource-index.d.ts"
+        },
+        {
+          "bytes": 1731,
+          "mode": 420,
+          "path": "dist/core/resource-index.d.ts.map"
+        },
+        {
+          "bytes": 9825,
+          "mode": 420,
+          "path": "dist/core/resource-index.js"
+        },
+        {
+          "bytes": 19488,
+          "mode": 420,
+          "path": "dist/core/resource-index.js.map"
+        },
+        {
+          "bytes": 1238,
+          "mode": 420,
+          "path": "dist/core/resource-read-runtime.d.ts"
+        },
+        {
+          "bytes": 953,
+          "mode": 420,
+          "path": "dist/core/resource-read-runtime.d.ts.map"
+        },
+        {
+          "bytes": 10899,
+          "mode": 420,
+          "path": "dist/core/resource-read-runtime.js"
+        },
+        {
+          "bytes": 19842,
+          "mode": 420,
+          "path": "dist/core/resource-read-runtime.js.map"
+        },
+        {
+          "bytes": 568,
+          "mode": 420,
+          "path": "dist/core/resource-write-runtime.d.ts"
+        },
+        {
+          "bytes": 501,
+          "mode": 420,
+          "path": "dist/core/resource-write-runtime.d.ts.map"
+        },
+        {
+          "bytes": 38620,
+          "mode": 420,
+          "path": "dist/core/resource-write-runtime.js"
+        },
+        {
+          "bytes": 70066,
+          "mode": 420,
+          "path": "dist/core/resource-write-runtime.js.map"
+        },
+        {
+          "bytes": 993,
+          "mode": 420,
+          "path": "dist/core/runtime-fault-sink.d.ts"
+        },
+        {
+          "bytes": 1028,
+          "mode": 420,
+          "path": "dist/core/runtime-fault-sink.d.ts.map"
+        },
+        {
+          "bytes": 1566,
+          "mode": 420,
+          "path": "dist/core/runtime-fault-sink.js"
+        },
+        {
+          "bytes": 3851,
+          "mode": 420,
+          "path": "dist/core/runtime-fault-sink.js.map"
+        },
+        {
+          "bytes": 1649,
+          "mode": 420,
+          "path": "dist/domain/asset-metadata.d.ts"
+        },
+        {
+          "bytes": 1485,
+          "mode": 420,
+          "path": "dist/domain/asset-metadata.d.ts.map"
+        },
+        {
+          "bytes": 11393,
+          "mode": 420,
+          "path": "dist/domain/asset-metadata.js"
+        },
+        {
+          "bytes": 23112,
+          "mode": 420,
+          "path": "dist/domain/asset-metadata.js.map"
+        },
+        {
+          "bytes": 806,
+          "mode": 420,
+          "path": "dist/domain/json.d.ts"
+        },
+        {
+          "bytes": 796,
+          "mode": 420,
+          "path": "dist/domain/json.d.ts.map"
+        },
+        {
+          "bytes": 4049,
+          "mode": 420,
+          "path": "dist/domain/json.js"
+        },
+        {
+          "bytes": 8833,
+          "mode": 420,
+          "path": "dist/domain/json.js.map"
+        },
+        {
+          "bytes": 769,
+          "mode": 420,
+          "path": "dist/domain/resource-aggregates.d.ts"
+        },
+        {
+          "bytes": 862,
+          "mode": 420,
+          "path": "dist/domain/resource-aggregates.d.ts.map"
+        },
+        {
+          "bytes": 5473,
+          "mode": 420,
+          "path": "dist/domain/resource-aggregates.js"
+        },
+        {
+          "bytes": 12256,
+          "mode": 420,
+          "path": "dist/domain/resource-aggregates.js.map"
+        },
+        {
+          "bytes": 1061,
+          "mode": 420,
+          "path": "dist/domain/resource-hierarchy.d.ts"
+        },
+        {
+          "bytes": 1022,
+          "mode": 420,
+          "path": "dist/domain/resource-hierarchy.d.ts.map"
+        },
+        {
+          "bytes": 5729,
+          "mode": 420,
+          "path": "dist/domain/resource-hierarchy.js"
+        },
+        {
+          "bytes": 13285,
+          "mode": 420,
+          "path": "dist/domain/resource-hierarchy.js.map"
+        },
+        {
+          "bytes": 848,
+          "mode": 420,
+          "path": "dist/domain/scalars.d.ts"
+        },
+        {
+          "bytes": 840,
+          "mode": 420,
+          "path": "dist/domain/scalars.d.ts.map"
+        },
+        {
+          "bytes": 1485,
+          "mode": 420,
+          "path": "dist/domain/scalars.js"
+        },
+        {
+          "bytes": 3287,
+          "mode": 420,
+          "path": "dist/domain/scalars.js.map"
+        },
+        {
+          "bytes": 3001,
+          "mode": 420,
+          "path": "dist/domain/snapshots.d.ts"
+        },
+        {
+          "bytes": 2740,
+          "mode": 420,
+          "path": "dist/domain/snapshots.d.ts.map"
+        },
+        {
+          "bytes": 8686,
+          "mode": 420,
+          "path": "dist/domain/snapshots.js"
+        },
+        {
+          "bytes": 20436,
+          "mode": 420,
+          "path": "dist/domain/snapshots.js.map"
+        },
+        {
+          "bytes": 1631,
+          "mode": 420,
+          "path": "dist/index.d.ts"
+        },
+        {
+          "bytes": 1089,
+          "mode": 420,
+          "path": "dist/index.d.ts.map"
+        },
+        {
+          "bytes": 165,
+          "mode": 420,
+          "path": "dist/index.js"
+        },
+        {
+          "bytes": 2024,
+          "mode": 420,
+          "path": "dist/index.js.map"
+        },
+        {
+          "bytes": 363,
+          "mode": 420,
+          "path": "dist/operations/async-lock-queue.d.ts"
+        },
+        {
+          "bytes": 389,
+          "mode": 420,
+          "path": "dist/operations/async-lock-queue.d.ts.map"
+        },
+        {
+          "bytes": 2754,
+          "mode": 420,
+          "path": "dist/operations/async-lock-queue.js"
+        },
+        {
+          "bytes": 5956,
+          "mode": 420,
+          "path": "dist/operations/async-lock-queue.js.map"
+        },
+        {
+          "bytes": 2963,
+          "mode": 420,
+          "path": "dist/operations/operation-engine.d.ts"
+        },
+        {
+          "bytes": 2658,
+          "mode": 420,
+          "path": "dist/operations/operation-engine.d.ts.map"
+        },
+        {
+          "bytes": 9905,
+          "mode": 420,
+          "path": "dist/operations/operation-engine.js"
+        },
+        {
+          "bytes": 19384,
+          "mode": 420,
+          "path": "dist/operations/operation-engine.js.map"
+        },
+        {
+          "bytes": 594,
+          "mode": 420,
+          "path": "dist/operations/resource-operation-contracts.d.ts"
+        },
+        {
+          "bytes": 580,
+          "mode": 420,
+          "path": "dist/operations/resource-operation-contracts.d.ts.map"
+        },
+        {
+          "bytes": 373,
+          "mode": 420,
+          "path": "dist/operations/resource-operation-contracts.js"
+        },
+        {
+          "bytes": 1270,
+          "mode": 420,
+          "path": "dist/operations/resource-operation-contracts.js.map"
+        },
+        {
+          "bytes": 13619,
+          "mode": 420,
+          "path": "dist/public/contracts.d.ts"
+        },
+        {
+          "bytes": 11055,
+          "mode": 420,
+          "path": "dist/public/contracts.d.ts.map"
+        },
+        {
+          "bytes": 48,
+          "mode": 420,
+          "path": "dist/public/contracts.js"
+        },
+        {
+          "bytes": 15223,
+          "mode": 420,
+          "path": "dist/public/contracts.js.map"
+        },
+        {
+          "bytes": 394,
+          "mode": 420,
+          "path": "dist/public/extensia.d.ts"
+        },
+        {
+          "bytes": 354,
+          "mode": 420,
+          "path": "dist/public/extensia.d.ts.map"
+        },
+        {
+          "bytes": 22807,
+          "mode": 420,
+          "path": "dist/public/extensia.js"
+        },
+        {
+          "bytes": 43613,
+          "mode": 420,
+          "path": "dist/public/extensia.js.map"
+        },
+        {
+          "bytes": 780,
+          "mode": 420,
+          "path": "dist/public/full-resource-driver.d.ts"
+        },
+        {
+          "bytes": 689,
+          "mode": 420,
+          "path": "dist/public/full-resource-driver.d.ts.map"
+        },
+        {
+          "bytes": 15240,
+          "mode": 420,
+          "path": "dist/public/full-resource-driver.js"
+        },
+        {
+          "bytes": 29931,
+          "mode": 420,
+          "path": "dist/public/full-resource-driver.js.map"
+        },
+        {
+          "bytes": 3552,
+          "mode": 420,
+          "path": "dist/runtime/facades.d.ts"
+        },
+        {
+          "bytes": 3001,
+          "mode": 420,
+          "path": "dist/runtime/facades.d.ts.map"
+        },
+        {
+          "bytes": 13064,
+          "mode": 420,
+          "path": "dist/runtime/facades.js"
+        },
+        {
+          "bytes": 28594,
+          "mode": 420,
+          "path": "dist/runtime/facades.js.map"
+        },
+        {
+          "bytes": 2577,
+          "mode": 420,
+          "path": "dist/runtime/lifecycle.d.ts"
+        },
+        {
+          "bytes": 2236,
+          "mode": 420,
+          "path": "dist/runtime/lifecycle.d.ts.map"
+        },
+        {
+          "bytes": 8765,
+          "mode": 420,
+          "path": "dist/runtime/lifecycle.js"
+        },
+        {
+          "bytes": 20154,
+          "mode": 420,
+          "path": "dist/runtime/lifecycle.js.map"
+        },
+        {
+          "bytes": 2064,
+          "mode": 420,
+          "path": "dist/storage/asset-upload-capability.d.ts"
+        },
+        {
+          "bytes": 1777,
+          "mode": 420,
+          "path": "dist/storage/asset-upload-capability.d.ts.map"
+        },
+        {
+          "bytes": 2198,
+          "mode": 420,
+          "path": "dist/storage/asset-upload-capability.js"
+        },
+        {
+          "bytes": 5863,
+          "mode": 420,
+          "path": "dist/storage/asset-upload-capability.js.map"
+        },
+        {
+          "bytes": 2624,
+          "mode": 420,
+          "path": "dist/storage/deterministic-full-resource-driver.d.ts"
+        },
+        {
+          "bytes": 1996,
+          "mode": 420,
+          "path": "dist/storage/deterministic-full-resource-driver.d.ts.map"
+        },
+        {
+          "bytes": 27601,
+          "mode": 420,
+          "path": "dist/storage/deterministic-full-resource-driver.js"
+        },
+        {
+          "bytes": 53017,
+          "mode": 420,
+          "path": "dist/storage/deterministic-full-resource-driver.js.map"
+        },
+        {
+          "bytes": 640,
+          "mode": 420,
+          "path": "dist/storage/full-resource-driver-adapter.d.ts"
+        },
+        {
+          "bytes": 581,
+          "mode": 420,
+          "path": "dist/storage/full-resource-driver-adapter.d.ts.map"
+        },
+        {
+          "bytes": 336,
+          "mode": 420,
+          "path": "dist/storage/full-resource-driver-adapter.js"
+        },
+        {
+          "bytes": 1129,
+          "mode": 420,
+          "path": "dist/storage/full-resource-driver-adapter.js.map"
+        },
+        {
+          "bytes": 2415,
+          "mode": 420,
+          "path": "dist/storage/local-sqlite-resource-driver.d.ts"
+        },
+        {
+          "bytes": 1877,
+          "mode": 420,
+          "path": "dist/storage/local-sqlite-resource-driver.d.ts.map"
+        },
+        {
+          "bytes": 74442,
+          "mode": 420,
+          "path": "dist/storage/local-sqlite-resource-driver.js"
+        },
+        {
+          "bytes": 140488,
+          "mode": 420,
+          "path": "dist/storage/local-sqlite-resource-driver.js.map"
+        },
+        {
+          "bytes": 1688,
+          "mode": 420,
+          "path": "dist/storage/resource-journal-integrity.d.ts"
+        },
+        {
+          "bytes": 1199,
+          "mode": 420,
+          "path": "dist/storage/resource-journal-integrity.d.ts.map"
+        },
+        {
+          "bytes": 6465,
+          "mode": 420,
+          "path": "dist/storage/resource-journal-integrity.js"
+        },
+        {
+          "bytes": 13676,
+          "mode": 420,
+          "path": "dist/storage/resource-journal-integrity.js.map"
+        },
+        {
+          "bytes": 867,
+          "mode": 420,
+          "path": "dist/storage/resource-recovery-coordinator.d.ts"
+        },
+        {
+          "bytes": 749,
+          "mode": 420,
+          "path": "dist/storage/resource-recovery-coordinator.d.ts.map"
+        },
+        {
+          "bytes": 1985,
+          "mode": 420,
+          "path": "dist/storage/resource-recovery-coordinator.js"
+        },
+        {
+          "bytes": 4422,
+          "mode": 420,
+          "path": "dist/storage/resource-recovery-coordinator.js.map"
+        },
+        {
+          "bytes": 658,
+          "mode": 420,
+          "path": "dist/storage/resource-runtime-integrity.d.ts"
+        },
+        {
+          "bytes": 480,
+          "mode": 420,
+          "path": "dist/storage/resource-runtime-integrity.d.ts.map"
+        },
+        {
+          "bytes": 734,
+          "mode": 420,
+          "path": "dist/storage/resource-runtime-integrity.js"
+        },
+        {
+          "bytes": 1619,
+          "mode": 420,
+          "path": "dist/storage/resource-runtime-integrity.js.map"
+        },
+        {
+          "bytes": 3826,
+          "mode": 420,
+          "path": "dist/storage/resource-write-protocol.d.ts"
+        },
+        {
+          "bytes": 3309,
+          "mode": 420,
+          "path": "dist/storage/resource-write-protocol.d.ts.map"
+        },
+        {
+          "bytes": 62,
+          "mode": 420,
+          "path": "dist/storage/resource-write-protocol.js"
+        },
+        {
+          "bytes": 4111,
+          "mode": 420,
+          "path": "dist/storage/resource-write-protocol.js.map"
+        },
+        {
+          "bytes": 647,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/asset-input.d.ts"
+        },
+        {
+          "bytes": 650,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/asset-input.d.ts.map"
+        },
+        {
+          "bytes": 5949,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/asset-input.js"
+        },
+        {
+          "bytes": 12330,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/asset-input.js.map"
+        },
+        {
+          "bytes": 2292,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/asset-upload-port.d.ts"
+        },
+        {
+          "bytes": 1972,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/asset-upload-port.d.ts.map"
+        },
+        {
+          "bytes": 278,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/asset-upload-port.js"
+        },
+        {
+          "bytes": 3017,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/asset-upload-port.js.map"
+        },
+        {
+          "bytes": 3176,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/asset-write-port.d.ts"
+        },
+        {
+          "bytes": 2950,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/asset-write-port.d.ts.map"
+        },
+        {
+          "bytes": 300,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/asset-write-port.js"
+        },
+        {
+          "bytes": 3982,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/asset-write-port.js.map"
+        },
+        {
+          "bytes": 6395,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/facades.d.ts"
+        },
+        {
+          "bytes": 4846,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/facades.d.ts.map"
+        },
+        {
+          "bytes": 39486,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/facades.js"
+        },
+        {
+          "bytes": 77923,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/facades.js.map"
+        },
+        {
+          "bytes": 1045,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/resource-read-port.d.ts"
+        },
+        {
+          "bytes": 1056,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/resource-read-port.d.ts.map"
+        },
+        {
+          "bytes": 338,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/resource-read-port.js"
+        },
+        {
+          "bytes": 1701,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/resource-read-port.js.map"
+        },
+        {
+          "bytes": 3187,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/resource-write-port.d.ts"
+        },
+        {
+          "bytes": 2691,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/resource-write-port.d.ts.map"
+        },
+        {
+          "bytes": 309,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/resource-write-port.js"
+        },
+        {
+          "bytes": 3900,
+          "mode": 420,
+          "path": "dist/system-extensions/default-api/resource-write-port.js.map"
+        },
+        {
+          "bytes": 1071,
+          "mode": 420,
+          "path": "LICENSE"
+        },
+        {
+          "bytes": 1723,
+          "mode": 420,
+          "path": "package.json"
+        }
+      ]
+    }
+  ],
+  "comparison": {
+    "archive_byte_equal": true,
+    "archive_sha256_equal": true,
+    "content_equal": true,
+    "npm_manifest_equal": true
+  },
+  "consumer_install": {
+    "ignore_scripts": true,
+    "status": "PASS"
+  },
+  "packed_process_matrix": {
+    "evidence_file": "packed-process-evidence.json",
+    "evidence_sha256": "9907e307cedc0d9b1e643be30a02c32395f03e8900329f18417c62e7cf0b3d01",
+    "repetitions": 1,
+    "source": "installed-tarball",
+    "status": "PASS"
+  },
+  "public_root_probe": {
+    "environment_unchanged": true,
+    "exports": [
+      "createExtensia",
+      "defineFullResourceDriver"
+    ],
+    "globals_unchanged": true,
+    "internal_subpath": "rejected",
+    "listeners_unchanged": true,
+    "status": "PASS"
+  },
+  "status": "PASS"
+}
