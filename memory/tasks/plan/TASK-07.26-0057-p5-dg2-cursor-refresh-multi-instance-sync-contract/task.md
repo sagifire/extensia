@@ -1,6 +1,6 @@
 # P5-DG2 / TASK-07.26-0057: Дослідити й спроєктувати multi-instance synchronization
 
-Task Status: backlog
+Task Status: done
 Type: research/design
 Created: 2026-07-17
 Owner Role: System Architect Hat / Concurrency Engineer Hat / Storage Engineer Hat
@@ -8,13 +8,13 @@ Current Run: RUN-001
 
 ## Поточний стан
 
-Run Status: prepared
-Progress: Contract refined після accepted P5-RS1: process sync, refresh, cursor, retry/backoff, lock contention/fairness і downstream decomposition включені; RUN-001 не активований.
-Acceptance: 0/11
-Blockers: accepted/applied P5-DG1 contract; P5-RS1 accepted.
-Blocked Phase: activation gate
-Pending Decisions: accepted/applied P5-DG1, потім explicit activation RUN-001.
-Next Action: Не активувати до accepted/applied P5-DG1; після gate окремо активувати research/design run.
+Run Status: completed
+Progress: Whole-task approved; FIX-001 applied exactly; independent post-application audit `PASS` with P0/P1/P2/P3 = 0/0/0/0. Downstream plan accepted without package creation/activation.
+Acceptance: 11/11; `REVIEW_READY`.
+Blockers: none; prerequisites satisfied.
+Blocked Phase: n/a
+Pending Decisions: none for this task; downstream package preparation/activation remains separately gated.
+Next Action: none; a separate explicit owner command is required to prepare or activate any accepted downstream package.
 
 ## Мета
 
@@ -88,39 +88,40 @@ Next Action: Не активувати до accepted/applied P5-DG1; після 
 
 ## Прогони
 
-- [RUN-001](RUN-001/index.md) - prepared/refined після accepted P5-RS1; P5-DG1 dependency unresolved, activation не надана.
+- [RUN-001](RUN-001/index.md) - completed research/design run; FIX-001 applied and post-application audit `PASS`.
 
 ## Дослідження
 
-Немає; створюються після dependency gate й activation.
+- [RSCH-001](RSCH-001.md) - completed / `final-result`; exact synchronization design і downstream task map підготовлені.
 
 ## Фіксації
 
-Немає; exact proposals готуються в active run і не застосовуються без approval.
+- [FIX-001](FIX-001.md) - required / proposed / not applied; exact canonical contract, ADR і consistency updates потребують окремого approval.
 
 ## Запити на рішення
 
-- Поточне: дочекатися dependency gate; потім окрема explicit activation.
+- Поточне: RUN-001 `REVIEW_READY` 2026-07-18; whole-task, required FIX-001 і downstream proposal decisions requested.
 - Після review-ready: `approve | request changes | cancel` і окремі рішення для `FIX-*`/follow-ups.
 
 ## Запропоновані follow-up задачі
 
-- RUN-001 має запропонувати exact похідний task set. Preliminary boundaries: shared read-model/observation foundation, explicit refresh/query integration, multi-instance synchronization, retry/contention hardening, stabilization і independent Phase 5 audit. Exact IDs/packages створюються або активуються тільки за explicit owner decisions після review.
+- Exact proposed chain: `P5-WP1` generation/coordinator/seams -> `P5-HARD1` internal retry/single-flight/lifecycle -> `P5-VS1` lazy + public explicit refresh/config -> `P5-VS2` concrete multi-instance sync/polling/contention -> `P5-STAB` -> `P5-AUD1` -> human Phase 5 gate.
+- Packages не створені й не активовані; кожна preparation/activation потребує окремого explicit owner decision після accepted/applied P5-DG2.
 
 ## Human Review
 
-Status: not-ready
-Requested: n/a
-Reviewed: pending
-Approval Source: n/a
-Approved Fixations: none
+Status: approved
+Requested: 2026-07-18
+Reviewed: 2026-07-18
+Approval Source: user message `task: approve; FIX-001: approve; accept plan`
+Approved Fixations: FIX-001
 Rejected Fixations: none
-Follow-up Decisions: pending
-Decision Notes: 2026-07-17 contract refined за explicit user request після accepted P5-RS1. Refinement не є activation, design choice, support claim або downstream task creation.
+Follow-up Decisions: exact downstream plan accepted; packages remain absent and require separate explicit preparation/activation decisions.
+Decision Notes: Whole-task result and required FIX-001 explicitly approved 2026-07-18. Plan acceptance does not create or activate `P5-WP1/P5-HARD1/P5-VS1/P5-VS2/P5-STAB/P5-AUD1`.
 
 ## Фінальний результат
 
-Completed: pending
-Final Run: pending
-Summary: pending
-Residual Risks: pending
+Completed: 2026-07-18
+Final Run: RUN-001
+Summary: Exact multi-instance synchronization/cursor/refresh contract accepted; required FIX-001 applied exactly; final independent post-application audit `PASS`; downstream plan accepted without package creation/activation.
+Residual Risks: Same-host `full/full`/`full/readonly` support remains gated by implementation, P5-STAB/P5-AUD1 and human gate; synchronous SQLite contention/fairness, O(distance+storage) rebuild, ambiguous COMMIT drain, experimental public names and broader topology remain explicit future owners.

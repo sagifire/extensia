@@ -17,8 +17,6 @@ Updated: 2026-07-17
 ## Runtime і storage
 
 - Які додаткові Node.js minor, Windows/NTFS device/cache, Linux ext4/XFS, payload-volume/latency та destructive power-loss profiles треба сертифікувати понад bounded P4-WP1 Windows local NTFS process-crash evidence?
-- Який trigger для External Change Sync: polling, driver notification або explicit refresh; яка cursor persistence policy?
-- Яка correctness/completeness semantics глобальних queries у `lazy` mode?
 
 ## API та extensions
 
@@ -76,3 +74,22 @@ Updated: 2026-07-17
 - Один semantic family contract і separate PostgreSQL/MySQL physical profiles; runtime-lifetime full/readonly/migrator advisory gate + transactional control-row lock, one metadata/payload/journal transaction.
 - Ambiguous commit має durable operation-ID + lineage reconciliation; changed-lineage absence, unavailable/unknown primary лишають settlement suspended без exact history-preservation certificate; blind retry і false reject заборонені.
 - PostgreSQL 16–18 і MySQL 8.4 LTS є uncertified candidates; залишаються відкритими shared conformance foundation, vendor dependency/implementation/certificates, performance limits і optional HA topology certificates.
+
+## Закритий P5-DG1 baseline
+
+- `greedy` ready = complete coherent generation; `lazy` = selective internal coverage з complete-only query success.
+- Existing Resource point/direct-tree surface збережений; cache miss без proof є unknown, global query без exhaustive selector unavailable.
+- Optional public config path `readModel.loading`, default `greedy`; additions experimental до P7.
+- Resource/children, Asset owner, primary, same-Resource lineage reverse і exact Mark lookup належать одній atomic generation.
+- Consumer-owned full/readonly observation port не відкриває raw session/transaction/cursor; local delta publication не робить required O(N) rebuild.
+- P5-DG2 accepted target owns supported volatile cursor, legacy `static-unsupported` branch, admission-epoch explicit refresh + opt-in polling, bounded startup/refresh retry, topology gate і one local/external coordinator; implementation/support evidence remains pending.
+
+## Закритий P5-DG2 baseline
+
+- Supported branch volatile process-local cursor + atomic generation publication accepted; legacy manual `static-unsupported` has no cursor/head/sync actor; restart rebuild/head capture, durable cursor/checkpoint deferred.
+- Exact sequence traversal owns own/external/gap/duplicate/regression/ahead behavior; actor/timestamp diagnostic-only.
+- Explicit `query.refresh()` accepted as correctness primitive, default manual; opt-in polling is bounded admission-epoch/coalesced trigger with serialized trailing epoch, notification implementation deferred.
+- One full/readonly committed-change observation seam and one publication coordinator own local/external/lazy ordering; readonly zero-write, raw session/cursor public leakage forbidden.
+- Supported startup observation and refresh retry bounded; write lock failure caller-managed; SQLite fairness/SLA not claimed.
+- Initial two-process `full/full`/`full/readonly` candidates remain unsupported until P5 implementation, stabilization, audit and human gate; designated writer recommended.
+- Still open: executable support verdict/budgets, arbitrary instance count, retention/compaction, durable checkpoint, notification implementation, multi-host/HA і broader profiles.

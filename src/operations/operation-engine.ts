@@ -98,6 +98,7 @@ export interface OperationEngine {
       plan: ResourceOperationPlan,
     ) => Promise<TValue>,
   ): Promise<OperationEngineResult<TValue>>;
+  failClose(): void;
   closeAndDrain(): Promise<void>;
 }
 
@@ -355,6 +356,9 @@ export function createOperationEngine(
         warnings: Object.freeze([]),
         fail_closed: false,
       });
+    },
+    failClose(): void {
+      closeIntake();
     },
     closeAndDrain(): Promise<void> {
       closeIntake();

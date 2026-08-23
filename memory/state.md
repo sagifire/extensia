@@ -1,6 +1,6 @@
 # Стан проекту
 
-Updated: 2026-07-17
+Updated: 2026-08-23
 Starter Kit Version: 5.0
 PDADM MVP Version: 0.5
 Target Release: `0.1.0`
@@ -8,7 +8,7 @@ Internal Stage: `v2`
 
 ## Поточний фокус
 
-Phase 1, Phase 2, Phase 3 і Phase 4 завершені. `P5-RS1 / TASK-0055` accepted/completed: current `local-sqlite-v1` storage primitives conditionally feasible, current live coherent topologies infeasible без Phase 5 sync contract. `P5-DG1 / TASK-0056` backlog/prepared; `P5-DG2 / TASK-0057` refined як окремий sync/refresh/cursor/retry/lock research/design owner і лишається P5-DG1-gated, жодна downstream task не активована.
+Phase 1, Phase 2, Phase 3 і Phase 4 завершені. `P5-RS1 / TASK-0055`, `P5-DG1 / TASK-0056`, `P5-DG2 / TASK-0057` і `P5-WP1 / TASK-0058` accepted/completed. P5-DG2 FIX-001 applied; `P5-HARD1/P5-VS1/P5-VS2/P5-STAB/P5-AUD1` лишаються backlog/prepared.
 
 ## Поточний стан продукту
 
@@ -29,7 +29,15 @@ Phase 1, Phase 2, Phase 3 і Phase 4 завершені. `P5-RS1 / TASK-0055` ac
 ## Активні задачі
 
 - `TASK-07.26-0054 / RUN-001` done/completed: canonical-now split `P5-RS1` + `P5-DG1` + dependent `P5-DG2`, packages, AGENTS sync і repeated independent audit accepted whole-task review.
-- `P5-RS1 / TASK-0055 / RUN-001` done/completed: three-run SQLite evidence і conditional/infeasible verdict accepted whole-task review; support claim відсутній. `P5-DG1 / TASK-0056` лишається backlog/prepared. `P5-DG2 / TASK-0057` refined для architecture options, cursor/refresh, retry/backoff, lock fairness/starvation і exact downstream task map; P5-RS1 gate виконаний, P5-DG1 gate та activation pending.
+- `P5-RS1 / TASK-0055 / RUN-001` done/completed: three-run SQLite evidence і conditional/infeasible verdict accepted whole-task review; support claim відсутній.
+- `P5-DG1 / TASK-0056 / RUN-003` done/completed: exact read-model contract accepted/applied through FIX-002, prospective roadmap correction through FIX-003, final repeated audit `PASS`; на момент завершення цієї run P5-DG2 була окремою active design gate, а downstream packages ще були відсутні. Подальший стан зафіксовано нижче.
+- `P5-DG2 / TASK-0057 / RUN-001` done/completed: whole-task approved, FIX-001 applied exactly, post-application audit `PASS`; на момент закриття P5-DG2 accepted downstream plan сам по собі не створив і не активував implementation tasks. Пізніша explicit команда власника створила packages, перелічені нижче, без їх activation.
+- `P5-WP1 / TASK-0058 / RUN-001` done/completed: foundation реалізована, final 317-test gate і independent `PASS` зелені, whole-task result approved; downstream не активовано.
+- `P5-HARD1 / TASK-0059 / RUN-001` backlog/prepared: internal sync actor/retry/lifecycle hardening; waits for accepted P5-WP1.
+- `P5-VS1 / TASK-0060 / RUN-001` backlog/prepared: lazy completeness and experimental public refresh/config/inspection; waits for accepted P5-HARD1.
+- `P5-VS2 / TASK-0061 / RUN-001` backlog/prepared: concrete local SQLite multi-instance sync/polling/contention; waits for accepted P5-VS1.
+- `P5-STAB / TASK-0062 / RUN-001` backlog/prepared: Phase 5 stabilization and topology verdict; waits for accepted implementation waves.
+- `P5-AUD1 / TASK-0063 / RUN-001` backlog/prepared: independent Phase 5 audit/human-gate recommendation; waits for accepted P5-STAB.
 - `TASK-07.26-0038` done: Phase 4 planning і canonical preparation двох owner gates прийняті whole-task human review; repeated independent audit без open P0-P3.
 - `P4-DG1 / TASK-07.26-0039` done: FIX-001/FIX-002 applied, final post-application audit `PASS`, `APP-07.26-0039-001` published; downstream не активовано.
 - `P4-DG2 / TASK-07.26-0040` done: FIX-001/FIX-002/FIX-003 approved and applied; final repeated post-application audit `PASS`, downstream не активовано.
@@ -71,6 +79,15 @@ Phase 1, Phase 2, Phase 3 і Phase 4 завершені. `P5-RS1 / TASK-0055` ac
 
 ## Останні рішення
 
+- Користувач 2026-08-23 явно схвалив whole-task result `P5-WP1 / TASK-0058`; task/run закриті як done/completed, canonical fixation не потрібна, downstream activation не надана.
+- Користувач 2026-08-22 явно активував `P5-WP1 / TASK-0058 / RUN-001` і дозволив субагентів; це не активує downstream Phase 5 tasks.
+- Користувач 2026-07-18 прямо доручив створити всі remaining Phase 5 downstream tasks. Packages TASK-0058…0063 створені backlog/prepared за accepted P5-DG2 chain; жодна task не активована.
+- P5-DG2 FIX-001 applied exactly 2026-07-18; independent post-application audit returned `PASS` with P0/P1/P2/P3 = 0/0/0/0. TASK-0057 closed while downstream packages were absent; later explicit creation is recorded above and did not activate them.
+- Користувач 2026-07-18 explicitly approved P5-DG2 whole-task result і required FIX-001 та accepted downstream plan; plan acceptance не створює/активує packages.
+- P5-DG2 pre-application independent audit 2026-07-18 on frozen report `ee899105...` returned `REVIEW_READY` with P0/P1/P2/P3 = 0/0/0 and became the evidence basis for subsequent human approval; downstream packages remained absent/not activated.
+- Користувач 2026-07-18 явно активував `P5-DG2 / TASK-0057 / RUN-001` і дозволив субагентів; це не активує downstream Phase 5 implementation/stabilization/audit tasks.
+- Користувач 2026-07-17 явно активував `P5-DG1 / TASK-0056 / RUN-001` і дозволив субагентів; це не активує P5-DG2 або downstream Phase 5 implementation.
+- Користувач 2026-07-17 approved whole-task P5-DG1 і FIX-002; 2026-07-18 approved corrective RUN-003 і FIX-003. Обидві fixations applied exactly, final repeated audit `PASS`, TASK-0056 closed; P5-DG2/downstream не активовані.
 - Користувач 2026-07-17 approved whole-task result `P5-RS1 / TASK-0055` і доручив запланувати окреме research для process synchronization, refresh, cursor, retry та lock contention. Existing P5-DG2 визначено правильним Phase 5 owner і refined без activation; дублюючу task не створено.
 - Користувач 2026-07-17 явно активував `P5-RS1 / TASK-0055 / RUN-001`; це не активує P5-DG1, P5-DG2 або downstream Phase 5 implementation.
 - Користувач 2026-07-17 explicitly approved whole-task result `TASK-0054`; task/run finalized `done/completed`. Approval не активує TASK-0055…0057.
@@ -153,9 +170,8 @@ Phase 1, Phase 2, Phase 3 і Phase 4 завершені. `P5-RS1 / TASK-0055` ac
 
 ## Наступні кроки
 
-1. За окремим owner рішенням активувати `P5-DG1 / TASK-0056` і прийняти/apply-нути її read-model contract.
-2. Після цього окремо активувати refined `P5-DG2 / TASK-0057`; її result має запропонувати exact downstream implementation/stabilization/audit task set без automatic activation.
-3. За окремим owner рішенням можна активувати TASK-0044 або TASK-0048; client-server vendor tasks потребують окремого створення/activation.
+1. За окремою explicit командою власника можна активувати `P5-HARD1 / TASK-0059`; TASK-0060…0063 лишаються gated своїми predecessors.
+2. За окремим owner рішенням можна активувати TASK-0044 або TASK-0048; client-server vendor tasks потребують окремого створення/activation.
 
 ## Відкриті питання
 

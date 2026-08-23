@@ -21,7 +21,7 @@ async function startedFixture() {
 }
 
 describe("public Resource update slice", () => {
-  it("publishes the coherent full state while updating after external commits", async () => {
+  it("publishes the local update without hidden manual-mode catch-up", async () => {
     const backing = createDeterministicFullDriverBacking();
     const firstFixture = createDeterministicFullResourceDriver(backing);
     const secondFixture = createDeterministicFullResourceDriver(backing);
@@ -42,8 +42,17 @@ describe("public Resource update slice", () => {
         .updateResource(externalA.value.resource.data.id, { title: "updated" }),
     ).resolves.toMatchObject({ ok: true });
     await expect(
+      second.query()!.getResource(externalA.value.resource.data.id),
+    ).resolves.toMatchObject({
+      ok: true,
+      value: { data: { title: "updated" } },
+    });
+    await expect(
       second.query()!.getResource(externalB.value.resource.data.id),
-    ).resolves.toMatchObject({ ok: true, value: { data: { title: "b" } } });
+    ).resolves.toMatchObject({
+      ok: false,
+      error: { code: "RESOURCE_NOT_FOUND" },
+    });
     await first.stop();
     await second.stop();
   });

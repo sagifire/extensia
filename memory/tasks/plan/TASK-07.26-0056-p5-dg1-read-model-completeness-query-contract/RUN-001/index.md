@@ -2,7 +2,7 @@
 
 ## Призначення
 
-Prepared owner design run для read-model completeness, query та coherent index contracts.
+Failed owner design run: reviewed design body preserved, exact FIX-001 manifest failed post-freeze validation.
 
 ## Папки
 
@@ -10,4 +10,5 @@ Prepared owner design run для read-model completeness, query та coherent in
 
 ## Файли
 
-- [Context](context.md) - frozen-ready requirements, evidence, acceptance, risks і stop conditions.
+- [Context](context.md) - frozen requirements, evidence, acceptance, risks і stop conditions.
+- [Result](result.md) - frozen design/audit record і append-only post-freeze failure handoff to RUN-002.

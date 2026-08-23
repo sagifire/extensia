@@ -13,7 +13,7 @@ Previous Run: none
 
 ## Ефективні вимоги
 
-1. P5-RS1 accepted; run не активується до accepted/applied P5-DG1 і окремого user decision.
+1. P5-RS1 і P5-DG1 accepted/applied; run лишається prepared до окремого user activation decision.
 2. Committed journal sequence є order authority; Index derived/process-local і не стає durable truth.
 3. Cursor не може випередити повністю applied coherent generation; no-skip після restart є обов’язковим.
 4. Explicit refresh є candidate correctness primitive; polling, driver notification, hybrid triggers і topology variants мають бути порівняні з exact owner disposition, а не вирішені наперед.
@@ -92,7 +92,7 @@ Previous Run: none
 
 ## Умови зупинки
 
-- P5-DG1 dependency is not accepted/applied or conflicts materially with accepted P5-RS1 evidence.
+- Accepted P5-DG1 contract changes or conflicts materially with accepted P5-RS1 evidence before activation.
 - Required topology needs storage protocol change or support claim outside Phase 5.
 - Exact semantics вимагають реалізації notification, retention або durable checkpoint до owner disposition, якої design scope не може безпечно надати.
 - Independent audit unavailable; do not substitute same-agent review.

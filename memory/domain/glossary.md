@@ -22,7 +22,7 @@ Updated: 2026-07-09
 | Operation Scope | Explicit lifetime для operation-local ID, actor, trace, warnings, cancellation та інших scoped values. |
 | Operation Journal | Append-only журнал; committed entry є publication boundary і джерелом ordering для recovery/sync. |
 | Hot Metadata Index | Process-local read model для metadata; не є durable source of truth. |
-| External Change Sync | Підсистема, що читає committed journal entries інших actors і оновлює process-local index. |
+| External Change Sync | Підсистема, що traversal-ить committed own/external journal entries у total sequence order і атомарно оновлює process-local read-model generation та volatile cursor. |
 | Facade | Public object, який групує application-facing commands, queries або custom scenarios без розкриття Core. |
 | Facade Registry | Registry public facades, який збирається під час startup, перевіряє names і заморожується до ready state. |
 | Facade Provider | Declarative contribution, що створює facade після validation dependencies і в дозволеній lifecycle phase. |

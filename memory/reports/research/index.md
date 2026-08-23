@@ -12,6 +12,7 @@ Detailed reports для formal research, planning і design усередині t
 
 ## Файли
 
+- [Exact multi-instance synchronization, cursor і refresh contract](2026-07-18-extensia-multi-instance-synchronization-contract.md) - P5-DG2 architecture options, volatile cursor, explicit refresh/polling, retry/contention, topology і downstream task map.
 - [План реалізації Extensia 0.1.0](2026-07-09-extensia-v0-1-0-delivery-plan.md) - Деталізований rolling-wave planning report для TASK-07.26-0003.
 - [Незалежний audit Phase 1](2026-07-10-extensia-phase-1-independent-audit.md) - Canonical detailed report BP1-06 проти accepted stabilization evidence `R1`.
 - [Незалежний audit Phase 2](2026-07-10-extensia-phase-2-independent-audit.md) - Canonical detailed report BP2-06 проти accepted Phase 2 stabilization evidence `R1`.
@@ -26,3 +27,4 @@ Detailed reports для formal research, planning і design усередині t
 - [Client-server transactional Storage Driver family](2026-07-15-extensia-client-server-sql-storage-driver-design.md) - PostgreSQL/MySQL semantic family, vendor profiles, ambiguous-commit reconciliation і certification design.
 - [План canonical task set фази 5](2026-07-17-extensia-phase-5-task-set-plan.md) - Evidence-backed split executable feasibility research, read-model design і multi-instance sync design gates.
 - [Multi-instance здійсненність local-sqlite-v1](2026-07-17-extensia-local-sqlite-multi-instance-feasibility.md) - P5-RS1 executable `full/full` і `full/readonly` visibility, cursor, contention та crash/restart evidence current profile.
+- [Exact read-model completeness і coherent generation contract](2026-07-17-extensia-read-model-completeness-query-contract.md) - P5-DG1 exact greedy/lazy coverage, query catalog, one-generation projections, observation seam та performance methodology.

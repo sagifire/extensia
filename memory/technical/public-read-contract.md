@@ -144,3 +144,11 @@ Root factory/module/result/scalars/snapshots and two reads are `public-stable-ca
 ## P4-DG2 compatibility note
 
 Public `AssetSnapshot` field shape is unchanged. Accepted target valid values/aggregate relations are tightened by [Asset semantic contract](asset-contract.md). P4 metadata methods/errors remain `experimental-phase-4` until implementation and P7 compatibility freeze; Phase 2 implemented reads are not rewritten by this note.
+
+## P5-DG1 compatibility note
+
+Existing `getResource` і one-level `getResourceTree` names, success value shapes, invalid/missing semantics та detached ownership незмінні; default existing config behavior є `greedy`. Optional `readModel.loading` і additive safe inspection/errors є `experimental-phase-5`. Lazy cache miss ніколи не мапиться в `RESOURCE_NOT_FOUND` без exact negative proof, а cached children subset не може стати tree success. Нові draft public query methods не прийняті цією note; final config/error/API freeze лишається P7.
+
+## P5-DG2 compatibility note
+
+Experimental Phase 5 adds optional `readModel.synchronization`, exact `inspect().read_model.synchronization` safe inspection and `query.refresh()`. Default is `manual`, so existing configs do not create background work. `refresh(options)` is descriptor-safe; invalid options/fake signal return `READ_MODEL_REFRESH_OPTIONS_INVALID`, and admitted AbortSignal listeners are removed on every terminal path. Refresh success means coherent observation through a journal head captured after caller admission, not permanent global currentness; `changed` means query-visible content changed, not cursor movement. Public result/inspection exposes no cursor, head, generation/actor/resource ID, storage path or raw driver error. Opt-in polling invokes the same admission-epoch refresh with bounded retry/backoff/capped jitter. Existing `getResource`/`getResourceTree` shapes remain unchanged; final names/error catalog/config freeze belongs to P7.

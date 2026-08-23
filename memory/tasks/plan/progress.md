@@ -96,10 +96,16 @@ Allowed parallelism: P4-DG1 і P4-DG2 могли активуватися окр
 
 - [x] **[Done]** [TASK-07.26-0054](TASK-07.26-0054-prepare-phase-5-task-set/index.md) - Evidence-backed Phase 5 task set і `AGENTS.md` sync accepted whole-task review; P5-RS1/P5-DG1/P5-DG2 remain backlog/prepared, no downstream activation.
 - [x] **[Done]** [P5-RS1 / TASK-07.26-0055](TASK-07.26-0055-p5-rs1-local-sqlite-multi-instance-feasibility/index.md) - Three-run executable `full/full`/`full/readonly` research accepted whole-task review; storage primitives conditionally feasible, live coherent runtime sync absent.
-- [ ] **[Backlog]** [P5-DG1 / TASK-07.26-0056](TASK-07.26-0056-p5-dg1-read-model-completeness-query-contract/index.md) - Exact `greedy`/`lazy` completeness, query/config і coherent projection owner gate; не активований.
-- [ ] **[Backlog]** [P5-DG2 / TASK-07.26-0057](TASK-07.26-0057-p5-dg2-cursor-refresh-multi-instance-sync-contract/index.md) - Refined research/design owner gate для process sync, refresh, cursor, retry/backoff, lock contention/fairness і downstream task map; P5-RS1 accepted, activation заборонена до accepted/applied P5-DG1.
+- [x] **[Done]** [P5-DG1 / TASK-07.26-0056](TASK-07.26-0056-p5-dg1-read-model-completeness-query-contract/index.md) - Exact design accepted/applied through FIX-002/FIX-003; final repeated audit `PASS`, P5-DG2/downstream inactive.
+- [x] **[Done]** [P5-DG2 / TASK-07.26-0057](TASK-07.26-0057-p5-dg2-cursor-refresh-multi-instance-sync-contract/index.md) - Whole-task approved, FIX-001 applied exactly, final post-application audit `PASS`; downstream plan accepted and separately materialized below as inactive packages.
+- [x] **[Done]** [P5-WP1 / TASK-07.26-0058](TASK-07.26-0058-p5-wp1-read-model-generation-coordinator-foundation/index.md) - Whole-task approved: 10/10 acceptance, 317-test full gate, independent `PASS`; downstream не активовано.
+- [ ] **[Backlog]** [P5-HARD1 / TASK-07.26-0059](TASK-07.26-0059-p5-hard1-sync-actor-retry-lifecycle/index.md) - Prepared internal admission-epoch sync actor/retry/lifecycle hardening; activation blocked by completed/accepted P5-WP1.
+- [ ] **[Backlog]** [P5-VS1 / TASK-07.26-0060](TASK-07.26-0060-p5-vs1-lazy-refresh-public-integration/index.md) - Prepared lazy + experimental refresh/config/inspection integration; activation blocked by completed/accepted P5-HARD1.
+- [ ] **[Backlog]** [P5-VS2 / TASK-07.26-0061](TASK-07.26-0061-p5-vs2-local-sqlite-multi-instance-sync/index.md) - Prepared concrete local SQLite multi-instance sync/polling/contention slice; activation blocked by completed/accepted P5-VS1.
+- [ ] **[Backlog]** [P5-STAB / TASK-07.26-0062](TASK-07.26-0062-p5-stab-phase-5-stabilization/index.md) - Prepared phase-wide stabilization/topology verdict; activation blocked by accepted TASK-0058…0061.
+- [ ] **[Backlog]** [P5-AUD1 / TASK-07.26-0063](TASK-07.26-0063-p5-aud1-independent-phase-5-audit/index.md) - Prepared independent Phase 5 audit/human-gate recommendation; activation blocked by accepted P5-STAB.
 
-Canonical-now boundary: `P5-RS1` accepted/completed. `P5-DG1` лишається backlog/prepared і потребує окремої activation; refined `P5-DG2` активується лише після accepted/applied P5-DG1. Похідні implementation/stabilization/audit tasks визначить P5-DG2 research result і вони не створюються/активуються без explicit owner decisions.
+Canonical-now boundary: `P5-RS1`, `P5-DG1`, `P5-DG2` і `P5-WP1 / TASK-0058` accepted/completed; P5-DG2 FIX-001 applied. `P5-HARD1 -> P5-VS1 -> P5-VS2 -> P5-STAB -> P5-AUD1` лишаються backlog/prepared та inactive.
 
 ## Фаза 6 — Базова extension ecosystem
 

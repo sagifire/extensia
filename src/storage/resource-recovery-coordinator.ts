@@ -19,6 +19,7 @@ import type {
 import { AssetStorageIntegrityError } from "./resource-runtime-integrity.js";
 
 export interface RecoveryCleanResourceState {
+  readonly asset_payload_states: readonly AssetPayloadState[];
   readonly recovery: ResourceRecoveryReport;
   readonly resources: readonly ResourceSnapshot[];
   readonly journal: readonly CommittedOperationEntry[];
@@ -58,6 +59,7 @@ export async function scanRecoveryCleanResourceState(
     validateContiguousJournal(journal);
 
     result = {
+      asset_payload_states: Object.freeze(payloadStates),
       journal,
       journal_head: journal.at(-1)?.sequence ?? null,
       recovery: { ...session.recovery },

@@ -14,7 +14,7 @@ import {
   type ResourceSnapshot,
 } from "../domain/snapshots.js";
 import {
-  READONLY_ASSET_READINESS_PROOF,
+  READONLY_COHERENT_METADATA_SNAPSHOT,
   type ReadonlyResourceDriver,
 } from "../core/resource-read-runtime.js";
 import type { FullResourceDriverAdapter } from "./full-resource-driver-adapter.js";
@@ -243,7 +243,8 @@ export type LocalSqliteFaultPoint =
   | "asset-upload.stage.after-commit"
   | "reconciliation.before-reopen"
   | "reconciliation.before-query"
-  | "readonly.after-open";
+  | "readonly.after-open"
+  | "readonly.snapshot.after-resources";
 
 export interface LocalSqliteFaultInjector {
   hit(point: LocalSqliteFaultPoint): void;
@@ -422,16 +423,25 @@ export function createLocalSqliteReadonlyResourceDriver(
         yield resource;
       }
     },
-    async *[READONLY_ASSET_READINESS_PROOF]() {
+    async [READONLY_COHERENT_METADATA_SNAPSHOT]() {
       if (db === null || root === null) throw new Error("Driver is not open");
-      for (const state of loadAssetPayloadStates(db)) {
-        if (db === null) throw new Error("Driver is not open");
-        if (state.active_upload !== null) {
-          yield {
-            asset_id: state.asset_id,
-            has_committed_representation: state.committed,
-          };
+      db.exec("BEGIN;");
+      try {
+        const resources = Object.freeze(loadResources(db));
+        options.faults?.hit("readonly.snapshot.after-resources");
+        const assetPayloadStates = Object.freeze(loadAssetPayloadStates(db));
+        db.exec("COMMIT;");
+        return Object.freeze({
+          asset_payload_states: assetPayloadStates,
+          resources,
+        });
+      } catch (error) {
+        try {
+          db.exec("ROLLBACK;");
+        } catch {
+          // The primary observation failure remains authoritative.
         }
+        throw normalizeSqliteIntegrityError(error);
       }
     },
   });

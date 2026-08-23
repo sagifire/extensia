@@ -110,3 +110,26 @@ Updated: 2026-07-10
 - Every effective transition uses common Asset/Resource Timestamp, exact frozen locks/prepared Resources/payload action, one semantic commit/journal and post-commit atomic index swap.
 - Readonly precedes input/staging; no-change/failure has no persisted timestamp/journal mutation; proven Asset integrity fail-close maps to `STORAGE_INTEGRITY_FAILED`.
 - Physical layout, bytes transport, P5 indexes і P7 compatibility remain separate owners.
+
+## Applied P5-DG1 read-model rules
+
+- Default loading `greedy`; optional `readModel.loading = lazy` experimental і immutable для module lifetime.
+- Query success завжди complete для exact scope; partial/best-effort success відсутній. Negative result/empty collection потребує exact coverage proof.
+- Existing Resource point/one-level tree shapes не змінюються; draft broad public query catalog не прийнятий.
+- Projection maps і coverage належать одній immutable generation та публікуються одним root swap.
+- Storage Driver лишається truth; Index/coverage не authorize-ить commands або durable repair.
+- Lazy global query потребує exhaustive semantic selector; implicit full hydration за query і loaded-subset success заборонені.
+- Ordinary local commit update uses changed-key structural sharing/delta; O(N) full rebuild дозволений лише explicit startup/rebuild/integrity path.
+- Full/readonly observation semantics symmetric when capability claimed; readonly має zero durable mutation; raw session/transaction/cursor/layout не експонується.
+- Completeness і cross-process freshness distinct; cursor/refresh/retry/stale-window/multi-instance policy лишається P5-DG2.
+
+## Applied P5-DG2 synchronization rules
+
+- Для supported committed-change observation cursor volatile/process-local і atomically publishes разом з coherent generation; restart завжди rebuild + same-observation head capture. Legacy manual `static-unsupported` coordinator не має cursor/head/sync actor.
+- `JournalSequence` є only order authority; own/external entries traverse one contiguous sequence. Actor/timestamp/PID не merge або fencing authority.
+- Gap, duplicate, regression, cursor-ahead або malformed authority fail-close; transient lock/unavailable/read failure не просуває cursor.
+- Explicit refresh є correctness primitive; default manual. Polling лише admission-epoch coalesced bounded trigger із capped jitter/backoff; scheduler закриває cohort перед first adapter invocation, post-invocation trigger отримує serialized trailing observation, notification не correctness authority.
+- Full/readonly committed-change observation symmetric when claimed, coherent metadata+head, detached/internal і readonly zero-write; raw session/transaction/layout/public cursor forbidden.
+- Local commit, lazy load і external refresh serialize одним publication coordinator; driver I/O/backoff ніколи не утримує publication mutation owner.
+- Supported startup observation і refresh retry bounded by attempts/admission deadline and never cross staging/commit. Startup exhaustion publishes no ready/facade. Returned write lock failure caller-managed; ambiguous COMMIT reconciliation зберігає outcome-definite safety.
+- Initial multi-instance support claim потребує P5-STAB/P5-AUD1/human gate; multi-host/HA/arbitrary instance count/direct mutation unsupported.

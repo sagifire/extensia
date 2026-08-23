@@ -61,8 +61,14 @@
 - [TASK-07.26-0053-p4-stab-phase-4](TASK-07.26-0053-p4-stab-phase-4/index.md) - Done `P4-STAB`: whole-task, FIX-001 і Phase 4 gate approved; exact fixation applied, repeated post-application audit `PASS`; Phase 5 не активована.
 - [TASK-07.26-0054-prepare-phase-5-task-set](TASK-07.26-0054-prepare-phase-5-task-set/index.md) - Done Phase 5 planning/research preparation; P5-RS1/P5-DG1/P5-DG2 accepted as backlog/prepared without activation.
 - [TASK-07.26-0055-p5-rs1-local-sqlite-multi-instance-feasibility](TASK-07.26-0055-p5-rs1-local-sqlite-multi-instance-feasibility/index.md) - Done: accepted conditional/infeasible multi-instance topology evidence, production/support boundary unchanged.
-- [TASK-07.26-0056-p5-dg1-read-model-completeness-query-contract](TASK-07.26-0056-p5-dg1-read-model-completeness-query-contract/index.md) - Backlog/prepared owner design gate `P5-DG1` для completeness, query і coherent index contracts.
-- [TASK-07.26-0057-p5-dg2-cursor-refresh-multi-instance-sync-contract](TASK-07.26-0057-p5-dg2-cursor-refresh-multi-instance-sync-contract/index.md) - Backlog/prepared refined `P5-DG2` research/design для sync/refresh/cursor/retry/lock policy і downstream task decomposition; P5-DG1-gated.
+- [TASK-07.26-0056-p5-dg1-read-model-completeness-query-contract](TASK-07.26-0056-p5-dg1-read-model-completeness-query-contract/index.md) - Done P5-DG1; FIX-002/FIX-003 applied exactly, final repeated audit `PASS`, downstream inactive.
+- [TASK-07.26-0057-p5-dg2-cursor-refresh-multi-instance-sync-contract](TASK-07.26-0057-p5-dg2-cursor-refresh-multi-instance-sync-contract/index.md) - Done `P5-DG2`; FIX-001 applied exactly, post-application audit `PASS`, downstream plan accepted and later materialized as inactive packages.
+- [TASK-07.26-0058-p5-wp1-read-model-generation-coordinator-foundation](TASK-07.26-0058-p5-wp1-read-model-generation-coordinator-foundation/index.md) - Done `P5-WP1 / RUN-001`; whole-task approved після 10/10 acceptance і independent `PASS`, downstream inactive.
+- [TASK-07.26-0059-p5-hard1-sync-actor-retry-lifecycle](TASK-07.26-0059-p5-hard1-sync-actor-retry-lifecycle/index.md) - Backlog/prepared `P5-HARD1`; internal sync actor/retry/lifecycle hardening after accepted P5-WP1.
+- [TASK-07.26-0060-p5-vs1-lazy-refresh-public-integration](TASK-07.26-0060-p5-vs1-lazy-refresh-public-integration/index.md) - Backlog/prepared `P5-VS1`; lazy completeness and experimental refresh/config/inspection after P5-HARD1.
+- [TASK-07.26-0061-p5-vs2-local-sqlite-multi-instance-sync](TASK-07.26-0061-p5-vs2-local-sqlite-multi-instance-sync/index.md) - Backlog/prepared `P5-VS2`; concrete local SQLite multi-instance sync/polling/contention evidence after P5-VS1.
+- [TASK-07.26-0062-p5-stab-phase-5-stabilization](TASK-07.26-0062-p5-stab-phase-5-stabilization/index.md) - Backlog/prepared `P5-STAB`; phase-wide stabilization and truthful topology verdict after implementation waves.
+- [TASK-07.26-0063-p5-aud1-independent-phase-5-audit](TASK-07.26-0063-p5-aud1-independent-phase-5-audit/index.md) - Backlog/prepared `P5-AUD1`; independent Phase 5 audit and human-gate recommendation after P5-STAB.
 
 ## Файли
 

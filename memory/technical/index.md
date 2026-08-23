@@ -25,3 +25,7 @@
 - [ADR-0012: Filesystem-native Storage Driver protocol](decisions/ADR-0012-filesystem-native-storage-protocol.md) - Умовна feasibility, native lock і single-HEAD publication decision.
 - [Client-server Transactional Storage Profile](client-server-transactional-storage-profile.md) - PostgreSQL/MySQL shared semantics, vendor boundaries, reconciliation і certification.
 - [ADR-0013: Client-server transactional Storage Driver family](decisions/ADR-0013-client-server-transactional-storage.md) - Separate vendor profiles поверх одного indeterminate-safe semantic contract.
+- [Read-model Completeness Contract](read-model-completeness-contract.md) - Accepted P5-DG1 greedy/lazy completeness, coherent generation, query catalog і observation boundary.
+- [ADR-0014: Read-model completeness](decisions/ADR-0014-read-model-completeness.md) - Complete-only success, one immutable generation та narrow full/readonly observations.
+- [Multi-instance Synchronization Contract](multi-instance-synchronization-contract.md) - Accepted P5-DG2 volatile cursor, explicit refresh/polling, retry/contention, topology і lifecycle contract.
+- [ADR-0015: Multi-instance synchronization](decisions/ADR-0015-multi-instance-synchronization.md) - One coordinator, ordered change observation, refresh trigger і support-gate decision.

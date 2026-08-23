@@ -37,6 +37,7 @@ import type {
   AssetLogicalChange,
   AssetPayloadAction,
   CommittedAssetOperationDraft,
+  CommittedOperationEntry,
   ResourceStorageSession,
   ResourceWriteTransaction,
 } from "../storage/resource-write-protocol.js";
@@ -247,13 +248,7 @@ async function commitPrepared(
 ): Promise<BaseAssetAttempt> {
   const preparedResources = sortedResources(resources);
   const changes = sortedAssetChanges(assetChanges);
-  const changedByID = new Map(
-    preparedResources.map((resource) => [resource.data.id, resource]),
-  );
-  const coherentNext = currentResources.map(
-    (resource) => changedByID.get(resource.data.id) ?? resource,
-  );
-  const prepared = index.prepareBatch(preparedResources, coherentNext);
+  const prepared = index.prepareBatch(preparedResources);
   let transaction: ResourceWriteTransaction | undefined;
   let committed = false;
   try {
@@ -295,8 +290,9 @@ async function commitPrepared(
       resources: preparedResources,
     });
     scope.transition("committing");
+    let committedEntry: CommittedOperationEntry;
     try {
-      await transaction.commit(draft);
+      committedEntry = await transaction.commit(draft);
     } catch (error) {
       if (error instanceof ResourceCommittedIntegrityError) {
         scope.commit(success);
@@ -314,7 +310,7 @@ async function commitPrepared(
       await transaction?.abort();
       await session.release();
     });
-    prepared.publish();
+    prepared.publish(committedEntry);
     return success;
   } finally {
     if (!committed) {

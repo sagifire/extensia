@@ -466,7 +466,8 @@ export function createExtensia(config: ExtensiaConfig): ExtensiaModule {
           diagnostic(
             entry.code,
             entry.code === "RESOURCE_STORAGE_INTEGRITY" ||
-              entry.code === "RESOURCE_INDEX_INTEGRITY"
+              entry.code === "RESOURCE_INDEX_INTEGRITY" ||
+              entry.code === "ASSET_STORAGE_INTEGRITY"
               ? "operation"
               : "facade",
             entry.subject,

@@ -70,6 +70,7 @@ export type FacadeRegistryDiagnosticCode =
   | "FACADE_RUNTIME_FAILED"
   | "RESOURCE_STORAGE_INTEGRITY"
   | "RESOURCE_INDEX_INTEGRITY"
+  | "ASSET_STORAGE_INTEGRITY"
   | "FACADE_PHASE_INVALID";
 
 export interface FacadeRegistryDiagnostic {
@@ -113,6 +114,41 @@ interface OperationGateController extends FacadeOperationGate {
 export interface FacadeRuntime {
   readonly access: FacadeRegistryAccess;
   readonly lifecycle: LifecycleContribution;
+}
+
+export interface FacadeRuntimeFaultBoundary {
+  report(
+    fault:
+      | {
+          readonly kind: "integrity";
+          readonly code:
+            | "RESOURCE_STORAGE_INTEGRITY"
+            | "RESOURCE_INDEX_INTEGRITY"
+            | "ASSET_STORAGE_INTEGRITY";
+          readonly operation_id?: string;
+        }
+      | {
+          readonly kind: "fatal-runtime";
+          readonly code: "READ_MODEL_RUNTIME_FAILED";
+        },
+  ): void;
+  subscribe(
+    handler: (
+      fault:
+        | {
+            readonly kind: "integrity";
+            readonly code:
+              | "RESOURCE_STORAGE_INTEGRITY"
+              | "RESOURCE_INDEX_INTEGRITY"
+              | "ASSET_STORAGE_INTEGRITY";
+            readonly operation_id?: string;
+          }
+        | {
+            readonly kind: "fatal-runtime";
+            readonly code: "READ_MODEL_RUNTIME_FAILED";
+          },
+    ) => void,
+  ): () => void;
 }
 
 export const FACADE_PROVIDER_CONTRIBUTIONS: ContributionToken<FacadeProvider> =
@@ -304,6 +340,7 @@ function validateAndOrderProviders(
 export function createFacadeRuntime(
   systemProviders: readonly FacadeProvider[],
   customProviders: readonly FacadeProvider[],
+  faultBoundary?: FacadeRuntimeFaultBoundary,
 ): FacadeRuntime {
   const envelopes: readonly ProviderEnvelope[] = Object.freeze([
     ...systemProviders.map((provider) =>
@@ -329,6 +366,24 @@ export function createFacadeRuntime(
   function record(entry: FacadeRegistryDiagnostic): void {
     diagnostics.push(entry);
   }
+
+  function failCloseRuntime(
+    code: FacadeRegistryDiagnosticCode = "FACADE_RUNTIME_FAILED",
+    subject?: string,
+  ): void {
+    gate.close();
+    publishedSurface = null;
+    record(diagnostic(code, subject));
+  }
+
+  const unsubscribeFaultBoundary =
+    faultBoundary?.subscribe((fault) => {
+      if (fault.kind === "fatal-runtime") {
+        failCloseRuntime("FACADE_RUNTIME_FAILED");
+      } else {
+        failCloseRuntime(fault.code, fault.operation_id);
+      }
+    }) ?? (() => undefined);
 
   async function disposeCreated(): Promise<boolean> {
     let failed = false;
@@ -408,12 +463,30 @@ export function createFacadeRuntime(
             }),
             operations: gate,
             failClose(
-              code?: "RESOURCE_STORAGE_INTEGRITY" | "RESOURCE_INDEX_INTEGRITY",
+              code?:
+                | "RESOURCE_STORAGE_INTEGRITY"
+                | "RESOURCE_INDEX_INTEGRITY"
+                | "ASSET_STORAGE_INTEGRITY",
               operationId?: string,
             ): void {
-              gate.close();
-              publishedSurface = null;
-              record(diagnostic(code ?? "FACADE_RUNTIME_FAILED", operationId));
+              if (faultBoundary === undefined) {
+                failCloseRuntime(code ?? "FACADE_RUNTIME_FAILED", operationId);
+                return;
+              }
+              if (code === undefined) {
+                faultBoundary.report({
+                  code: "READ_MODEL_RUNTIME_FAILED",
+                  kind: "fatal-runtime",
+                });
+                return;
+              }
+              faultBoundary.report({
+                code,
+                kind: "integrity",
+                ...(operationId === undefined
+                  ? {}
+                  : { operation_id: operationId }),
+              });
             },
           });
 
@@ -447,6 +520,7 @@ export function createFacadeRuntime(
         await disposeCreated();
         frozenSurface = null;
         phase = "disposed";
+        unsubscribeFaultBoundary();
         throw new Error("Facade Registry startup failed");
       }
     },
@@ -469,6 +543,7 @@ export function createFacadeRuntime(
       const disposeFailed = await disposeCreated();
       frozenSurface = null;
       phase = "disposed";
+      unsubscribeFaultBoundary();
       if (disposeFailed) throw new Error("Facade disposal failed");
     },
   });

@@ -6,8 +6,10 @@
 
 ## Папки
 
-- [RUN-001](RUN-001/index.md) - prepared/refined research/design run; P5-DG1-gated і не активований.
+- [RUN-001](RUN-001/index.md) - completed approved research/design run; FIX-001 applied and post-application audit `PASS`.
 
 ## Файли
 
 - [Task](task.md) - dashboard, contract, dependencies і review boundary.
+- [RSCH-001](RSCH-001.md) - completed formal research із disposition `final-result`.
+- [FIX-001](FIX-001.md) - required/approved/applied exact canonical synchronization contract; post-application audit `PASS`.

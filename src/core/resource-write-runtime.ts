@@ -46,6 +46,7 @@ import {
 } from "../storage/resource-runtime-integrity.js";
 import { scanRecoveryCleanResourceState } from "../storage/resource-recovery-coordinator.js";
 import type {
+  CommittedOperationEntry,
   CommittedOperationDraft,
   ResourceWriteTransaction,
 } from "../storage/resource-write-protocol.js";
@@ -75,6 +76,22 @@ import {
   CORE_ASSET_UPLOAD_PORT,
   type CoreAssetUploadPort,
 } from "../system-extensions/default-api/asset-upload-port.js";
+import {
+  CORE_COMMITTED_CHANGE_OBSERVATION_PORT,
+  CORE_METADATA_OBSERVATION_PORT,
+  type CoreCommittedChangeObservationPort,
+  type CoreMetadataObservationPort,
+} from "./read-model-observation.js";
+import {
+  createFullCommittedChangeObservationPort,
+  createFullMetadataObservationPort,
+} from "./read-model-storage-observation.js";
+import {
+  createRuntimeFaultSink,
+  RUNTIME_FAULT_SINK,
+  RUNTIME_FAULT_SINK_CONTRIBUTIONS,
+  type RuntimeFaultSink,
+} from "./runtime-fault-sink.js";
 
 const tokens = createExtensiaInternalNamespace("core.resource-write-runtime");
 export const FULL_RESOURCE_DRIVER: Token<FullResourceDriverAdapter> =
@@ -87,6 +104,9 @@ interface FullResourceRuntime {
   readonly readPort: CoreResourceReadPort;
   readonly writePort: CoreResourceWritePort;
   readonly lifecycle: LifecycleContribution;
+  readonly metadataObservation: CoreMetadataObservationPort;
+  readonly committedChangeObservation: CoreCommittedChangeObservationPort;
+  readonly faultSink: RuntimeFaultSink;
 }
 
 type Attempt =
@@ -151,6 +171,16 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
       Object.freeze({ operation_id: generateIDString(), actor_id: actorId }),
   });
   const engine: OperationEngine = createOperationEngine(identities);
+  const metadataObservation = createFullMetadataObservationPort(driver);
+  const committedChangeObservation =
+    createFullCommittedChangeObservationPort(driver);
+  const faultSink = createRuntimeFaultSink({
+    closeIntake: () => {
+      engine.failClose();
+      index.clear();
+    },
+    cleanup: () => undefined,
+  });
 
   function coherentResourceMap(
     resources: readonly ResourceSnapshot[],
@@ -215,10 +245,7 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
               ).length,
             },
           });
-          const prepared = index.prepareBatch(
-            [nextResource],
-            [...current, nextResource],
-          );
+          const prepared = index.prepareBatch([nextResource]);
           transaction = await session.begin(plan.operation_id);
           scope.transition("staging");
           await transaction.stageResource(nextResource);
@@ -245,8 +272,9 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
             operationId: plan.operation_id,
           });
           scope.transition("committing");
+          let committedEntry: CommittedOperationEntry;
           try {
-            await transaction.commit(draft);
+            committedEntry = await transaction.commit(draft);
           } catch (error) {
             if (error instanceof ResourceCommittedIntegrityError) {
               scope.commit(success);
@@ -264,7 +292,7 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
             await transaction?.abort();
             await session.release();
           });
-          prepared.publish();
+          prepared.publish(committedEntry);
           return success;
         } finally {
           if (!committed) {
@@ -308,9 +336,7 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
       if (preparation.kind !== "success")
         return Object.freeze({ kind: preparation.kind });
       const resources = preparation.resources;
-      const changed = new Map(resources.map((item) => [item.data.id, item]));
-      const coherentNext = all.map((item) => changed.get(item.data.id) ?? item);
-      const prepared = index.prepareBatch(resources, coherentNext);
+      const prepared = index.prepareBatch(resources);
       transaction = await session.begin(plan.operation_id);
       scope.transition("staging");
       for (const resource of resources)
@@ -338,8 +364,9 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
         operationId: plan.operation_id,
       });
       scope.transition("committing");
+      let committedEntry: CommittedOperationEntry;
       try {
-        await transaction.commit(draft);
+        committedEntry = await transaction.commit(draft);
       } catch (error) {
         if (error instanceof ResourceCommittedIntegrityError) {
           scope.commit(success);
@@ -357,7 +384,7 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
         await transaction?.abort();
         await session.release();
       });
-      prepared.publish();
+      prepared.publish(committedEntry);
       return success;
     } finally {
       if (!committed) {
@@ -393,9 +420,7 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
       if (preparation.kind !== "success")
         return Object.freeze({ kind: preparation.kind });
       const resources = preparation.resources;
-      const changed = new Map(resources.map((item) => [item.data.id, item]));
-      const coherentNext = all.map((item) => changed.get(item.data.id) ?? item);
-      const prepared = index.prepareBatch(resources, coherentNext);
+      const prepared = index.prepareBatch(resources);
       transaction = await session.begin(plan.operation_id);
       scope.transition("staging");
       for (const resource of resources)
@@ -423,8 +448,9 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
         operationId: plan.operation_id,
       });
       scope.transition("committing");
+      let committedEntry: CommittedOperationEntry;
       try {
-        await transaction.commit(draft);
+        committedEntry = await transaction.commit(draft);
       } catch (error) {
         if (error instanceof ResourceCommittedIntegrityError) {
           scope.commit(success);
@@ -442,7 +468,7 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
         await transaction?.abort();
         await session.release();
       });
-      prepared.publish();
+      prepared.publish(committedEntry);
       return success;
     } finally {
       if (!committed) {
@@ -494,12 +520,7 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
         ...current,
         data: { ...current.data, title, description, updated_at: now },
       });
-      const prepared = index.prepareBatch(
-        [resource],
-        coherentResources.map((item) =>
-          item.data.id === resource.data.id ? resource : item,
-        ),
-      );
+      const prepared = index.prepareBatch([resource]);
       transaction = await session.begin(plan.operation_id);
       scope.transition("staging");
       await transaction.stageResource(resource);
@@ -521,8 +542,9 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
         operationId: plan.operation_id,
       });
       scope.transition("committing");
+      let committedEntry: CommittedOperationEntry;
       try {
-        await transaction.commit(draft);
+        committedEntry = await transaction.commit(draft);
       } catch (error) {
         if (error instanceof ResourceCommittedIntegrityError) {
           scope.commit(success);
@@ -540,7 +562,7 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
         await transaction?.abort();
         await session.release();
       });
-      prepared.publish();
+      prepared.publish(committedEntry);
       return success;
     } finally {
       if (!committed) {
@@ -596,10 +618,7 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
           data: { ...current.data, updated_at: now },
         });
       }
-      const prepared = index.prepareBatch(
-        [resource],
-        all.map((item) => (item.data.id === request.id ? resource : item)),
-      );
+      const prepared = index.prepareBatch([resource]);
       transaction = await session.begin(plan.operation_id);
       scope.transition("staging");
       await transaction.stageResource(resource);
@@ -621,8 +640,9 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
         operationId: plan.operation_id,
       });
       scope.transition("committing");
+      let committedEntry: CommittedOperationEntry;
       try {
-        await transaction.commit(draft);
+        committedEntry = await transaction.commit(draft);
       } catch (error) {
         if (error instanceof ResourceCommittedIntegrityError) {
           scope.commit(success);
@@ -640,7 +660,7 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
         await transaction?.abort();
         await session.release();
       });
-      prepared.publish();
+      prepared.publish(committedEntry);
       return success;
     } finally {
       if (!committed) {
@@ -805,6 +825,9 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
     assetWritePort: createAssetWritePort(assetRuntimeInput),
     readPort: createReadPort(index),
     writePort,
+    metadataObservation,
+    committedChangeObservation,
+    faultSink,
     lifecycle: lifecycleContribution({
       id: "core.resource-write",
       order: 30,
@@ -816,6 +839,17 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
             (async function* () {
               yield* state.resources;
             })(),
+            {
+              asset_readiness: new Map(
+                state.asset_payload_states
+                  .filter((item) => item.active_upload !== null)
+                  .map((item) => [item.asset_id, item.committed]),
+              ),
+              synchronization: {
+                kind: "synchronized",
+                cursor: state.journal_head,
+              },
+            },
           );
         } catch {
           index.clear();
@@ -829,6 +863,7 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
       },
       async stop() {
         await engine.closeAndDrain();
+        await faultSink.drain();
         try {
           await driver.close();
         } finally {
@@ -848,6 +883,17 @@ export const FULL_RESOURCE_CORE_MODULE: ReturnType<typeof defineModule> =
       { token: CORE_RESOURCE_WRITE_PORT, kind: "public-api" },
       { token: CORE_ASSET_WRITE_PORT, kind: "public-api" },
       { token: CORE_ASSET_UPLOAD_PORT, kind: "shared-service" },
+      { token: CORE_METADATA_OBSERVATION_PORT, kind: "shared-service" },
+      {
+        token: CORE_COMMITTED_CHANGE_OBSERVATION_PORT,
+        kind: "shared-service",
+      },
+      { token: RUNTIME_FAULT_SINK, kind: "shared-service" },
+      {
+        token: RUNTIME_FAULT_SINK_CONTRIBUTIONS,
+        kind: "admin-contribution",
+        cardinality: "multi",
+      },
       {
         token: LIFECYCLE_CONTRIBUTIONS,
         kind: "admin-contribution",
@@ -874,6 +920,22 @@ export const FULL_RESOURCE_CORE_MODULE: ReturnType<typeof defineModule> =
       context
         .bind(CORE_RESOURCE_WRITE_PORT)
         .toFactory(({ get }) => get(RUNTIME).writePort)
+        .singleton();
+      context
+        .bind(CORE_METADATA_OBSERVATION_PORT)
+        .toFactory(({ get }) => get(RUNTIME).metadataObservation)
+        .singleton();
+      context
+        .bind(CORE_COMMITTED_CHANGE_OBSERVATION_PORT)
+        .toFactory(({ get }) => get(RUNTIME).committedChangeObservation)
+        .singleton();
+      context
+        .bind(RUNTIME_FAULT_SINK)
+        .toFactory(({ get }) => get(RUNTIME).faultSink)
+        .singleton();
+      context
+        .add(RUNTIME_FAULT_SINK_CONTRIBUTIONS)
+        .toFactory(({ get }) => get(RUNTIME).faultSink)
         .singleton();
       context
         .add(LIFECYCLE_CONTRIBUTIONS)

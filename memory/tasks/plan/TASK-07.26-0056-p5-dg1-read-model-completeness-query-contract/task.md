@@ -1,20 +1,20 @@
 # P5-DG1 / TASK-07.26-0056: Спроєктувати completeness, query та index contract
 
-Task Status: backlog
+Task Status: done
 Type: design
 Created: 2026-07-17
 Owner Role: Product Lead Hat / System Architect Hat
-Current Run: RUN-001
+Current Run: RUN-003
 
 ## Поточний стан
 
-Run Status: prepared
-Progress: Design contract і RUN-001 підготовлені; виконання не активоване.
-Acceptance: 0/8
-Blockers: none; completed Phase 4 перевіряється перед activation.
+Run Status: completed
+Progress: Whole-task and corrective result approved; FIX-002/FIX-003 applied exactly; final repeated audit `PASS`.
+Acceptance: original 8/8 and corrective 5/5 accepted and closed.
+Blockers: none; P4-STAB і P5-RS1 dependencies satisfied.
 Blocked Phase: n/a
-Pending Decisions: explicit activation RUN-001.
-Next Action: Окремо активувати RUN-001; P5-DG1 може виконуватися паралельно з P5-RS1.
+Pending Decisions: none; downstream activation not requested.
+Next Action: none; P5-DG2 requires separate explicit activation.
 
 ## Мета
 
@@ -74,20 +74,24 @@ Next Action: Окремо активувати RUN-001; P5-DG1 може вико
 
 ## Прогони
 
-- [RUN-001](RUN-001/index.md) - prepared; activation не надана.
+- [RUN-001](RUN-001/index.md) - failed post-freeze exact-manifest validation; design body frozen.
+- [RUN-002](RUN-002/index.md) - review-ready corrective run для FIX-002.
+- [RUN-003](RUN-003/index.md) - completed corrective run; final post-application audit `PASS`.
 
 ## Дослідження
 
-Немає; створюються після activation.
+- [RSCH-001](RSCH-001.md) - completed / `final-result`; detailed exact contract підготовлений.
 
 ## Фіксації
 
-Немає; exact proposals готуються під час active run і не застосовуються без approval.
+- [FIX-001](FIX-001.md) - superseded / not applied; frozen proposal має invalid source hash.
+- [FIX-002](FIX-002.md) - required / approved / applied 2026-07-17; exact application verified.
+- [FIX-003](FIX-003.md) - required / approved / applied 2026-07-18; final repeated audit `PASS`.
 
 ## Запити на рішення
 
-- Поточне: explicit activation RUN-001.
-- Після review-ready: `approve | request changes | cancel` для whole-task result і окремі рішення для `FIX-*`/follow-ups.
+- Resolved: RUN-002 whole-task approved; FIX-002 approved/applied; FIX-001 superseded/not applied; downstream not activated.
+- Resolved: corrective RUN-003 approved; required FIX-003 approved/applied; no pending decisions.
 
 ## Запропоновані follow-up задачі
 
@@ -96,18 +100,18 @@ Next Action: Окремо активувати RUN-001; P5-DG1 може вико
 
 ## Human Review
 
-Status: not-ready
-Requested: n/a
-Reviewed: pending
-Approval Source: n/a
-Approved Fixations: none
+Status: approved-completed
+Requested: 2026-07-17 (corrective RUN-003)
+Reviewed: RUN-002 approved 2026-07-17; corrective RUN-003 approved 2026-07-18
+Approval Source: explicit user decisions `Whole-task: approve` and `RUN-003: approve`
+Approved Fixations: FIX-002 (`Required FIX-002: approve`); FIX-003 (`FIX-003: approve`)
 Rejected Fixations: none
-Follow-up Decisions: pending
-Decision Notes: Package preparation не є activation або design approval.
+Follow-up Decisions: P5-DG2 remains backlog/prepared; no downstream activation.
+Decision Notes: RUN-002/FIX-002 approval/application retained. RUN-003/FIX-003 approved/applied exactly; final repeated audit `PASS`. P5-DG2 remains inactive.
 
 ## Фінальний результат
 
-Completed: pending
-Final Run: pending
-Summary: pending
-Residual Risks: pending
+Completed: 2026-07-18
+Final Run: RUN-003
+Summary: Exact complete-only greedy/lazy read-model contract, coherent generation, coverage/query semantics and narrow observation boundary accepted/applied through FIX-002; truthful prospective roadmap correction applied through FIX-003; final repeated audit `PASS`.
+Residual Risks: Cursor/refresh/retry/stale-window/topology/fairness and exact downstream implementation packages remain owned by separately activated P5-DG2 and later implementation/stabilization gates.

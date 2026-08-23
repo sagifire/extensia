@@ -7,7 +7,7 @@ import {
 } from "../storage/deterministic-full-resource-driver.js";
 
 describe("public Resource create slice", () => {
-  it("publishes the coherent full state after another runtime commits", async () => {
+  it("publishes only the local effect after a manual-mode sequence jump", async () => {
     const backing = createDeterministicFullDriverBacking();
     const firstFixture = createDeterministicFullResourceDriver(backing);
     const secondFixture = createDeterministicFullResourceDriver(backing);
@@ -26,13 +26,31 @@ describe("public Resource create slice", () => {
     if (!external.ok || !local.ok) throw new Error("create failed");
     expect(local.value.resource.data.order_index).toBe(1);
     await expect(
-      second.query()!.getResource(external.value.resource.data.id),
+      second.query()!.getResource(local.value.resource.data.id),
     ).resolves.toMatchObject({
       ok: true,
-      value: { data: { title: "external" } },
+      value: { data: { title: "local" } },
+    });
+    await expect(
+      second.query()!.getResource(external.value.resource.data.id),
+    ).resolves.toMatchObject({
+      ok: false,
+      error: { code: "RESOURCE_NOT_FOUND" },
     });
     await first.stop();
     await second.stop();
+    const restarted = createExtensia({
+      storage: {
+        driver: defineFullResourceDriver(
+          createDeterministicFullResourceDriver(backing).adapter,
+        ),
+      },
+    });
+    await restarted.start();
+    await expect(
+      restarted.query()!.getResource(external.value.resource.data.id),
+    ).resolves.toMatchObject({ ok: true });
+    await restarted.stop();
   });
 
   it("classifies a malformed acquired session as integrity and fail-closes", async () => {

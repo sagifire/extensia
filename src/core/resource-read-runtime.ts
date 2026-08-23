@@ -23,24 +23,34 @@ import {
   createGreedyResourceIndex,
   type GreedyResourceIndex,
 } from "./resource-index.js";
+import {
+  CORE_METADATA_OBSERVATION_PORT,
+  READONLY_COHERENT_METADATA_SNAPSHOT,
+  type CoreMetadataObservationPort,
+  type ReadonlyCoherentMetadataSnapshot,
+} from "./read-model-observation.js";
+import { createReadonlyMetadataObservationPort } from "./read-model-storage-observation.js";
+import {
+  createRuntimeFaultSink,
+  RUNTIME_FAULT_SINK,
+  RUNTIME_FAULT_SINK_CONTRIBUTIONS,
+  type RuntimeFaultSink,
+} from "./runtime-fault-sink.js";
 
 export interface ReadonlyResourceDriver {
   readonly mode: "readonly";
   open(): Promise<void>;
   close(): Promise<void>;
   listResources(): AsyncIterable<ResourceSnapshot>;
-  [READONLY_ASSET_READINESS_PROOF]?(): AsyncIterable<{
-    readonly asset_id: import("../domain/scalars.js").IDString;
-    readonly has_committed_representation: boolean;
-  }>;
+  [READONLY_COHERENT_METADATA_SNAPSHOT]?(): Promise<ReadonlyCoherentMetadataSnapshot>;
 }
 
-export const READONLY_ASSET_READINESS_PROOF: unique symbol = Symbol(
-  "extensia.internal.readonly-asset-readiness-proof",
-);
+export { READONLY_COHERENT_METADATA_SNAPSHOT } from "./read-model-observation.js";
 
 interface ResourceReadRuntime {
   readonly port: CoreResourceReadPort;
+  readonly metadataObservation: CoreMetadataObservationPort;
+  readonly faultSink: RuntimeFaultSink;
   readonly lifecycle: LifecycleContribution;
 }
 
@@ -99,6 +109,11 @@ function createResourceReadRuntime(
 ): ResourceReadRuntime {
   const index = createGreedyResourceIndex();
   const port = createReadPort(index);
+  const metadataObservation = createReadonlyMetadataObservationPort(driver);
+  const faultSink = createRuntimeFaultSink({
+    closeIntake: () => index.clear(),
+    cleanup: () => undefined,
+  });
 
   async function closeAfterRejectedStart(): Promise<void> {
     index.clear();
@@ -111,23 +126,26 @@ function createResourceReadRuntime(
 
   return Object.freeze({
     port,
+    metadataObservation,
+    faultSink,
     lifecycle: lifecycleContribution({
       id: "core.resource-read",
       order: 30,
       async start(): Promise<void> {
         try {
           await driver.open();
-          const resources: ResourceSnapshot[] = [];
-          for await (const resource of driver.listResources()) {
-            resources.push(buildResourceSnapshot(resource));
+          const observation = await metadataObservation.observeMetadata({
+            kind: "storage-complete",
+          });
+          if (observation.kind !== "storage-complete") {
+            throw new Error("Readonly complete observation is unavailable");
           }
+          const resources = observation.resources.map(buildResourceSnapshot);
           const readiness = new Map<
             import("../domain/scalars.js").IDString,
             boolean
           >();
-          for await (const proof of driver[
-            READONLY_ASSET_READINESS_PROOF
-          ]?.() ?? []) {
+          for (const proof of observation.asset_readiness) {
             if (
               readiness.has(proof.asset_id) ||
               typeof proof.has_committed_representation !== "boolean"
@@ -143,6 +161,7 @@ function createResourceReadRuntime(
             (async function* () {
               yield* resources;
             })(),
+            { asset_readiness: readiness },
           );
         } catch {
           await closeAfterRejectedStart();
@@ -166,6 +185,13 @@ export const READONLY_RESOURCE_CORE_MODULE: ReturnType<typeof defineModule> =
     requires: [{ token: READONLY_RESOURCE_DRIVER }],
     provides: [
       { token: CORE_RESOURCE_READ_PORT, kind: "public-api" },
+      { token: CORE_METADATA_OBSERVATION_PORT, kind: "shared-service" },
+      { token: RUNTIME_FAULT_SINK, kind: "shared-service" },
+      {
+        token: RUNTIME_FAULT_SINK_CONTRIBUTIONS,
+        kind: "admin-contribution",
+        cardinality: "multi",
+      },
       {
         token: LIFECYCLE_CONTRIBUTIONS,
         kind: "admin-contribution",
@@ -182,6 +208,18 @@ export const READONLY_RESOURCE_CORE_MODULE: ReturnType<typeof defineModule> =
       context
         .bind(CORE_RESOURCE_READ_PORT)
         .toFactory(({ get }) => get(RESOURCE_READ_RUNTIME).port)
+        .singleton();
+      context
+        .bind(CORE_METADATA_OBSERVATION_PORT)
+        .toFactory(({ get }) => get(RESOURCE_READ_RUNTIME).metadataObservation)
+        .singleton();
+      context
+        .bind(RUNTIME_FAULT_SINK)
+        .toFactory(({ get }) => get(RESOURCE_READ_RUNTIME).faultSink)
+        .singleton();
+      context
+        .add(RUNTIME_FAULT_SINK_CONTRIBUTIONS)
+        .toFactory(({ get }) => get(RESOURCE_READ_RUNTIME).faultSink)
         .singleton();
       context
         .add(LIFECYCLE_CONTRIBUTIONS)

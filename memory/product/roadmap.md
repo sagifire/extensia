@@ -90,15 +90,17 @@ Gate: successful operation означає durable committed state на concrete 
 
 ## Фаза 5 — Повний read model і синхронізація кількох instances
 
-Стан: planned.
+Стан: P5-RS1 accepted; P5-DG1 exact target accepted/applied; P5-DG2 exact target accepted/applied; implementation окремо gated.
 
-Wave IDs: `P5-DG1` completeness/sync contract -> `P5-WP1` indexes -> `P5-VS1` lazy reads і `P5-VS2` multi-instance sync -> `P5-STAB`.
+Wave IDs: `P5-RS1` + `P5-DG1` + `P5-DG2` -> окремо підготувати/активувати `P5-WP1` generation/coordinator foundation -> `P5-HARD1` internal retry/single-flight/lifecycle -> `P5-VS1` lazy + public explicit refresh/config -> `P5-VS2` concrete multi-instance sync/polling/contention -> `P5-STAB` -> `P5-AUD1` -> human gate.
 
-- Розширити Hot Metadata Index для повних `greedy` і `lazy` modes.
-- Реалізувати derived tree, mark, primary-asset та asset-to-resource indexes.
-- Реалізувати journal cursor, External Change Sync та explicit refresh policy.
+- Реалізувати одну coherent generation для Resource/tree, Asset owner/primary/lineage і Mark projections.
+- `greedy` публікує complete generation; `lazy` має selective internal coverage, але complete-only query success і explicit unavailable.
+- Реалізувати narrow full/readonly metadata + committed-change observation adapters без raw session leakage та O(N)-per-write projection rebuild.
+- Реалізувати supported volatile cursor + legacy `static-unsupported` branch, experimental admission-epoch `query.refresh()`, opt-in polling, bounded startup/refresh retry і one local/external publication coordinator.
+- Initial same-host two-process `full/full`/`full/readonly` support лишається gated P5-STAB/P5-AUD1/human gate; designated writer recommended.
 
-Gate: local read-after-write гарантовано; lazy completeness semantics, cross-process visibility і stale window задокументовані та перевірені.
+Gate: local read-after-write гарантовано; partial query success відсутній; greedy/lazy completeness, journal-order cross-process visibility, honest observed-through stale boundary, retry exhaustion і lifecycle перевірені executable evidence.
 
 ## Фаза 6 — Базова extension ecosystem
 

@@ -35,6 +35,7 @@ import {
 } from "./local-sqlite-resource-driver.js";
 import type { CommittedOperationDraft } from "./resource-write-protocol.js";
 import { AssetStorageIntegrityError } from "./resource-runtime-integrity.js";
+import { createReadonlyMetadataObservationPort } from "../core/read-model-storage-observation.js";
 
 const ACTOR_ID = "20000000-0000-4000-8000-000000000001" as IDString;
 const OPERATION_ID = "30000000-0000-4000-8000-000000000001" as IDString;
@@ -536,15 +537,43 @@ describe("local SQLite Resource driver", () => {
     await adapter.close();
     const databasePath = inspectLocalSqliteProfile(root).databasePath;
     const before = fileHash(databasePath);
+    let interleavingBlocked = false;
     const readonly = createLocalSqliteReadonlyResourceDriver({
+      faults: {
+        hit(point) {
+          if (point !== "readonly.snapshot.after-resources") return;
+          const writer = new DatabaseSync(databasePath, { timeout: 0 });
+          try {
+            writer.exec("BEGIN IMMEDIATE");
+            writer
+              .prepare("UPDATE resources SET revision = revision + 1")
+              .run();
+            writer.exec("COMMIT");
+          } catch {
+            interleavingBlocked = true;
+            try {
+              writer.exec("ROLLBACK");
+            } catch {
+              // The expected busy result is the evidence under test.
+            }
+          } finally {
+            writer.close();
+          }
+        },
+      },
       profile: "candidate-local-filesystem",
       rootPath: root,
       timeoutMs: 100,
     });
     await readonly.open();
-    const resources = [];
-    for await (const item of readonly.listResources()) resources.push(item);
-    expect(resources.map((item) => item.data.id)).toEqual([RESOURCE_ID]);
+    const observation = await createReadonlyMetadataObservationPort(
+      readonly,
+    ).observeMetadata({ kind: "storage-complete" });
+    expect(observation.kind).toBe("storage-complete");
+    expect(observation.resources.map((item) => item.data.id)).toEqual([
+      RESOURCE_ID,
+    ]);
+    expect(interleavingBlocked).toBe(true);
     await readonly.close();
     expect(fileHash(databasePath)).toBe(before);
   });

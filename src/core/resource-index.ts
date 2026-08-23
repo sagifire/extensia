@@ -1,243 +1,124 @@
 import {
   buildResourceSnapshot,
   buildResourceTreeViewSnapshot,
-  type ResourceChildRefSnapshot,
   type ResourceSnapshot,
   type ResourceTreeViewSnapshot,
 } from "../domain/snapshots.js";
 import type { IDString } from "../domain/scalars.js";
-import { validateResourceHierarchy } from "../domain/resource-hierarchy.js";
-import { ResourceRuntimeIntegrityError } from "../storage/resource-runtime-integrity.js";
+import type {
+  CommittedOperationEntry,
+  JournalSequence,
+} from "../storage/resource-write-protocol.js";
 import type {
   MutableGreedyResourceIndex,
   PreparedResourceIndexChange,
 } from "./resource-index-write-contracts.js";
+import {
+  buildCompleteReadModelGeneration,
+  type ReadModelGenerationStatistics,
+} from "./read-model-generation.js";
+import { createReadModelPublicationCoordinator } from "./read-model-coordinator.js";
 
 export interface GreedyResourceIndex {
   readonly ready: boolean;
-  initialize(resources: AsyncIterable<ResourceSnapshot>): Promise<void>;
+  initialize(
+    resources: AsyncIterable<ResourceSnapshot>,
+    options?: Readonly<{
+      synchronization?:
+        | { readonly kind: "static-unsupported" }
+        | {
+            readonly kind: "synchronized";
+            readonly cursor: JournalSequence | null;
+          };
+      asset_readiness?: ReadonlyMap<IDString, boolean>;
+    }>,
+  ): Promise<void>;
   clear(): void;
+  inspectStatistics(): ReadModelGenerationStatistics;
   getResource(id: IDString): ResourceSnapshot | undefined;
   getResourceTree(id: IDString): ResourceTreeViewSnapshot | undefined;
 }
 
-function compareChildren(
-  left: ResourceChildRefSnapshot,
-  right: ResourceChildRefSnapshot,
-): number {
-  if (left.order_index !== right.order_index) {
-    return left.order_index < right.order_index ? -1 : 1;
-  }
-  if (left.id === right.id) return 0;
-  return left.id < right.id ? -1 : 1;
-}
-
-function validateTree(
-  resources: ReadonlyMap<IDString, ResourceSnapshot>,
-): void {
-  validateResourceHierarchy(resources);
-  for (const resource of resources.values()) {
-    const parentId = resource.data.parent_id;
-    if (parentId !== null && !resources.has(parentId)) {
-      throw new TypeError("Resource index contains an orphan relation");
-    }
-  }
-
-  for (const resource of resources.values()) {
-    const path = new Set<IDString>();
-    let currentId: IDString | null = resource.data.id;
-
-    while (currentId !== null) {
-      if (path.has(currentId)) {
-        throw new TypeError("Resource index contains a parent cycle");
-      }
-      path.add(currentId);
-      currentId = resources.get(currentId)?.data.parent_id ?? null;
-    }
-  }
-}
+type GreedyResourceIndexInitializeOptions = NonNullable<
+  Parameters<GreedyResourceIndex["initialize"]>[1]
+>;
 
 export function createGreedyResourceIndex(): MutableGreedyResourceIndex {
-  let ready = false;
-  let resourcesById = new Map<IDString, ResourceSnapshot>();
-  let childrenByParent = new Map<
-    IDString,
-    readonly ResourceChildRefSnapshot[]
-  >();
+  const coordinator = createReadModelPublicationCoordinator();
 
-  function assertReady(): void {
-    if (!ready) {
-      throw new Error("Resource index is not ready");
-    }
+  function generation() {
+    return coordinator.capture().generation;
   }
 
   return Object.freeze({
     get ready(): boolean {
-      return ready;
+      return coordinator.ready;
     },
     async initialize(
       resources: AsyncIterable<ResourceSnapshot>,
+      options: GreedyResourceIndexInitializeOptions = {},
     ): Promise<void> {
-      if (ready) {
+      if (coordinator.ready) {
         throw new Error("Resource index is already initialized");
       }
-
-      const nextResources = new Map<IDString, ResourceSnapshot>();
-      for await (const candidate of resources) {
-        const snapshot = buildResourceSnapshot(candidate);
-        if (nextResources.has(snapshot.data.id)) {
-          throw new TypeError("Resource index contains a duplicate ID");
-        }
-        nextResources.set(snapshot.data.id, snapshot);
+      const detached: ResourceSnapshot[] = [];
+      for await (const resource of resources) {
+        detached.push(buildResourceSnapshot(resource));
       }
-
-      validateTree(nextResources);
-
-      const mutableChildren = new Map<IDString, ResourceChildRefSnapshot[]>();
-      for (const resource of nextResources.values()) {
-        if (resource.data.is_deleted) continue;
-        const parentId = resource.data.parent_id;
-        if (parentId === null) continue;
-
-        const children = mutableChildren.get(parentId) ?? [];
-        children.push({
-          id: resource.data.id,
-          order_index: resource.data.order_index,
-        });
-        mutableChildren.set(parentId, children);
+      const next = buildCompleteReadModelGeneration(detached, {
+        ...(options.asset_readiness === undefined
+          ? {}
+          : { assetReadiness: options.asset_readiness }),
+      });
+      const synchronization = options.synchronization ?? {
+        kind: "static-unsupported" as const,
+      };
+      if (synchronization.kind === "synchronized") {
+        coordinator.initializeSynchronized(next, synchronization.cursor);
+      } else {
+        coordinator.initializeStatic(next);
       }
-
-      const nextChildren = new Map<
-        IDString,
-        readonly ResourceChildRefSnapshot[]
-      >();
-      for (const [parentId, children] of mutableChildren) {
-        nextChildren.set(
-          parentId,
-          Object.freeze([...children].sort(compareChildren)),
-        );
-      }
-
-      resourcesById = nextResources;
-      childrenByParent = nextChildren;
-      ready = true;
     },
     clear(): void {
-      ready = false;
-      resourcesById = new Map<IDString, ResourceSnapshot>();
-      childrenByParent = new Map<
-        IDString,
-        readonly ResourceChildRefSnapshot[]
-      >();
+      coordinator.clear();
+    },
+    inspectStatistics(): ReadModelGenerationStatistics {
+      return generation().statistics;
     },
     getResource(id: IDString): ResourceSnapshot | undefined {
-      assertReady();
-      const resource = resourcesById.get(id);
+      const resource = generation().resourcesById.get(id);
       return resource === undefined || resource.data.is_deleted
         ? undefined
         : buildResourceSnapshot(resource);
     },
     getResourceTree(id: IDString): ResourceTreeViewSnapshot | undefined {
-      assertReady();
-      const resource = resourcesById.get(id);
+      const current = generation();
+      const resource = current.resourcesById.get(id);
       if (resource === undefined || resource.data.is_deleted) return undefined;
-
       return buildResourceTreeViewSnapshot({
+        children: current.childrenByParent.get(id) ?? [],
         resource,
-        children: childrenByParent.get(id) ?? [],
       });
     },
     prepareBatch(
       candidates: readonly ResourceSnapshot[],
-      coherentResources: readonly ResourceSnapshot[] = [
-        ...resourcesById.values(),
-      ],
     ): PreparedResourceIndexChange {
-      assertReady();
-      const resources = candidates.map(buildResourceSnapshot);
-      const nextResources = new Map<IDString, ResourceSnapshot>();
-      for (const item of coherentResources) {
-        const resource = buildResourceSnapshot(item);
-        if (nextResources.has(resource.data.id))
-          throw new ResourceRuntimeIntegrityError(
-            "RESOURCE_INDEX_INTEGRITY",
-            "Coherent Resource index state contains duplicate IDs",
-          );
-        nextResources.set(resource.data.id, resource);
-      }
-      for (const resource of resources)
-        nextResources.set(resource.data.id, resource);
-      validateTree(nextResources);
-
-      const mutableChildren = new Map<IDString, ResourceChildRefSnapshot[]>();
-      for (const item of nextResources.values()) {
-        if (item.data.is_deleted) continue;
-        const parentId = item.data.parent_id;
-        if (parentId === null) continue;
-        const children = mutableChildren.get(parentId) ?? [];
-        children.push({ id: item.data.id, order_index: item.data.order_index });
-        mutableChildren.set(parentId, children);
-      }
-      const nextChildren = new Map<
-        IDString,
-        readonly ResourceChildRefSnapshot[]
-      >();
-      for (const [parentId, children] of mutableChildren) {
-        nextChildren.set(
-          parentId,
-          Object.freeze([...children].sort(compareChildren)),
-        );
-      }
-
-      let published = false;
+      const exactChanges = candidates.map(buildResourceSnapshot);
+      const prepared = coordinator.prepareLocal(exactChanges);
       return Object.freeze({
-        resources: Object.freeze(resources.map(buildResourceSnapshot)),
-        publish(): void {
-          if (published)
-            throw new Error(
-              "Prepared Resource index change was already published",
-            );
-          published = true;
-          resourcesById = nextResources;
-          childrenByParent = nextChildren;
+        resources: Object.freeze(exactChanges.map(buildResourceSnapshot)),
+        publish: (entry: CommittedOperationEntry) => {
+          prepared.publish(entry);
         },
       });
     },
     prepareUpsert(candidate: ResourceSnapshot): PreparedResourceIndexChange {
-      assertReady();
       const resource = buildResourceSnapshot(candidate);
-      const nextResources = new Map(resourcesById);
-      nextResources.set(resource.data.id, resource);
-      validateTree(nextResources);
-      const mutableChildren = new Map<IDString, ResourceChildRefSnapshot[]>();
-      for (const item of nextResources.values()) {
-        if (item.data.is_deleted) continue;
-        const parentId = item.data.parent_id;
-        if (parentId === null) continue;
-        const children = mutableChildren.get(parentId) ?? [];
-        children.push({ id: item.data.id, order_index: item.data.order_index });
-        mutableChildren.set(parentId, children);
-      }
-      const nextChildren = new Map<
-        IDString,
-        readonly ResourceChildRefSnapshot[]
-      >();
-      for (const [parentId, children] of mutableChildren)
-        nextChildren.set(
-          parentId,
-          Object.freeze([...children].sort(compareChildren)),
-        );
-      let published = false;
+      const prepared = coordinator.prepareLocal([resource]);
       return Object.freeze({
         resources: Object.freeze([buildResourceSnapshot(resource)]),
-        publish(): void {
-          if (published)
-            throw new Error(
-              "Prepared Resource index change was already published",
-            );
-          published = true;
-          resourcesById = nextResources;
-          childrenByParent = nextChildren;
+        publish: (entry: CommittedOperationEntry) => {
+          prepared.publish(entry);
         },
       });
     },

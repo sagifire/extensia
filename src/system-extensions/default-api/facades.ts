@@ -55,6 +55,7 @@ import {
   type CoreResourceWritePort,
   type CoreResourceWriteFailureCode,
 } from "./resource-write-port.js";
+import { RUNTIME_FAULT_SINK_CONTRIBUTIONS } from "../../core/runtime-fault-sink.js";
 
 const defaultApiFacadeTokens = createExtensiaInternalNamespace(
   "system-extensions.default-api.facades",
@@ -1311,6 +1312,11 @@ export const DEFAULT_API_FACADE_REGISTRY_MODULE: ReturnType<
       cardinality: "multi",
       required: false,
     },
+    {
+      token: RUNTIME_FAULT_SINK_CONTRIBUTIONS,
+      cardinality: "multi",
+      required: false,
+    },
   ],
   provides: [
     { token: FACADE_REGISTRY_ACCESS, kind: "shared-service" },
@@ -1323,12 +1329,17 @@ export const DEFAULT_API_FACADE_REGISTRY_MODULE: ReturnType<
   setup(context) {
     context
       .bind(FACADE_RUNTIME)
-      .toFactory(({ getAll }) =>
-        createFacadeRuntime(
+      .toFactory(({ getAll }) => {
+        const faultSinks = getAll(RUNTIME_FAULT_SINK_CONTRIBUTIONS);
+        if (faultSinks.length > 1) {
+          throw new Error("Facade Registry requires one RuntimeFaultSink");
+        }
+        return createFacadeRuntime(
           getAll(SYSTEM_FACADE_PROVIDER_CONTRIBUTIONS),
           getAll(FACADE_PROVIDER_CONTRIBUTIONS),
-        ),
-      )
+          faultSinks[0],
+        );
+      })
       .singleton();
     context
       .bind(FACADE_REGISTRY_ACCESS)

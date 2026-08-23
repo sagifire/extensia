@@ -113,7 +113,7 @@ Phase 2 реалізувала exact root-only `createExtensia(config)` boundary
 1. Запустити Runtime Controller і Storage Driver.
 2. Виконати recovery до ready state.
 3. Побудувати або підготувати Hot Metadata Index.
-4. Запустити External Change Sync, якщо він enabled.
+4. Ініціалізувати External Change Sync coordinator без background trigger; polling запускається тільки після publication module state `started`.
 5. Ініціалізувати system extensions і user plugins у dependency order.
 6. Створити system/custom facades через providers.
 7. Виконати plugin `start()` і заморозити Facade Registry.
@@ -188,8 +188,8 @@ public command / Core request
 - Full application config використовує opaque driver handle; callable transaction/session не входять у Module або facade boundary.
 - Hot Metadata Index є process-local і може бути full у `greedy` mode або partial у `lazy` mode.
 - Поточний runtime забезпечує local read-after-write після index update.
-- Інші processes бачать зміни після External Change Sync або explicit refresh; коротке stale window є допустимим baseline.
-- External Change Sync читає journal after local cursor, застосовує тільки committed changes інших actors у sequence order та reload/invalidate affected entities.
+- Інші processes бачать зміни після successful External Change Sync/explicit refresh through captured head; у manual mode stale duration unbounded до refresh/restart, а polling cadence не є maximum stale SLA.
+- External Change Sync читає journal after volatile local cursor, traversal-ить усі committed own/external entries у total sequence order і atomically reload/invalidate-ить affected entities з cursor+generation publication; actor filtering не змінює traversal.
 - Direct external modification files/metadata в обхід Extensia не є базовим supported scenario.
 
 ## Facades, plugins і hooks
@@ -247,3 +247,11 @@ Current SQLite physical schema має `user_version=2`, exact `asset_upload_gene
 ## Applied P4-DG2 target
 
 Asset operations розширюють той самий facade → Core port → Operation Engine → driver semantic commit pipeline. Full sorted Resource snapshots, exact logical Asset change, compound payload action і one journal entry формують один prepared write-set; reassign atomically stages two Resources. Driver generation state не є public DTO/path. Index batch publish-иться post-commit; P5 indexes derived. Separate staged-file publication, cross-Resource lineage cascade або facade/direct-driver upload write є architecture stop condition.
+
+## Applied P5-DG1 target
+
+Read model має одну immutable coherent generation з Resource/children, Asset owner, primary, same-Resource lineage reverse, exact Mark lookup і coverage proofs. `greedy` ready потребує complete generation; `lazy` допускає selective internal coverage, але кожний success complete для declared scope. Unknown cache key не є missing/empty. Full/readonly adapters використовують один consumer-owned semantic observation port без raw session/transaction/cursor leakage. Local commit публікує structural-sharing/delta generation одним synchronous no-fail root swap; ordinary write не rebuild-ить O(N) maps. Completeness не заявляє cross-process freshness; external ordering/refresh лишаються P5-DG2.
+
+## Applied P5-DG2 target
+
+External Change Sync має один process-local publication coordinator для immutable read-model generation, volatile committed journal cursor, local post-commit delta, lazy load і external refresh. Supported sync і legacy manual `static-unsupported` є tagged branches; legacy branch не має cursor/head/sync actor. Explicit `query.refresh()` є correctness primitive; default manual, opt-in polling лише admission-epoch coalesced bounded trigger, notification deferred як optional wake hint. Full/readonly adapters використовують internal coherent committed-change observation без raw session/layout; readonly zero-write. Sequence є єдиною order authority, actor/timestamp diagnostic-only. Restart supported branch rebuild-ить generation і capture-ить head з тієї самої observation; durable cursor без atomic durable checkpoint заборонений. Initial support candidates лишаються gated executable stabilization/audit/human gate.

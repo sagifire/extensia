@@ -2,7 +2,7 @@
 
 ## Призначення
 
-Prepared/refined dependency-gated research/design run для process sync, cursor, refresh, retry/backoff і lock-contention contracts з downstream task decomposition.
+Completed approved research/design run; exact FIX-001 application and independent post-application audit `PASS`.
 
 ## Папки
 
@@ -10,4 +10,5 @@ Prepared/refined dependency-gated research/design run для process sync, curso
 
 ## Файли
 
-- [Context](context.md) - prepared requirements, dependencies, acceptance, risks і stop conditions; freeze only on activation.
+- [Context](context.md) - frozen requirements, dependencies, acceptance, risks і stop conditions.
+- [Result](result.md) - complete execution, approval, exact application, verification and independent post-application `PASS` evidence.
