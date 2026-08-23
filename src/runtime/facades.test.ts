@@ -31,9 +31,37 @@ import {
   CORE_RESOURCE_READ_PORT,
   type CoreResourceReadPort,
 } from "../system-extensions/default-api/resource-read-port.js";
+import {
+  READ_MODEL_CONTROL_PORT,
+  type ReadModelControlPort,
+} from "../core/read-model-runtime.js";
 
 const RESOURCE_ID = "550e8400-e29b-41d4-a716-446655440000";
 const MISSING_ID = "8f14e45f-ea6f-4d7a-923b-966f7356c001";
+
+const STATIC_READ_MODEL_CONTROL: ReadModelControlPort = Object.freeze({
+  refreshSupported: false,
+  async refresh() {
+    return Object.freeze({
+      code: "READ_MODEL_SYNCHRONIZATION_CAPABILITY_FAILED" as const,
+      ok: false as const,
+    });
+  },
+  inspect() {
+    return Object.freeze({
+      coverage: "complete" as const,
+      lifecycle: "ready" as const,
+      loading: "greedy" as const,
+      synchronization: Object.freeze({
+        freshness: "startup" as const,
+        last_failure: null,
+        last_observed_at: null,
+        mode: "manual" as const,
+        state: "unsupported" as const,
+      }),
+    });
+  },
+});
 
 const FACADE_EXPORTS = {
   access: singleCapability(FACADE_REGISTRY_ACCESS),
@@ -85,6 +113,7 @@ async function composeProviders(
   const result = await composeExtensia({
     register(registry) {
       registry.bindValue(CORE_RESOURCE_READ_PORT, unusedPort);
+      registry.bindValue(READ_MODEL_CONTROL_PORT, STATIC_READ_MODEL_CONTROL);
       registry.use(DEFAULT_API_SYSTEM_EXTENSION_MODULE);
       if (customProviders.length > 0) {
         registry.use(providerModule("probe.custom-providers", customProviders));
@@ -395,6 +424,7 @@ describe("extensia.default-api system facades", () => {
     const result = await composeExtensia({
       register(registry) {
         registry.bindValue(CORE_RESOURCE_READ_PORT, port);
+        registry.bindValue(READ_MODEL_CONTROL_PORT, STATIC_READ_MODEL_CONTROL);
         registry.use(DEFAULT_API_SYSTEM_EXTENSION_MODULE);
         registry.use(DEFAULT_API_FACADE_REGISTRY_MODULE);
       },
@@ -490,6 +520,7 @@ describe("extensia.default-api system facades", () => {
     const result = await composeExtensia({
       register(registry) {
         registry.bindValue(CORE_RESOURCE_READ_PORT, port);
+        registry.bindValue(READ_MODEL_CONTROL_PORT, STATIC_READ_MODEL_CONTROL);
         registry.use(DEFAULT_API_SYSTEM_EXTENSION_MODULE);
         registry.use(DEFAULT_API_FACADE_REGISTRY_MODULE);
       },

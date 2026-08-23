@@ -19,6 +19,7 @@ export type ReadModelCoordinatorState =
       readonly revision: number;
       readonly generation: ReadModelGeneration;
       readonly cursor: JournalSequence | null;
+      readonly cursor_behind: boolean;
     }
   | {
       readonly kind: "static-unsupported";
@@ -54,6 +55,7 @@ export interface ReadModelPublicationCoordinator {
     cursor?: JournalSequence | null,
   ): ReadModelCoordinatorCandidate;
   publishCandidate(candidate: ReadModelCoordinatorCandidate): boolean;
+  isCursorBehind(): boolean;
   clear(): void;
 }
 
@@ -124,7 +126,13 @@ export function createReadModelPublicationCoordinator(): ReadModelPublicationCoo
       cursor: JournalSequence | null,
     ): void {
       if (cursor !== null) journalSequence(parseJournalSequence(cursor));
-      initialize({ cursor, generation, kind: "synchronized", revision: 0 });
+      initialize({
+        cursor,
+        cursor_behind: false,
+        generation,
+        kind: "synchronized",
+        revision: 0,
+      });
     },
     capture(): ReadModelCoordinatorState {
       return assertReady();
@@ -137,7 +145,7 @@ export function createReadModelPublicationCoordinator(): ReadModelPublicationCoo
       const preparedGeneration = applyCompleteReadModelDelta(
         captured.generation,
         changed,
-        { storageValidatedLocalDelta: true },
+        { localPublication: true, storageValidatedLocalDelta: true },
       );
       let published = false;
       return Object.freeze({
@@ -160,10 +168,16 @@ export function createReadModelPublicationCoordinator(): ReadModelPublicationCoo
               "Prepared local read-model publication is stale",
             );
           }
+          const nextCursor =
+            latest.kind === "synchronized"
+              ? localCursorAfter(latest.cursor, entry.sequence)
+              : undefined;
           state = Object.freeze(
             latest.kind === "synchronized"
               ? {
-                  cursor: localCursorAfter(latest.cursor, entry.sequence),
+                  cursor: nextCursor!,
+                  cursor_behind:
+                    latest.cursor_behind || nextCursor === latest.cursor,
                   generation: preparedGeneration,
                   kind: "synchronized" as const,
                   revision: latest.revision + 1,
@@ -219,6 +233,8 @@ export function createReadModelPublicationCoordinator(): ReadModelPublicationCoo
         current.kind === "synchronized"
           ? {
               cursor: candidate.cursor!,
+              cursor_behind:
+                current.cursor_behind && candidate.cursor === current.cursor,
               generation: candidate.generation,
               kind: "synchronized" as const,
               revision: current.revision + 1,
@@ -230,6 +246,9 @@ export function createReadModelPublicationCoordinator(): ReadModelPublicationCoo
             },
       );
       return true;
+    },
+    isCursorBehind(): boolean {
+      return state?.kind === "synchronized" && state.cursor_behind;
     },
     clear(): void {
       state = null;

@@ -2,7 +2,7 @@
 
 Status: accepted implementation sequence
 Target Release: `0.1.0`
-Updated: 2026-07-17
+Updated: 2026-08-23
 
 Цей roadmap задає компактну послідовність залежностей і decision gates без календарних обіцянок. Детальний rolling-wave backlog, complexity rubric і dependency register зберігаються в [planning report TASK-07.26-0003](../reports/research/2026-07-09-extensia-v0-1-0-delivery-plan.md); implementation tasks створюються поступово після gate попередньої хвилі.
 
@@ -90,15 +90,15 @@ Gate: successful operation означає durable committed state на concrete 
 
 ## Фаза 5 — Повний read model і синхронізація кількох instances
 
-Стан: P5-RS1 accepted; P5-DG1 exact target accepted/applied; P5-DG2 exact target accepted/applied; implementation окремо gated.
+Стан: P5-RS1 accepted; P5-DG1/P5-DG2 exact targets accepted/applied; P5-WP1, P5-HARD1 і P5-VS1 accepted; TASK-0060/FIX-001 applied. P5-VS2/P5-STAB/P5-AUD1 inactive.
 
-Wave IDs: `P5-RS1` + `P5-DG1` + `P5-DG2` -> окремо підготувати/активувати `P5-WP1` generation/coordinator foundation -> `P5-HARD1` internal retry/single-flight/lifecycle -> `P5-VS1` lazy + public explicit refresh/config -> `P5-VS2` concrete multi-instance sync/polling/contention -> `P5-STAB` -> `P5-AUD1` -> human gate.
+Wave IDs: `P5-RS1` + `P5-DG1` + `P5-DG2` -> `P5-WP1` generation/coordinator foundation -> `P5-HARD1` internal retry/single-flight/lifecycle -> `P5-VS1` lazy + public explicit refresh/config -> pending `P5-VS2` concrete multi-instance sync/polling/contention -> `P5-STAB` -> `P5-AUD1` -> human gate.
 
-- Реалізувати одну coherent generation для Resource/tree, Asset owner/primary/lineage і Mark projections.
-- `greedy` публікує complete generation; `lazy` має selective internal coverage, але complete-only query success і explicit unavailable.
-- Реалізувати narrow full/readonly metadata + committed-change observation adapters без raw session leakage та O(N)-per-write projection rebuild.
-- Реалізувати supported volatile cursor + legacy `static-unsupported` branch, experimental admission-epoch `query.refresh()`, opt-in polling, bounded startup/refresh retry і one local/external publication coordinator.
-- Initial same-host two-process `full/full`/`full/readonly` support лишається gated P5-STAB/P5-AUD1/human gate; designated writer recommended.
+- P5-WP1 реалізувала одну coherent generation для Resource/tree, Asset owner/primary/lineage і Mark projections та structural-sharing local publication.
+- P5-VS1 реалізувала `greedy` complete і `lazy` selective internal coverage з complete-only existing Resource query success та exact internal Asset-owner/Mark-global selector results; Mark-global потребує exact selector capability й не запускає implicit full scan, а unknown дає explicit query-unavailable/read failure без partial success.
+- P5-WP1/P5-VS1 реалізували narrow semantic full/readonly metadata + committed-change observation integration без raw session leakage; profile-specific/certified SQLite full+readonly observation і remaining-budget/lexical-seek behavior лишаються P5-VS2.
+- P5-HARD1/P5-VS1 реалізували supported volatile cursor/coordinator actor semantics, legacy `static-unsupported`, experimental `query.refresh()`, bounded startup/refresh retry і safe inspection; production polling scheduler не реалізований.
+- Initial same-host two-process `full/full`/`full/readonly` support лишається gated P5-VS2/P5-STAB/P5-AUD1/human gate; designated writer recommended.
 
 Gate: local read-after-write гарантовано; partial query success відсутній; greedy/lazy completeness, journal-order cross-process visibility, honest observed-through stale boundary, retry exhaustion і lifecycle перевірені executable evidence.
 

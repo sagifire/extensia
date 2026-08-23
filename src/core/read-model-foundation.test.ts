@@ -276,6 +276,7 @@ describe("publication coordinator", () => {
       .prepareLocal([local])
       .publish(committed(1n, local));
     expect(exact).toMatchObject({ kind: "synchronized", cursor: "1" });
+    expect(coordinator.isCursorBehind()).toBe(false);
     expect(
       exact.generation.resourcesById.get(initial.data.id)?.data.title,
     ).toBe("local");
@@ -286,6 +287,7 @@ describe("publication coordinator", () => {
       .prepareLocal([jumped])
       .publish(committed(3n, jumped));
     expect(jump).toMatchObject({ kind: "synchronized", cursor: "1" });
+    expect(coordinator.isCursorBehind()).toBe(true);
     expect(jump.generation.resourcesById.get(initial.data.id)?.data.title).toBe(
       "jumped",
     );

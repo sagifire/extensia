@@ -49,6 +49,11 @@ export type ExtensiaErrorCode =
   | "STOP_FAILED"
   | "INVALID_RESOURCE_ID"
   | "RESOURCE_NOT_FOUND"
+  | "STORAGE_READ_FAILED"
+  | "READ_MODEL_REFRESH_UNAVAILABLE"
+  | "READ_MODEL_REFRESH_OPTIONS_INVALID"
+  | "READ_MODEL_REFRESH_CANCELED"
+  | "READ_MODEL_REFRESH_EXHAUSTED"
   | "STORAGE_READONLY"
   | "RESOURCE_INPUT_INVALID"
   | "RESOURCE_NO_CHANGES"
@@ -105,6 +110,62 @@ export interface ExtensiaInspection {
   readonly ready: boolean;
   readonly facades: readonly ("query" | "storage")[];
   readonly diagnostics: readonly SafeDiagnostic[];
+  readonly read_model: ReadModelInspection;
+}
+
+export type ReadModelLoadingMode = "greedy" | "lazy";
+export type ReadModelSynchronizationMode = "manual" | "polling";
+
+export interface ReadModelRetryConfig {
+  readonly maxAttempts?: number;
+  readonly deadlineMs?: number;
+  readonly initialDelayMs?: number;
+  readonly maxDelayMs?: number;
+}
+
+export interface ReadModelPollingConfig {
+  readonly intervalMs: number;
+  readonly maxBackoffMs?: number;
+}
+
+export interface ReadModelSynchronizationConfig {
+  readonly mode?: ReadModelSynchronizationMode;
+  readonly retry?: ReadModelRetryConfig;
+  readonly polling?: ReadModelPollingConfig;
+}
+
+export interface SafeSynchronizationInspection {
+  readonly mode: ReadModelSynchronizationMode;
+  readonly state:
+    | "not-started"
+    | "starting"
+    | "unsupported"
+    | "idle"
+    | "refreshing"
+    | "backoff"
+    | "degraded"
+    | "stopping"
+    | "stopped"
+    | "failed";
+  readonly freshness: "startup" | "observed" | "unknown" | "failed";
+  readonly last_observed_at: Timestamp | null;
+  readonly last_failure:
+    | null
+    | "storage-lock"
+    | "storage-unavailable"
+    | "storage-read"
+    | "coordinator-conflict"
+    | "retry-exhausted"
+    | "capability"
+    | "integrity";
+}
+
+export interface ReadModelInspection {
+  readonly loading: ReadModelLoadingMode;
+  readonly lifecycle:
+    "not-started" | "building" | "ready" | "stopping" | "failed" | "stopped";
+  readonly coverage: "none" | "selective" | "complete";
+  readonly synchronization: SafeSynchronizationInspection;
 }
 
 export interface ReadonlyResourceDriver {
@@ -117,6 +178,10 @@ export interface ReadonlyResourceDriver {
 export interface ExtensiaConfig {
   readonly storage: {
     readonly driver: ReadonlyResourceDriver | FullResourceDriver;
+  };
+  readonly readModel?: {
+    readonly loading?: ReadModelLoadingMode;
+    readonly synchronization?: ReadModelSynchronizationConfig;
   };
 }
 
@@ -333,7 +398,11 @@ export interface QueryFacade {
   ): Promise<
     ExtensiaResult<
       ResourceSnapshot,
-      ModuleNotReadyError | InvalidResourceIDError | ResourceNotFoundError
+      | ModuleNotReadyError
+      | InvalidResourceIDError
+      | ResourceNotFoundError
+      | ExtensiaError<"STORAGE_READ_FAILED">
+      | ExtensiaError<"STORAGE_INTEGRITY_FAILED">
     >
   >;
   getResourceTree(
@@ -341,10 +410,43 @@ export interface QueryFacade {
   ): Promise<
     ExtensiaResult<
       ResourceTreeViewSnapshot,
-      ModuleNotReadyError | InvalidResourceIDError | ResourceNotFoundError
+      | ModuleNotReadyError
+      | InvalidResourceIDError
+      | ResourceNotFoundError
+      | ExtensiaError<"STORAGE_READ_FAILED">
+      | ExtensiaError<"STORAGE_INTEGRITY_FAILED">
     >
   >;
+  refresh(options?: ReadModelRefreshOptions): Promise<ReadModelRefreshResult>;
 }
+
+export interface ReadModelRefreshOptions {
+  readonly signal?: AbortSignal;
+}
+
+export interface ReadModelRefreshSuccess {
+  readonly observed: true;
+  readonly changed: boolean;
+}
+
+export interface ReadModelRefreshExhaustedError extends ExtensiaError<"READ_MODEL_REFRESH_EXHAUSTED"> {
+  readonly reason: "attempts" | "deadline";
+  readonly last_failure:
+    | "storage-lock"
+    | "storage-unavailable"
+    | "storage-read"
+    | "coordinator-conflict";
+}
+
+export type ReadModelRefreshResult = ExtensiaResult<
+  ReadModelRefreshSuccess,
+  | ModuleNotReadyError
+  | ExtensiaError<"READ_MODEL_REFRESH_UNAVAILABLE">
+  | ExtensiaError<"READ_MODEL_REFRESH_OPTIONS_INVALID">
+  | ExtensiaError<"READ_MODEL_REFRESH_CANCELED">
+  | ReadModelRefreshExhaustedError
+  | ExtensiaError<"STORAGE_INTEGRITY_FAILED">
+>;
 
 export interface StorageFacade {
   createAsset(

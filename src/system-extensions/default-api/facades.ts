@@ -15,6 +15,8 @@ import type {
   AssetPrimaryResult,
   AssetReassignResult,
   AssetUpdateResult,
+  ReadModelRefreshOptions,
+  ReadModelRefreshResult,
 } from "../../public/contracts.js";
 import {
   CORE_ASSET_WRITE_PORT,
@@ -56,6 +58,10 @@ import {
   type CoreResourceWriteFailureCode,
 } from "./resource-write-port.js";
 import { RUNTIME_FAULT_SINK_CONTRIBUTIONS } from "../../core/runtime-fault-sink.js";
+import {
+  READ_MODEL_CONTROL_PORT,
+  type ReadModelControlPort,
+} from "../../core/read-model-runtime.js";
 
 const defaultApiFacadeTokens = createExtensiaInternalNamespace(
   "system-extensions.default-api.facades",
@@ -72,6 +78,11 @@ export type DefaultApiFailureCode =
   | "MODULE_NOT_READY"
   | "INVALID_RESOURCE_ID"
   | "RESOURCE_NOT_FOUND"
+  | "STORAGE_READ_FAILED"
+  | "READ_MODEL_REFRESH_UNAVAILABLE"
+  | "READ_MODEL_REFRESH_OPTIONS_INVALID"
+  | "READ_MODEL_REFRESH_CANCELED"
+  | "READ_MODEL_REFRESH_EXHAUSTED"
   | "STORAGE_READONLY"
   | "INVALID_ASSET_ID"
   | "ASSET_URL_INVALID"
@@ -97,6 +108,8 @@ export type DefaultApiResult<
 type ModuleNotReadyFailure = DefaultApiFailure<"MODULE_NOT_READY">;
 type InvalidResourceIDFailure = DefaultApiFailure<"INVALID_RESOURCE_ID">;
 type ResourceNotFoundFailure = DefaultApiFailure<"RESOURCE_NOT_FOUND">;
+type StorageReadFailure = DefaultApiFailure<"STORAGE_READ_FAILED">;
+type StorageIntegrityFailure = DefaultApiFailure<"STORAGE_INTEGRITY_FAILED">;
 type StorageReadonlyFailure = DefaultApiFailure<"STORAGE_READONLY">;
 
 export interface QueryFacade {
@@ -105,7 +118,11 @@ export interface QueryFacade {
   ): Promise<
     DefaultApiResult<
       ResourceSnapshot,
-      ModuleNotReadyFailure | InvalidResourceIDFailure | ResourceNotFoundFailure
+      | ModuleNotReadyFailure
+      | InvalidResourceIDFailure
+      | ResourceNotFoundFailure
+      | StorageReadFailure
+      | StorageIntegrityFailure
     >
   >;
   getResourceTree(
@@ -113,9 +130,14 @@ export interface QueryFacade {
   ): Promise<
     DefaultApiResult<
       ResourceTreeViewSnapshot,
-      ModuleNotReadyFailure | InvalidResourceIDFailure | ResourceNotFoundFailure
+      | ModuleNotReadyFailure
+      | InvalidResourceIDFailure
+      | ResourceNotFoundFailure
+      | StorageReadFailure
+      | StorageIntegrityFailure
     >
   >;
+  refresh(options?: ReadModelRefreshOptions): Promise<ReadModelRefreshResult>;
 }
 
 export interface StorageFacade {
@@ -266,8 +288,25 @@ function invalidResourceID(): DefaultApiResult<
 
 function createQueryFacade(
   port: CoreResourceReadPort,
+  control: ReadModelControlPort,
   context: FacadeFactoryContext,
 ): QueryFacade {
+  function readFailure(
+    code:
+      "RESOURCE_NOT_FOUND" | "STORAGE_READ_FAILED" | "STORAGE_INTEGRITY_FAILED",
+  ) {
+    if (code === "STORAGE_READ_FAILED") {
+      return failure("STORAGE_READ_FAILED", "Resource storage read failed");
+    }
+    if (code === "STORAGE_INTEGRITY_FAILED") {
+      return failure(
+        "STORAGE_INTEGRITY_FAILED",
+        "Resource storage integrity failed",
+      );
+    }
+    return failure("RESOURCE_NOT_FOUND", "Resource was not found");
+  }
+
   async function getResource(
     rawId: string,
   ): ReturnType<QueryFacade["getResource"]> {
@@ -285,7 +324,7 @@ function createQueryFacade(
       const result = await port.read({ type: "resource.get", id });
       return result.ok
         ? Object.freeze({ ok: true, value: result.value })
-        : failure("RESOURCE_NOT_FOUND", "Resource was not found");
+        : readFailure(result.error.code);
     } finally {
       lease.release();
     }
@@ -308,13 +347,117 @@ function createQueryFacade(
       const result = await port.read({ type: "resource.tree.get", id });
       return result.ok
         ? Object.freeze({ ok: true, value: result.value })
-        : failure("RESOURCE_NOT_FOUND", "Resource was not found");
+        : readFailure(result.error.code);
     } finally {
       lease.release();
     }
   }
 
-  return Object.freeze({ getResource, getResourceTree });
+  async function refresh(
+    options?: ReadModelRefreshOptions,
+  ): Promise<ReadModelRefreshResult> {
+    const lease = context.operations.acquire();
+    if (lease === null) return notReady();
+    try {
+      if (!control.refreshSupported) {
+        return failure(
+          "READ_MODEL_REFRESH_UNAVAILABLE",
+          "Read-model refresh is unavailable",
+        );
+      }
+      const signal = parseRefreshOptions(options);
+      if (signal === INVALID_REFRESH_OPTIONS) {
+        return failure(
+          "READ_MODEL_REFRESH_OPTIONS_INVALID",
+          "Read-model refresh options are invalid",
+        );
+      }
+      if (signal?.aborted === true) {
+        return failure(
+          "READ_MODEL_REFRESH_CANCELED",
+          "Read-model refresh was canceled",
+        );
+      }
+      const result = await control.refresh(signal);
+      if (result.ok) {
+        return Object.freeze({
+          ok: true,
+          value: Object.freeze({ changed: result.changed, observed: true }),
+        });
+      }
+      if (result.code === "READ_MODEL_REFRESH_EXHAUSTED") {
+        return Object.freeze({
+          error: Object.freeze({
+            code: result.code,
+            last_failure: result.last_failure!,
+            message: "Read-model refresh exhausted its retry budget",
+            reason: result.reason,
+          }),
+          ok: false,
+        });
+      }
+      if (result.code === "STORAGE_INTEGRITY_FAILED") {
+        return failure(
+          "STORAGE_INTEGRITY_FAILED",
+          "Resource storage integrity failed",
+        );
+      }
+      if (result.code === "READ_MODEL_REFRESH_CANCELED") {
+        return failure(
+          "READ_MODEL_REFRESH_CANCELED",
+          "Read-model refresh was canceled",
+        );
+      }
+      if (
+        result.code === "MODULE_NOT_READY" ||
+        result.code === "READ_MODEL_RUNTIME_FAILED"
+      ) {
+        return failure("MODULE_NOT_READY", "Extensia is not ready");
+      }
+      return failure(
+        "READ_MODEL_REFRESH_UNAVAILABLE",
+        "Read-model refresh is unavailable",
+      );
+    } finally {
+      lease.release();
+    }
+  }
+
+  return Object.freeze({ getResource, getResourceTree, refresh });
+}
+
+const INVALID_REFRESH_OPTIONS = Symbol("invalid refresh options");
+
+function parseRefreshOptions(
+  input: ReadModelRefreshOptions | undefined,
+): AbortSignal | undefined | typeof INVALID_REFRESH_OPTIONS {
+  if (input === undefined) return undefined;
+  try {
+    if (typeof input !== "object" || input === null || Array.isArray(input)) {
+      return INVALID_REFRESH_OPTIONS;
+    }
+    const prototype = Object.getPrototypeOf(input);
+    if (prototype !== Object.prototype && prototype !== null) {
+      return INVALID_REFRESH_OPTIONS;
+    }
+    const keys = Reflect.ownKeys(input);
+    if (keys.some((key) => key !== "signal")) return INVALID_REFRESH_OPTIONS;
+    if (!keys.includes("signal")) return undefined;
+    const descriptor = Object.getOwnPropertyDescriptor(input, "signal");
+    if (descriptor === undefined || !("value" in descriptor)) {
+      return INVALID_REFRESH_OPTIONS;
+    }
+    if (descriptor.value === undefined) return undefined;
+    const aborted = Object.getOwnPropertyDescriptor(
+      AbortSignal.prototype,
+      "aborted",
+    )?.get;
+    if (aborted === undefined) return INVALID_REFRESH_OPTIONS;
+    aborted.call(descriptor.value);
+    return descriptor.value as AbortSignal;
+  } catch {
+    return INVALID_REFRESH_OPTIONS;
+  }
 }
 
 function parseCreateInput(
@@ -1217,13 +1360,14 @@ function updateWriteFailure(
 
 function queryProvider(
   port: CoreResourceReadPort,
+  control: ReadModelControlPort,
 ): FacadeProvider<QueryFacade> {
   return facadeProvider({
     handle: QUERY_FACADE,
     owner: "extensia.default-api",
     dependencies: [],
     create(context): QueryFacade {
-      return createQueryFacade(port, context);
+      return createQueryFacade(port, control, context);
     },
   });
 }
@@ -1246,7 +1390,10 @@ export const DEFAULT_API_SYSTEM_EXTENSION_MODULE: ReturnType<
   typeof defineModule
 > = defineModule({
   id: "extensia.default-api",
-  requires: [{ token: CORE_RESOURCE_READ_PORT }],
+  requires: [
+    { token: CORE_RESOURCE_READ_PORT },
+    { token: READ_MODEL_CONTROL_PORT },
+  ],
   provides: [
     {
       token: SYSTEM_FACADE_PROVIDER_CONTRIBUTIONS,
@@ -1257,7 +1404,12 @@ export const DEFAULT_API_SYSTEM_EXTENSION_MODULE: ReturnType<
   setup(context) {
     context
       .add(SYSTEM_FACADE_PROVIDER_CONTRIBUTIONS)
-      .toFactory(({ get }) => queryProvider(get(CORE_RESOURCE_READ_PORT)))
+      .toFactory(({ get }) =>
+        queryProvider(
+          get(CORE_RESOURCE_READ_PORT),
+          get(READ_MODEL_CONTROL_PORT),
+        ),
+      )
       .singleton();
     context
       .add(SYSTEM_FACADE_PROVIDER_CONTRIBUTIONS)
@@ -1271,6 +1423,7 @@ export const FULL_DEFAULT_API_SYSTEM_EXTENSION_MODULE: ReturnType<
   id: "extensia.default-api.full",
   requires: [
     { token: CORE_RESOURCE_READ_PORT },
+    { token: READ_MODEL_CONTROL_PORT },
     { token: CORE_RESOURCE_WRITE_PORT },
     { token: CORE_ASSET_WRITE_PORT },
   ],
@@ -1284,7 +1437,12 @@ export const FULL_DEFAULT_API_SYSTEM_EXTENSION_MODULE: ReturnType<
   setup(context) {
     context
       .add(SYSTEM_FACADE_PROVIDER_CONTRIBUTIONS)
-      .toFactory(({ get }) => queryProvider(get(CORE_RESOURCE_READ_PORT)))
+      .toFactory(({ get }) =>
+        queryProvider(
+          get(CORE_RESOURCE_READ_PORT),
+          get(READ_MODEL_CONTROL_PORT),
+        ),
+      )
       .singleton();
     context
       .add(SYSTEM_FACADE_PROVIDER_CONTRIBUTIONS)

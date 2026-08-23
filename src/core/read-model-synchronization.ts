@@ -194,10 +194,14 @@ function integerInRange(
 export function resolveReadModelSynchronizationRetryConfig(
   input: ReadModelSynchronizationRetryConfig = {},
 ): ResolvedReadModelSynchronizationRetryConfig {
-  const maxAttempts = input.maxAttempts ?? 3;
-  const deadlineMs = input.deadlineMs ?? 5_000;
-  const initialDelayMs = input.initialDelayMs ?? 25;
-  const maxDelayMs = input.maxDelayMs ?? Math.min(1_000, deadlineMs);
+  const maxAttempts = input.maxAttempts === undefined ? 3 : input.maxAttempts;
+  const deadlineMs = input.deadlineMs === undefined ? 5_000 : input.deadlineMs;
+  const initialDelayMs =
+    input.initialDelayMs === undefined ? 25 : input.initialDelayMs;
+  const maxDelayMs =
+    input.maxDelayMs === undefined
+      ? Math.min(1_000, deadlineMs)
+      : input.maxDelayMs;
   if (
     !integerInRange(maxAttempts, 1, 10) ||
     !integerInRange(deadlineMs, 100, 60_000) ||

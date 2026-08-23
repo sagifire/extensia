@@ -9,6 +9,7 @@ import {
   type CoreCommittedChangeObservationPort,
   type CoreMetadataObservationPort,
 } from "./read-model-observation.js";
+import { markIdentityKey } from "./read-model-generation.js";
 
 export interface DeterministicObservationBarrier {
   readonly entered: Promise<void>;
@@ -58,32 +59,43 @@ export function createDeterministicMetadataObservationAdapter(
   let reads = 0;
   let failure: Error | null = null;
   let barrier: DeterministicObservationBarrier | null = null;
+  async function capture() {
+    reads += 1;
+    const nextFailure = failure;
+    failure = null;
+    if (nextFailure !== null) throw nextFailure;
+    const nextBarrier = barrier;
+    barrier = null;
+    if (nextBarrier !== null) {
+      const waiter = observationBarrierWaiters.get(nextBarrier.entered);
+      if (waiter === undefined) throw new Error("Unknown observation barrier");
+      waiter.enter();
+      await waiter.wait;
+    }
+    return Object.freeze({
+      asset_payload_states: Object.freeze(
+        payloadStates.map((item) => ({
+          active_upload:
+            item.active_upload === null ? null : { ...item.active_upload },
+          asset_id: item.asset_id,
+          committed: item.committed,
+        })),
+      ),
+      resources: Object.freeze(resources.map(buildResourceSnapshot)),
+    });
+  }
   const port = createCoreMetadataObservationPort({
-    async readComplete() {
-      reads += 1;
-      const nextFailure = failure;
-      failure = null;
-      if (nextFailure !== null) throw nextFailure;
-      const nextBarrier = barrier;
-      barrier = null;
-      if (nextBarrier !== null) {
-        const waiter = observationBarrierWaiters.get(nextBarrier.entered);
-        if (waiter === undefined)
-          throw new Error("Unknown observation barrier");
-        waiter.enter();
-        await waiter.wait;
-      }
-      return Object.freeze({
-        asset_payload_states: Object.freeze(
-          payloadStates.map((item) => ({
-            active_upload:
-              item.active_upload === null ? null : { ...item.active_upload },
-            asset_id: item.asset_id,
-            committed: item.committed,
-          })),
+    readComplete: capture,
+    async readMarkResources(type, name) {
+      const captured = await capture();
+      const key = markIdentityKey({ name, type });
+      return Object.freeze(
+        captured.resources.filter(
+          (resource) =>
+            !resource.data.is_deleted &&
+            resource.marks.some((mark) => markIdentityKey(mark) === key),
         ),
-        resources: Object.freeze(resources.map(buildResourceSnapshot)),
-      });
+      );
     },
   });
   return Object.freeze({

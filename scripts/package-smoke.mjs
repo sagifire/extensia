@@ -109,6 +109,14 @@ try {
     "dist/core/read-model-observation.d.ts.map",
     "dist/core/read-model-observation.js",
     "dist/core/read-model-observation.js.map",
+    "dist/core/read-model-query.d.ts",
+    "dist/core/read-model-query.d.ts.map",
+    "dist/core/read-model-query.js",
+    "dist/core/read-model-query.js.map",
+    "dist/core/read-model-runtime.d.ts",
+    "dist/core/read-model-runtime.d.ts.map",
+    "dist/core/read-model-runtime.js",
+    "dist/core/read-model-runtime.js.map",
     "dist/core/read-model-storage-observation.d.ts",
     "dist/core/read-model-storage-observation.d.ts.map",
     "dist/core/read-model-storage-observation.js",
@@ -322,6 +330,16 @@ import type {
   MarkSnapshot,
   SetMarkInput,
   QueryFacade,
+  ReadModelInspection,
+  ReadModelLoadingMode,
+  ReadModelPollingConfig,
+  ReadModelRefreshExhaustedError,
+  ReadModelRefreshOptions,
+  ReadModelRefreshResult,
+  ReadModelRefreshSuccess,
+  ReadModelRetryConfig,
+  ReadModelSynchronizationConfig,
+  ReadModelSynchronizationMode,
   ReadonlyResourceDriver,
   ResourceChildRefSnapshot,
   ResourceDataSnapshot,
@@ -341,6 +359,7 @@ import type {
   ResourceWriteWarning,
   ResourceWriteWarningCode,
   SafeDiagnostic,
+  SafeSynchronizationInspection,
   StorageFacade,
   Timestamp,
   UpdateAssetInput,
@@ -356,6 +375,13 @@ class TypeDriver implements ReadonlyResourceDriver {
   async *listResources(): AsyncIterable<ResourceSnapshot> {}
 }
 const classDriverModule: ExtensiaModule = createExtensia({
+  readModel: {
+    loading: "lazy",
+    synchronization: {
+      mode: "manual",
+      retry: { maxAttempts: 3, deadlineMs: 5000 },
+    },
+  },
   storage: { driver: new TypeDriver() },
 });
 type PublicContract = readonly [
@@ -386,6 +412,16 @@ type PublicContract = readonly [
   MarkSnapshot,
   SetMarkInput,
   QueryFacade,
+  ReadModelInspection,
+  ReadModelLoadingMode,
+  ReadModelPollingConfig,
+  ReadModelRefreshExhaustedError,
+  ReadModelRefreshOptions,
+  ReadModelRefreshResult,
+  ReadModelRefreshSuccess,
+  ReadModelRetryConfig,
+  ReadModelSynchronizationConfig,
+  ReadModelSynchronizationMode,
   ReadonlyResourceDriver,
   ResourceChildRefSnapshot,
   ResourceDataSnapshot,
@@ -397,6 +433,7 @@ type PublicContract = readonly [
   ResourceSnapshot,
   ResourceTreeViewSnapshot,
   SafeDiagnostic,
+  SafeSynchronizationInspection,
   StorageFacade,
   Timestamp,
   UpdateAssetInput,
@@ -482,6 +519,17 @@ export type { PublicContract };
     assert.deepEqual(await extensia.query().getResource(id), {
       ok: true,
       value: snapshot,
+    });
+    assert.equal(
+      (await extensia.query().refresh()).error.code,
+      "READ_MODEL_REFRESH_UNAVAILABLE",
+    );
+    assert.deepEqual(extensia.inspect().read_model.synchronization, {
+      mode: "manual",
+      state: "unsupported",
+      freshness: "startup",
+      last_observed_at: null,
+      last_failure: null,
     });
     const uninspectable = new Proxy({}, {
       get() { throw new Error("readonly input was inspected"); },

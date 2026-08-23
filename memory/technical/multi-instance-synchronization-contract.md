@@ -36,16 +36,16 @@ Initial implementation candidates після executable stabilization: рівн�
 
 ### 2.3. Current-code facts
 
-- Full startup already captures Resource state and journal head under one recovery-clean session, але releases session before current Index publication and ignores returned journal/head.
-- Readonly startup performs separate Resource/readiness queries without ordered journal/head capability; this is insufficient as a coherent live sync observation.
-- Current local SQLite session uses rollback journal, `synchronous=EXTRA`, `locking_mode=EXCLUSIVE`; `DatabaseSync` busy wait is synchronous and not interruptible by `AbortSignal` while inside a call.
-- Current successful full command opportunistically full-scan-ить storage and may learn external state; missing/no-change/failure does not publish. Command-dependent freshness is accidental and must not become contract.
-- Current local post-commit publication ignores transaction-returned sequence. Current Index has no generation revision, cursor, freshness або common coordinator.
-- Current `readCommittedOperationsAfter` loads all journal rows and slices through JS array indexing. Phase 5 implementation must use canonical length+lexical seek/stream and never convert arbitrary cursor to JS `number`.
+- P5-WP1/P5-HARD1/P5-VS1 реалізували один process-local coordinator з atomic generation/cursor/revision/known-behind state та один admission-epoch actor із bounded retry/deadline/cancellation/lifecycle ownership.
+- Supported full semantic adapter capture-ить startup metadata+journal head і explicit committed-change refresh через той самий actor; supported readonly internal symbol capability має symmetric observation result і zero durable writes.
+- Legacy manual `static-unsupported` branch не має cursor/head/actor й повертає exact public refresh-unavailable та safe `unsupported/startup` inspection.
+- Local exact-next publication може advance-ити private cursor; sequence jump зберігає local delta, cursor позаду й safe freshness `unknown` без hidden manual work. Successful refresh повертає `observed-through`, а не permanent freshness.
+- Experimental descriptor-safe `readModel.loading`/`readModel.synchronization`, `query.refresh(options?)` і frozen `inspect().read_model.synchronization` materialized без public cursor/head/runtime/storage leakage.
+- Profile-specific/certified local SQLite full+readonly committed-change observation, lexical journal seek/remaining-budget behavior, production polling, two-process contention/visibility і support claim ще відсутні та належать P5-VS2/P5-STAB/P5-AUD1/human gate.
 
 ### 2.4. Support boundary
 
-Цей design proposal не реалізує sync, не сертифікує topology й не змінює current one-host/one-full-writer support boundary. Candidate topology стає supported лише після production implementation, two-process stabilization, independent phase audit і explicit human gate.
+P5-VS1 реалізує semantic actor/coordinator/public integration, але не сертифікує live topology й не змінює current one-host/one-full-writer support boundary. Candidate topology стає supported лише після concrete P5-VS2 production implementation, two-process stabilization, independent phase audit і explicit human gate.
 
 ## 3. Definitions and invariants
 

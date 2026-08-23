@@ -2,11 +2,11 @@
 
 ## Призначення
 
-Backlog-задача інтеграції lazy read-model coverage та exact experimental public refresh/config/inspection surface поверх completed/accepted hardened semantic runtime P5-HARD1; очікує окремої explicit activation.
+Завершена задача інтеграції lazy read-model coverage та exact experimental public refresh/config/inspection surface: whole-task approved, FIX-001 applied, post-application audit `PASS`.
 
 ## Папки
 
-- [RUN-001](RUN-001/index.md) - Prepared implementation run; не активований.
+- [RUN-001](RUN-001/index.md) - Completed implementation run.
 
 ## Файли
 

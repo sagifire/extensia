@@ -1,6 +1,6 @@
 # P5-VS1 / TASK-07.26-0060: Lazy refresh public integration
 
-Task Status: backlog
+Task Status: done
 Type: implementation
 Created: 2026-07-18
 Owner Role: Agent Implementer / API Engineer
@@ -8,13 +8,13 @@ Current Run: RUN-001
 
 ## Поточний стан
 
-Run Status: prepared
-Progress: Task package підготовлено; implementation не розпочато.
-Acceptance: 0/10; execution ще не активовано.
+Run Status: completed
+Progress: implementation, verification, whole-task approval, exact `FIX-001` application і independent post-application audit завершені.
+Acceptance: 10/10 підтверджено self-review, independent `PASS — REVIEW_READY`, whole-task human approval та post-application `PASS`.
 Blockers: немає; P5-HARD1 / TASK-07.26-0059 completed і accepted.
 Blocked Phase: n/a
-Pending Decisions: explicit activation RUN-001.
-Next Action: окремою explicit командою власника активувати RUN-001.
+Pending Decisions: немає.
+Next Action: none; P5-VS2 може бути активовано лише окремою explicit командою.
 
 ## Мета
 
@@ -89,7 +89,7 @@ Next Action: окремою explicit командою власника акти�
 
 ## Прогони
 
-- [RUN-001](RUN-001/index.md) - prepared; activation pending dependency gate й explicit рішення.
+- [RUN-001](RUN-001/index.md) - completed implementation run.
 
 ## Дослідження
 
@@ -97,11 +97,11 @@ Next Action: окремою explicit командою власника акти�
 
 ## Фіксації
 
-Немає; змістові canonical memory changes під час execution потребуватимуть окремого FIX proposal.
+- [FIX-001](FIX-001.md) — required canonical current/product/technical memory synchronization; approved, applied exactly і independently audited `PASS`.
 
 ## Запити на рішення
 
-- Активувати RUN-001 лише після completed/accepted P5-HARD1.
+- Resolved: користувач явно активував RUN-001 2026-08-23 і дозволив субагентів; dependency P5-HARD1 completed/accepted.
 
 ## Запропоновані follow-up задачі
 
@@ -109,18 +109,18 @@ Next Action: окремою explicit командою власника акти�
 
 ## Human Review
 
-Status: not-requested
-Requested: n/a
-Reviewed: n/a
-Approval Source: n/a
-Approved Fixations: none
+Status: approved
+Requested: 2026-08-23
+Reviewed: 2026-08-23
+Approval Source: direct user response `task: approve`
+Approved Fixations: FIX-001 via direct user response `FIX-001: approve`
 Rejected Fixations: none
-Follow-up Decisions: pending
-Decision Notes: RUN-001 ще не активовано.
+Follow-up Decisions: P5-VS2 not activated
+Decision Notes: Whole-task і FIX-001 явно схвалені 2026-08-23; exact application та post-application audit `PASS` завершені без downstream activation.
 
 ## Фінальний результат
 
-Completed: n/a
-Final Run: n/a
-Summary: pending execution, verification, audit і human approval.
-Residual Risks: pending.
+Completed: 2026-08-23
+Final Run: RUN-001
+Summary: P5-VS1 accepted: 10/10 acceptance, 31 files / 359 tests, independent `PASS — REVIEW_READY`, whole-task approval, exact applied FIX-001 і independent post-application `PASS`.
+Residual Risks: experimental Phase 5 surface не є P7 freeze; concrete SQLite polling/two-process topology support лишається downstream scope.

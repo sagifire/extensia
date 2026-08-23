@@ -10,7 +10,6 @@ import {
 import {
   buildResourceSnapshot,
   type ResourceSnapshot,
-  type ResourceTreeViewSnapshot,
 } from "../domain/snapshots.js";
 import {
   kvNamespaceEqual,
@@ -38,7 +37,10 @@ import {
   computeResourceWriteSetFingerprint,
   ResourceStorageIntegrityError,
 } from "../storage/resource-journal-integrity.js";
-import type { FullResourceDriverAdapter } from "../storage/full-resource-driver-adapter.js";
+import {
+  ResourceStorageSessionTransientError,
+  type FullResourceDriverAdapter,
+} from "../storage/full-resource-driver-adapter.js";
 import {
   AssetStorageIntegrityError,
   ResourceCommittedIntegrityError,
@@ -56,10 +58,7 @@ import {
 } from "../system-extensions/default-api/asset-write-port.js";
 import {
   CORE_RESOURCE_READ_PORT,
-  type CoreReadResult,
   type CoreResourceReadPort,
-  type GetResourceReadRequest,
-  type GetResourceTreeReadRequest,
 } from "../system-extensions/default-api/resource-read-port.js";
 import {
   CORE_RESOURCE_WRITE_PORT,
@@ -74,7 +73,6 @@ import {
   READ_MODEL_SYNCHRONIZATION_ACTOR,
   type ReadModelSynchronizationActor,
 } from "./read-model-synchronization.js";
-import type { MutableGreedyResourceIndex } from "./resource-index-write-contracts.js";
 import {
   createAssetUploadPort,
   createAssetWritePort,
@@ -99,6 +97,18 @@ import {
   RUNTIME_FAULT_SINK_CONTRIBUTIONS,
   type RuntimeFaultSink,
 } from "./runtime-fault-sink.js";
+import {
+  createReadModelSelectorPort,
+  createResourceReadPort,
+  type InternalReadModelSelectorPort,
+} from "./read-model-query.js";
+import {
+  createReadModelControl,
+  DEFAULT_READ_MODEL_RUNTIME_CONFIG,
+  READ_MODEL_CONTROL_PORT,
+  type ReadModelControlPort,
+  type ResolvedReadModelRuntimeConfig,
+} from "./read-model-runtime.js";
 
 const tokens = createExtensiaInternalNamespace("core.resource-write-runtime");
 export const FULL_RESOURCE_DRIVER: Token<FullResourceDriverAdapter> =
@@ -109,12 +119,14 @@ interface FullResourceRuntime {
   readonly assetUploadPort: CoreAssetUploadPort;
   readonly assetWritePort: CoreAssetWritePort;
   readonly readPort: CoreResourceReadPort;
+  readonly selectors: InternalReadModelSelectorPort;
   readonly writePort: CoreResourceWritePort;
   readonly lifecycle: LifecycleContribution;
   readonly metadataObservation: CoreMetadataObservationPort;
   readonly committedChangeObservation: CoreCommittedChangeObservationPort;
   readonly synchronizationActor: ReadModelSynchronizationActor;
   readonly faultSink: RuntimeFaultSink;
+  readonly control: ReadModelControlPort;
 }
 
 type Attempt =
@@ -143,35 +155,10 @@ type BaseAttempt =
   | Omit<Extract<Attempt, { kind: "success" }>, "warnings">
   | Exclude<Attempt, { kind: "success" }>;
 
-function createReadPort(
-  index: MutableGreedyResourceIndex,
-): CoreResourceReadPort {
-  class ReadPort implements CoreResourceReadPort {
-    async read(
-      request: GetResourceReadRequest,
-    ): Promise<CoreReadResult<ResourceSnapshot>>;
-    async read(
-      request: GetResourceTreeReadRequest,
-    ): Promise<CoreReadResult<ResourceTreeViewSnapshot>>;
-    async read(
-      request: GetResourceReadRequest | GetResourceTreeReadRequest,
-    ): Promise<CoreReadResult<ResourceSnapshot | ResourceTreeViewSnapshot>> {
-      const value =
-        request.type === "resource.get"
-          ? index.getResource(request.id)
-          : index.getResourceTree(request.id);
-      return value === undefined
-        ? Object.freeze({
-            ok: false,
-            error: Object.freeze({ code: "RESOURCE_NOT_FOUND" }),
-          })
-        : Object.freeze({ ok: true, value });
-    }
-  }
-  return Object.freeze(new ReadPort());
-}
-
-function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
+function createRuntime(
+  driver: FullResourceDriverAdapter,
+  config: ResolvedReadModelRuntimeConfig,
+): FullResourceRuntime {
   const coordinator = createReadModelPublicationCoordinator();
   const index = createGreedyResourceIndex(coordinator);
   const actorId = generateIDString();
@@ -191,13 +178,71 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
     },
     cleanup: () => synchronizationActor?.stop(),
   });
+  const refreshAttempt = createReadModelSynchronizationAttempt({
+    coordinator,
+    observation: committedChangeObservation,
+  });
   synchronizationActor = createReadModelSynchronizationActor({
-    attempt: createReadModelSynchronizationAttempt({
-      coordinator,
-      observation: committedChangeObservation,
-    }),
+    async attempt(context) {
+      if (coordinator.ready) return refreshAttempt(context);
+      try {
+        const state = await scanRecoveryCleanResourceState(
+          driver,
+          context.signal,
+        );
+        await index.initialize(
+          (async function* () {
+            yield* state.resources;
+          })(),
+          {
+            asset_readiness: new Map(
+              state.asset_payload_states
+                .filter((item) => item.active_upload !== null)
+                .map((item) => [item.asset_id, item.committed]),
+            ),
+            loading: config.loading,
+            synchronization: {
+              cursor: state.journal_head,
+              kind: "synchronized",
+            },
+          },
+        );
+        return Object.freeze({ changed: true, ok: true as const });
+      } catch (error) {
+        if (error instanceof ResourceStorageSessionTransientError) {
+          return Object.freeze({
+            category:
+              error.category === "lock"
+                ? ("storage-lock" as const)
+                : error.category === "unavailable"
+                  ? ("storage-unavailable" as const)
+                  : ("storage-read" as const),
+            ok: false as const,
+          });
+        }
+        throw error;
+      }
+    },
     faultSink,
     initiallyOpen: false,
+    retry: config.synchronization.retry,
+  });
+  const control = createReadModelControl({
+    actor: synchronizationActor,
+    config,
+    coverage: () => index.inspectCoverage(),
+    cursorBehind: () => coordinator.isCursorBehind(),
+    fault: () => faultSink.fault?.kind ?? null,
+  });
+  const readPort = createResourceReadPort({
+    faultSink,
+    index,
+    metadataObservation,
+  });
+  const selectors = createReadModelSelectorPort({
+    index,
+    metadataObservation,
+    faultSink,
   });
 
   function coherentResourceMap(
@@ -841,7 +886,9 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
   return Object.freeze({
     assetUploadPort: createAssetUploadPort(assetRuntimeInput),
     assetWritePort: createAssetWritePort(assetRuntimeInput),
-    readPort: createReadPort(index),
+    control,
+    readPort,
+    selectors,
     writePort,
     metadataObservation,
     committedChangeObservation,
@@ -851,27 +898,34 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
       id: "core.resource-write",
       order: 30,
       async start() {
+        control.setLifecycle("building");
+        if (config.synchronization.mode === "polling") {
+          control.markStartupFailure("capability");
+          control.setLifecycle("failed");
+          throw new Error(
+            "Polling activation belongs to the concrete synchronization slice",
+          );
+        }
         try {
           await driver.open();
-          const state = await scanRecoveryCleanResourceState(driver);
-          await index.initialize(
-            (async function* () {
-              yield* state.resources;
-            })(),
-            {
-              asset_readiness: new Map(
-                state.asset_payload_states
-                  .filter((item) => item.active_upload !== null)
-                  .map((item) => [item.asset_id, item.committed]),
-              ),
-              synchronization: {
-                kind: "synchronized",
-                cursor: state.journal_head,
-              },
-            },
-          );
           synchronizationActor.openIntake();
+          const startup = await synchronizationActor.refresh();
+          if (!startup.ok) {
+            if (startup.code === "READ_MODEL_REFRESH_EXHAUSTED") {
+              control.markStartupFailure("retry-exhausted");
+            } else if (startup.code === "STORAGE_INTEGRITY_FAILED") {
+              control.markStartupFailure("integrity");
+            } else if (
+              startup.code === "READ_MODEL_SYNCHRONIZATION_CAPABILITY_FAILED"
+            ) {
+              control.markStartupFailure("capability");
+            }
+            throw new Error("Full Resource startup observation failed");
+          }
+          control.markStartupObserved();
+          control.setLifecycle("ready");
         } catch {
+          control.setLifecycle("failed");
           await synchronizationActor.stop();
           index.clear();
           try {
@@ -883,6 +937,7 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
         }
       },
       async stop() {
+        control.setLifecycle("stopping");
         const synchronizationDrain = synchronizationActor.stop();
         const operationDrain = engine.closeAndDrain();
         await synchronizationDrain;
@@ -892,14 +947,17 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
           await driver.close();
         } finally {
           index.clear();
+          control.setLifecycle("stopped");
         }
       },
     }),
   });
 }
 
-export const FULL_RESOURCE_CORE_MODULE: ReturnType<typeof defineModule> =
-  defineModule({
+export function createFullResourceCoreModule(
+  config: ResolvedReadModelRuntimeConfig = DEFAULT_READ_MODEL_RUNTIME_CONFIG,
+): ReturnType<typeof defineModule> {
+  return defineModule({
     id: "extensia.core.resource-write",
     requires: [{ token: FULL_RESOURCE_DRIVER }],
     provides: [
@@ -913,6 +971,7 @@ export const FULL_RESOURCE_CORE_MODULE: ReturnType<typeof defineModule> =
         kind: "shared-service",
       },
       { token: READ_MODEL_SYNCHRONIZATION_ACTOR, kind: "shared-service" },
+      { token: READ_MODEL_CONTROL_PORT, kind: "shared-service" },
       { token: RUNTIME_FAULT_SINK, kind: "shared-service" },
       {
         token: RUNTIME_FAULT_SINK_CONTRIBUTIONS,
@@ -928,7 +987,9 @@ export const FULL_RESOURCE_CORE_MODULE: ReturnType<typeof defineModule> =
     setup(context) {
       context
         .bind(RUNTIME)
-        .toFactory(({ get }) => createRuntime(get(FULL_RESOURCE_DRIVER)))
+        .toFactory(({ get }) =>
+          createRuntime(get(FULL_RESOURCE_DRIVER), config),
+        )
         .singleton();
       context
         .bind(CORE_ASSET_UPLOAD_PORT)
@@ -959,6 +1020,10 @@ export const FULL_RESOURCE_CORE_MODULE: ReturnType<typeof defineModule> =
         .toFactory(({ get }) => get(RUNTIME).synchronizationActor)
         .singleton();
       context
+        .bind(READ_MODEL_CONTROL_PORT)
+        .toFactory(({ get }) => get(RUNTIME).control)
+        .singleton();
+      context
         .bind(RUNTIME_FAULT_SINK)
         .toFactory(({ get }) => get(RUNTIME).faultSink)
         .singleton();
@@ -972,3 +1037,7 @@ export const FULL_RESOURCE_CORE_MODULE: ReturnType<typeof defineModule> =
         .singleton();
     },
   });
+}
+
+export const FULL_RESOURCE_CORE_MODULE: ReturnType<typeof defineModule> =
+  createFullResourceCoreModule();

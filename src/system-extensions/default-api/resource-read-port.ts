@@ -25,7 +25,8 @@ export interface GetResourceTreeReadRequest {
 }
 
 export interface CoreReadFailure {
-  readonly code: "RESOURCE_NOT_FOUND";
+  readonly code:
+    "RESOURCE_NOT_FOUND" | "STORAGE_READ_FAILED" | "STORAGE_INTEGRITY_FAILED";
 }
 
 export type CoreReadResult<T> =

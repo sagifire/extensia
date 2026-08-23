@@ -96,6 +96,18 @@ describe("public Extensia Resource read slice", () => {
       ready: false,
       facades: [],
       diagnostics: [],
+      read_model: {
+        coverage: "none",
+        lifecycle: "not-started",
+        loading: "greedy",
+        synchronization: {
+          freshness: "unknown",
+          last_failure: null,
+          last_observed_at: null,
+          mode: "manual",
+          state: "not-started",
+        },
+      },
     });
 
     await expect(extensia.start()).resolves.toEqual({
@@ -113,6 +125,18 @@ describe("public Extensia Resource read slice", () => {
       ready: true,
       facades: ["query", "storage"],
       diagnostics: [],
+      read_model: {
+        coverage: "complete",
+        lifecycle: "ready",
+        loading: "greedy",
+        synchronization: {
+          freshness: "startup",
+          last_failure: null,
+          last_observed_at: null,
+          mode: "manual",
+          state: "unsupported",
+        },
+      },
     });
 
     await expect(query?.getResource(ROOT_ID)).resolves.toEqual({

@@ -4,11 +4,11 @@ import {
   singleCapability,
 } from "../composition/root.js";
 import {
-  READONLY_RESOURCE_CORE_MODULE,
+  createReadonlyResourceCoreModule,
   READONLY_RESOURCE_DRIVER,
 } from "../core/resource-read-runtime.js";
 import {
-  FULL_RESOURCE_CORE_MODULE,
+  createFullResourceCoreModule,
   FULL_RESOURCE_DRIVER,
 } from "../core/resource-write-runtime.js";
 import type { FacadeRegistryAccess } from "../runtime/facades.js";
@@ -45,6 +45,14 @@ import {
   CORE_ASSET_UPLOAD_PORT,
   type CoreAssetUploadPort,
 } from "../system-extensions/default-api/asset-upload-port.js";
+import {
+  DEFAULT_READ_MODEL_RUNTIME_CONFIG,
+  READ_MODEL_CONTROL_PORT,
+  type ReadModelControlInspection,
+  type ReadModelControlPort,
+  type ResolvedReadModelRuntimeConfig,
+} from "../core/read-model-runtime.js";
+import { resolveReadModelSynchronizationRetryConfig } from "../core/read-model-synchronization.js";
 
 const INVALID_CONFIG = Symbol("invalid Extensia config");
 
@@ -52,12 +60,14 @@ interface NormalizedConfig {
   readonly storage: {
     readonly driver: ReadonlyResourceDriver | FullResourceDriver;
   };
+  readonly readModel: ResolvedReadModelRuntimeConfig;
 }
 
 interface PublicRuntime {
   readonly assetUploads: CoreAssetUploadPort | null;
   readonly host: RuntimeLifecycleHost;
   readonly facades: FacadeRegistryAccess;
+  readonly readModel: ReadModelControlPort;
 }
 
 const internalAssetUploadPorts = new WeakMap<
@@ -85,6 +95,152 @@ function ownDataValue(
     : Object.freeze({ ok: false });
 }
 
+function hasOnlyOwnDataProperties(
+  value: object,
+  allowed: readonly string[],
+): boolean {
+  const allowedKeys = new Set<PropertyKey>(allowed);
+  return Reflect.ownKeys(value).every((key) => {
+    const descriptor = Object.getOwnPropertyDescriptor(value, key);
+    return (
+      allowedKeys.has(key) && descriptor !== undefined && "value" in descriptor
+    );
+  });
+}
+
+function optionalOwnDataValue(
+  value: object,
+  key: string,
+): { readonly present: boolean; readonly value: unknown } {
+  const descriptor = Object.getOwnPropertyDescriptor(value, key);
+  if (descriptor === undefined)
+    return Object.freeze({ present: false, value: undefined });
+  if (!("value" in descriptor))
+    throw new TypeError("Accessor config is invalid");
+  return Object.freeze({ present: true, value: descriptor.value });
+}
+
+function normalizeReadModel(
+  input: unknown,
+): ResolvedReadModelRuntimeConfig | typeof INVALID_CONFIG {
+  if (input === undefined) return DEFAULT_READ_MODEL_RUNTIME_CONFIG;
+  if (
+    !isObject(input) ||
+    !hasOnlyOwnDataProperties(input, ["loading", "synchronization"])
+  ) {
+    return INVALID_CONFIG;
+  }
+  const loadingProperty = optionalOwnDataValue(input, "loading");
+  const loading =
+    loadingProperty.value === undefined ? "greedy" : loadingProperty.value;
+  if (loading !== "greedy" && loading !== "lazy") return INVALID_CONFIG;
+
+  const synchronizationProperty = optionalOwnDataValue(
+    input,
+    "synchronization",
+  );
+  const synchronizationInput = synchronizationProperty.value;
+  if (synchronizationInput === undefined) {
+    return Object.freeze({
+      loading,
+      synchronization: DEFAULT_READ_MODEL_RUNTIME_CONFIG.synchronization,
+    });
+  }
+  if (
+    !isObject(synchronizationInput) ||
+    !hasOnlyOwnDataProperties(synchronizationInput, [
+      "mode",
+      "retry",
+      "polling",
+    ])
+  ) {
+    return INVALID_CONFIG;
+  }
+  const modeProperty = optionalOwnDataValue(synchronizationInput, "mode");
+  const mode = modeProperty.value === undefined ? "manual" : modeProperty.value;
+  if (mode !== "manual" && mode !== "polling") return INVALID_CONFIG;
+
+  const retryInput = optionalOwnDataValue(synchronizationInput, "retry").value;
+  let retry;
+  if (retryInput === undefined) {
+    retry = resolveReadModelSynchronizationRetryConfig();
+  } else {
+    if (
+      !isObject(retryInput) ||
+      !hasOnlyOwnDataProperties(retryInput, [
+        "maxAttempts",
+        "deadlineMs",
+        "initialDelayMs",
+        "maxDelayMs",
+      ])
+    ) {
+      return INVALID_CONFIG;
+    }
+    const values = Object.fromEntries(
+      ["maxAttempts", "deadlineMs", "initialDelayMs", "maxDelayMs"].flatMap(
+        (key) => {
+          const property = optionalOwnDataValue(retryInput, key);
+          return property.present && property.value !== undefined
+            ? [[key, property.value]]
+            : [];
+        },
+      ),
+    );
+    retry = resolveReadModelSynchronizationRetryConfig(values);
+  }
+
+  const pollingProperty = optionalOwnDataValue(synchronizationInput, "polling");
+  let polling: ResolvedReadModelRuntimeConfig["synchronization"]["polling"] =
+    null;
+  if (mode === "manual") {
+    if (pollingProperty.present) return INVALID_CONFIG;
+  } else {
+    if (
+      !pollingProperty.present ||
+      !isObject(pollingProperty.value) ||
+      !hasOnlyOwnDataProperties(pollingProperty.value, [
+        "intervalMs",
+        "maxBackoffMs",
+      ])
+    ) {
+      return INVALID_CONFIG;
+    }
+    const interval = ownDataValue(pollingProperty.value, "intervalMs");
+    if (
+      !interval.ok ||
+      !Number.isSafeInteger(interval.value) ||
+      (interval.value as number) < 250 ||
+      (interval.value as number) > 3_600_000
+    ) {
+      return INVALID_CONFIG;
+    }
+    const maxBackoffProperty = optionalOwnDataValue(
+      pollingProperty.value,
+      "maxBackoffMs",
+    );
+    const intervalMs = interval.value as number;
+    const maxBackoffMs =
+      maxBackoffProperty.value === undefined
+        ? Math.max(intervalMs, Math.min(60_000, intervalMs * 16))
+        : maxBackoffProperty.value;
+    if (
+      !Number.isSafeInteger(maxBackoffMs) ||
+      (maxBackoffMs as number) < intervalMs ||
+      (maxBackoffMs as number) > 3_600_000
+    ) {
+      return INVALID_CONFIG;
+    }
+    polling = Object.freeze({
+      intervalMs,
+      maxBackoffMs: maxBackoffMs as number,
+    });
+  }
+  return Object.freeze({
+    loading,
+    synchronization: Object.freeze({ mode, polling, retry }),
+  });
+}
+
 function dataValue(
   value: object,
   key: PropertyKey,
@@ -110,18 +266,30 @@ function normalizeConfig(
   input: unknown,
 ): NormalizedConfig | typeof INVALID_CONFIG {
   try {
-    if (!isObject(input)) return INVALID_CONFIG;
+    if (
+      !isObject(input) ||
+      !hasOnlyOwnDataProperties(input, ["storage", "readModel"])
+    )
+      return INVALID_CONFIG;
     const storageProperty = ownDataValue(input, "storage");
     if (!storageProperty.ok || !isObject(storageProperty.value)) {
       return INVALID_CONFIG;
     }
 
+    if (!hasOnlyOwnDataProperties(storageProperty.value, ["driver"])) {
+      return INVALID_CONFIG;
+    }
     const driverProperty = ownDataValue(storageProperty.value, "driver");
     if (!driverProperty.ok || !isObject(driverProperty.value)) {
       return INVALID_CONFIG;
     }
 
+    const readModelProperty = optionalOwnDataValue(input, "readModel");
+    const readModel = normalizeReadModel(readModelProperty.value);
+    if (readModel === INVALID_CONFIG) return INVALID_CONFIG;
+
     return Object.freeze({
+      readModel,
       storage: Object.freeze({
         driver: driverProperty.value as
           ReadonlyResourceDriver | FullResourceDriver,
@@ -171,6 +339,16 @@ function messageFor(code: ExtensiaErrorCode): string {
       return "Resource ID is invalid";
     case "RESOURCE_NOT_FOUND":
       return "Resource was not found";
+    case "STORAGE_READ_FAILED":
+      return "Resource storage read failed";
+    case "READ_MODEL_REFRESH_UNAVAILABLE":
+      return "Read-model refresh is unavailable";
+    case "READ_MODEL_REFRESH_OPTIONS_INVALID":
+      return "Read-model refresh options are invalid";
+    case "READ_MODEL_REFRESH_CANCELED":
+      return "Read-model refresh was canceled";
+    case "READ_MODEL_REFRESH_EXHAUSTED":
+      return "Read-model refresh exhausted its retry budget";
     case "STORAGE_READONLY":
       return "Resource storage is readonly in this runtime";
     case "RESOURCE_INPUT_INVALID":
@@ -279,7 +457,7 @@ async function composePublicRuntime(
     const result = await composeExtensia({
       register(registry) {
         registry.bindValue(FULL_RESOURCE_DRIVER, full);
-        registry.use(FULL_RESOURCE_CORE_MODULE);
+        registry.use(createFullResourceCoreModule(config.readModel));
         registry.use(FULL_DEFAULT_API_SYSTEM_EXTENSION_MODULE);
         registry.use(DEFAULT_API_FACADE_REGISTRY_MODULE);
         return undefined;
@@ -288,6 +466,7 @@ async function composePublicRuntime(
         assetUploads: singleCapability(CORE_ASSET_UPLOAD_PORT),
         lifecycle: multiCapability(LIFECYCLE_CONTRIBUTIONS),
         facades: singleCapability(FACADE_REGISTRY_ACCESS),
+        readModel: singleCapability(READ_MODEL_CONTROL_PORT),
       },
     });
     if (!result.ok) {
@@ -299,6 +478,7 @@ async function composePublicRuntime(
         assetUploads: result.composition.capabilities.assetUploads,
         facades: result.composition.capabilities.facades,
         host: createRuntimeLifecycleHost(result.composition),
+        readModel: result.composition.capabilities.readModel,
       }),
     });
   }
@@ -309,7 +489,7 @@ async function composePublicRuntime(
         READONLY_RESOURCE_DRIVER,
         driver as ReadonlyResourceDriver,
       );
-      registry.use(READONLY_RESOURCE_CORE_MODULE);
+      registry.use(createReadonlyResourceCoreModule(config.readModel));
       registry.use(DEFAULT_API_SYSTEM_EXTENSION_MODULE);
       registry.use(DEFAULT_API_FACADE_REGISTRY_MODULE);
       return undefined;
@@ -317,6 +497,7 @@ async function composePublicRuntime(
     exports: {
       lifecycle: multiCapability(LIFECYCLE_CONTRIBUTIONS),
       facades: singleCapability(FACADE_REGISTRY_ACCESS),
+      readModel: singleCapability(READ_MODEL_CONTROL_PORT),
     },
   });
 
@@ -330,6 +511,7 @@ async function composePublicRuntime(
       assetUploads: null,
       facades: result.composition.capabilities.facades,
       host: createRuntimeLifecycleHost(result.composition),
+      readModel: result.composition.capabilities.readModel,
     }),
   });
 }
@@ -346,6 +528,57 @@ function compositionFailure(input: {
         diagnostic(entry.code, "composition"),
       ),
     ]),
+  });
+}
+
+function fallbackReadModelInspection(
+  config: NormalizedConfig | typeof INVALID_CONFIG,
+  state: ExtensiaModuleState,
+): ReadModelControlInspection {
+  const readModel =
+    config === INVALID_CONFIG
+      ? DEFAULT_READ_MODEL_RUNTIME_CONFIG
+      : config.readModel;
+  const lifecycle: ReadModelControlInspection["lifecycle"] =
+    state === "created"
+      ? "not-started"
+      : state === "starting"
+        ? "building"
+        : state === "started"
+          ? "ready"
+          : state;
+  const synchronizationState =
+    state === "created"
+      ? "not-started"
+      : state === "starting"
+        ? "starting"
+        : state === "stopped"
+          ? "stopped"
+          : state === "failed"
+            ? "failed"
+            : "idle";
+  return Object.freeze({
+    coverage: "none",
+    lifecycle,
+    loading: readModel.loading,
+    synchronization: Object.freeze({
+      freshness: "unknown",
+      last_failure: null,
+      last_observed_at: null,
+      mode: readModel.synchronization.mode,
+      state: synchronizationState,
+    }),
+  });
+}
+
+function detachedReadModelInspection(
+  inspection: ReadModelControlInspection,
+): ReadModelControlInspection {
+  return Object.freeze({
+    coverage: inspection.coverage,
+    lifecycle: inspection.lifecycle,
+    loading: inspection.loading,
+    synchronization: Object.freeze({ ...inspection.synchronization }),
   });
 }
 
@@ -399,6 +632,16 @@ export function createExtensia(config: ExtensiaConfig): ExtensiaModule {
     runtime = compositionResult.runtime;
     const lifecycleResult = await runtime.host.start();
     if (!lifecycleResult.ok) {
+      const synchronization = runtime.readModel.inspect().synchronization;
+      if (synchronization.last_failure === "retry-exhausted") {
+        moduleDiagnostics.push(
+          diagnostic("READ_MODEL_STARTUP_OBSERVATION_EXHAUSTED", "start"),
+        );
+      } else if (synchronization.last_failure === "capability") {
+        moduleDiagnostics.push(
+          diagnostic("READ_MODEL_SYNCHRONIZATION_CAPABILITY_FAILED", "start"),
+        );
+      }
       state = "failed";
       return failure("START_FAILED");
     }
@@ -479,6 +722,16 @@ export function createExtensia(config: ExtensiaConfig): ExtensiaModule {
               name === "query" || name === "storage",
           ) ?? [])
         : [];
+      const readModelInspection =
+        runtime?.readModel.inspect() ??
+        fallbackReadModelInspection(normalizedConfig, state);
+      const effectiveReadModelInspection =
+        state === "failed" && readModelInspection.lifecycle !== "failed"
+          ? Object.freeze({
+              ...readModelInspection,
+              lifecycle: "failed" as const,
+            })
+          : readModelInspection;
 
       return Object.freeze({
         state,
@@ -489,6 +742,7 @@ export function createExtensia(config: ExtensiaConfig): ExtensiaModule {
           ...lifecycleDiagnostics,
           ...facadeDiagnostics,
         ]),
+        read_model: detachedReadModelInspection(effectiveReadModelInspection),
       });
     },
   });

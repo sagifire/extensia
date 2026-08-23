@@ -10,6 +10,8 @@ import type {
 } from "../storage/resource-write-protocol.js";
 import {
   buildCompleteReadModelGeneration,
+  buildSelectiveReadModelGeneration,
+  createObservationStamp,
   freezeResourceSnapshot,
   markIdentityKey,
   type ObservationStamp,
@@ -18,6 +20,9 @@ import { ResourceRuntimeIntegrityError } from "../storage/resource-runtime-integ
 
 export const READONLY_COHERENT_METADATA_SNAPSHOT: unique symbol = Symbol(
   "extensia.internal.readonly-coherent-metadata-snapshot",
+);
+export const READONLY_SYNCHRONIZED_OBSERVATION: unique symbol = Symbol(
+  "extensia.internal.readonly-synchronized-observation",
 );
 
 export interface ReadonlyCoherentMetadataSnapshot {
@@ -95,6 +100,17 @@ export interface CoreMetadataCompleteSource {
     readonly resources: readonly ResourceSnapshot[];
     readonly asset_payload_states?: readonly AssetPayloadState[];
   }>;
+  readMarkResources?(
+    type: string,
+    name: string,
+  ): Promise<readonly ResourceSnapshot[]>;
+}
+
+export class CoreMetadataQueryUnavailableError extends Error {
+  constructor() {
+    super("Read-model query coverage is unavailable");
+    this.name = "CoreMetadataQueryUnavailableError";
+  }
 }
 
 function detachedResources(
@@ -141,6 +157,40 @@ export function createCoreMetadataObservationPort(
     async observeMetadata(
       request: CoreMetadataObservationRequest,
     ): Promise<CoreMetadataObservation> {
+      if (request.kind === "mark-resources") {
+        if (source.readMarkResources === undefined) {
+          throw new CoreMetadataQueryUnavailableError();
+        }
+        const resources = detachedResources(
+          await source.readMarkResources(request.type, request.name),
+        );
+        const key = markIdentityKey(request);
+        if (
+          resources.some(
+            (resource) =>
+              resource.data.is_deleted ||
+              !resource.marks.some((mark) => markIdentityKey(mark) === key),
+          )
+        ) {
+          throw new ResourceRuntimeIntegrityError(
+            "RESOURCE_STORAGE_INTEGRITY",
+            "Exact Mark selector returned an incompatible Resource",
+          );
+        }
+        const generation = buildSelectiveReadModelGeneration({
+          markSelector: {
+            key,
+            resourceIds: resources.map((resource) => resource.data.id),
+          },
+          observationStamp: createObservationStamp(),
+          resources,
+        });
+        return Object.freeze({
+          kind: request.kind,
+          observation_stamp: generation.observationStamp,
+          resources,
+        });
+      }
       const complete = await source.readComplete();
       const resources = detachedResources(complete.resources);
       const stamp = buildCompleteReadModelGeneration(resources, {
@@ -204,18 +254,10 @@ export function createCoreMetadataObservationPort(
           owner: owner === undefined ? null : freezeResourceSnapshot(owner),
         });
       }
-      const key = markIdentityKey(request);
-      return Object.freeze({
-        kind: request.kind,
-        observation_stamp: stamp,
-        resources: detachedResources(
-          resources.filter(
-            (resource) =>
-              !resource.data.is_deleted &&
-              resource.marks.some((mark) => markIdentityKey(mark) === key),
-          ),
-        ),
-      });
+      throw new ResourceRuntimeIntegrityError(
+        "RESOURCE_STORAGE_INTEGRITY",
+        "Metadata observation request is unsupported",
+      );
     },
   });
 }
@@ -252,6 +294,13 @@ export interface CoreCommittedChangeObservationPort {
   observeCommittedChanges(
     request: CommittedChangeObservationRequest,
   ): Promise<CommittedChangeObservation>;
+}
+
+export interface ReadonlySynchronizedObservationCapability extends CoreCommittedChangeObservationPort {
+  observeStartup(signal?: AbortSignal): Promise<{
+    readonly complete: CoreMetadataCompleteObservation;
+    readonly observed_head: JournalSequence | null;
+  }>;
 }
 
 export type CoreObservationTransientCategory =

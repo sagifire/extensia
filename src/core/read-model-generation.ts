@@ -1,3 +1,5 @@
+import { isDeepStrictEqual } from "node:util";
+
 import {
   validateAssetSnapshotStorageInvariants,
   type AssetPayloadState,
@@ -35,7 +37,18 @@ export interface CompleteGenerationCoverage {
   readonly storage_global: true;
 }
 
-export type GenerationCoverage = CompleteGenerationCoverage;
+export interface SelectiveGenerationCoverage {
+  readonly kind: "selective";
+  readonly resource_points: ReadonlySet<IDString>;
+  readonly resource_one_level: ReadonlySet<IDString>;
+  readonly asset_points_and_owners: ReadonlySet<IDString>;
+  readonly mark_selectors: ReadonlySet<MarkIdentityKey>;
+  readonly local_resource_points: ReadonlySet<IDString>;
+  readonly storage_global: false;
+}
+
+export type GenerationCoverage =
+  CompleteGenerationCoverage | SelectiveGenerationCoverage;
 
 export interface ReadModelGenerationStatistics {
   readonly full_rebuilds: number;
@@ -288,13 +301,304 @@ function emptyMaps(): MutableGenerationMaps {
 function publishable(
   maps: MutableGenerationMaps,
   statistics: ReadModelGenerationStatistics,
+  coverage: GenerationCoverage = COMPLETE_COVERAGE,
+  observationStamp: ObservationStamp = createObservationStamp(),
 ): ReadModelGeneration {
   return Object.freeze({
     ...maps,
-    coverage: COMPLETE_COVERAGE,
-    observationStamp: createObservationStamp(),
+    coverage,
+    observationStamp,
     statistics: Object.freeze(statistics),
   });
+}
+
+class ImmutableSet<T> implements ReadonlySet<T> {
+  readonly #values: Set<T>;
+
+  constructor(values: Iterable<T>) {
+    this.#values = new Set(values);
+    Object.freeze(this);
+  }
+
+  get size(): number {
+    return this.#values.size;
+  }
+
+  has(value: T): boolean {
+    return this.#values.has(value);
+  }
+
+  entries(): SetIterator<[T, T]> {
+    return this.#values.entries();
+  }
+
+  keys(): SetIterator<T> {
+    return this.#values.keys();
+  }
+
+  values(): SetIterator<T> {
+    return this.#values.values();
+  }
+
+  forEach(
+    callbackfn: (value: T, value2: T, set: ReadonlySet<T>) => void,
+    thisArg?: unknown,
+  ): void {
+    this.#values.forEach((value, value2) =>
+      callbackfn.call(thisArg, value, value2, this),
+    );
+  }
+
+  [Symbol.iterator](): SetIterator<T> {
+    return this.values();
+  }
+
+  get [Symbol.toStringTag](): string {
+    return "ImmutableSet";
+  }
+}
+
+function frozenSet<T>(values: Iterable<T> = []): ReadonlySet<T> {
+  return new ImmutableSet(values);
+}
+
+function selectiveCoverage(
+  input: {
+    readonly resourcePoints?: Iterable<IDString>;
+    readonly resourceOneLevel?: Iterable<IDString>;
+    readonly assetPoints?: Iterable<IDString>;
+    readonly markSelectors?: Iterable<MarkIdentityKey>;
+    readonly localResourcePoints?: Iterable<IDString>;
+  } = {},
+): SelectiveGenerationCoverage {
+  return Object.freeze({
+    asset_points_and_owners: frozenSet(input.assetPoints),
+    kind: "selective",
+    local_resource_points: frozenSet(input.localResourcePoints),
+    mark_selectors: frozenSet(input.markSelectors),
+    resource_one_level: frozenSet(input.resourceOneLevel),
+    resource_points: frozenSet(input.resourcePoints),
+    storage_global: false,
+  });
+}
+
+export function buildEmptySelectiveReadModelGeneration(
+  observationStamp: ObservationStamp,
+): ReadModelGeneration {
+  return publishable(
+    emptyMaps(),
+    {
+      changed_resources: 0,
+      delta_publications: 0,
+      full_rebuilds: 0,
+      structural_writes: 0,
+      touched_projection_keys: 0,
+    },
+    selectiveCoverage(),
+    observationStamp,
+  );
+}
+
+export function buildSelectiveReadModelGeneration(input: {
+  readonly observationStamp: ObservationStamp;
+  readonly resources: readonly ResourceSnapshot[];
+  readonly resourcePoints?: readonly IDString[];
+  readonly resourceOneLevelPoints?: readonly IDString[];
+  readonly resourceOneLevel?: Readonly<{
+    readonly parent: IDString;
+    readonly children: readonly ResourceSnapshot[];
+  }>;
+  readonly assetPoints?: readonly IDString[];
+  readonly markSelector?: Readonly<{
+    readonly key: MarkIdentityKey;
+    readonly resourceIds: readonly IDString[];
+  }>;
+}): ReadModelGeneration {
+  const maps = emptyMaps();
+  const writes = { count: 0 };
+  const detached = input.resources.map(freezeResourceSnapshot);
+  const byID = new Map<IDString, ResourceSnapshot>();
+  const lineage = new Map<IDString, IDString[]>();
+  for (const resource of detached) {
+    if (byID.has(resource.data.id)) {
+      throw new ResourceRuntimeIntegrityError(
+        "RESOURCE_INDEX_INTEGRITY",
+        "Selective observation contains duplicate Resource IDs",
+      );
+    }
+    byID.set(resource.data.id, resource);
+    maps.resourcesById = setMap(
+      maps.resourcesById,
+      resource.data.id,
+      resource,
+      writes,
+    );
+    if (resource.data.is_deleted) continue;
+    const primary = resource.assets.find((asset) => asset.is_primary);
+    if (primary !== undefined) {
+      maps.primaryAssetByResource = setMap(
+        maps.primaryAssetByResource,
+        resource.data.id,
+        primary.id,
+        writes,
+      );
+    }
+    for (const asset of resource.assets) {
+      const owner = maps.assetOwnerById.get(asset.id);
+      if (owner !== undefined && owner !== resource.data.id) {
+        throw new ResourceRuntimeIntegrityError(
+          "RESOURCE_INDEX_INTEGRITY",
+          "Selective observation duplicates a global Asset ID",
+        );
+      }
+      maps.assetById = setMap(maps.assetById, asset.id, asset, writes);
+      maps.assetOwnerById = setMap(
+        maps.assetOwnerById,
+        asset.id,
+        resource.data.id,
+        writes,
+      );
+      if (asset.derived_from !== null) {
+        const dependents = lineage.get(asset.derived_from) ?? [];
+        dependents.push(asset.id);
+        lineage.set(asset.derived_from, dependents);
+      }
+    }
+  }
+  for (const [assetID, dependents] of lineage) {
+    maps.lineageDependentsByAsset = setMap(
+      maps.lineageDependentsByAsset,
+      assetID,
+      sortedIDs(dependents),
+      writes,
+    );
+  }
+  if (input.resourceOneLevel !== undefined) {
+    const parent = byID.get(input.resourceOneLevel.parent);
+    if (parent === undefined || parent.data.is_deleted) {
+      throw new ResourceRuntimeIntegrityError(
+        "RESOURCE_INDEX_INTEGRITY",
+        "Selective one-level observation is missing its active parent",
+      );
+    }
+    const children = input.resourceOneLevel.children.map((child) => {
+      if (
+        child.data.is_deleted ||
+        child.data.parent_id !== input.resourceOneLevel!.parent
+      ) {
+        throw new ResourceRuntimeIntegrityError(
+          "RESOURCE_INDEX_INTEGRITY",
+          "Selective one-level observation contains an invalid child",
+        );
+      }
+      return childRef(child);
+    });
+    const sorted = sortedChildren(children);
+    for (let index = 0; index < sorted.length; index += 1) {
+      if (sorted[index]!.order_index !== index) {
+        throw new ResourceRuntimeIntegrityError(
+          "RESOURCE_INDEX_INTEGRITY",
+          "Selective one-level observation violates dense sibling order",
+        );
+      }
+    }
+    maps.childrenByParent = new ParentProjectionMap(
+      setMap(
+        maps.childrenByParent.inner,
+        parentKey(input.resourceOneLevel.parent),
+        sorted,
+        writes,
+      ),
+    );
+  }
+  if (input.markSelector !== undefined) {
+    for (const resourceID of input.markSelector.resourceIds) {
+      const resource = byID.get(resourceID);
+      if (
+        resource === undefined ||
+        resource.data.is_deleted ||
+        !resource.marks.some(
+          (mark) => markIdentityKey(mark) === input.markSelector!.key,
+        )
+      ) {
+        throw new ResourceRuntimeIntegrityError(
+          "RESOURCE_INDEX_INTEGRITY",
+          "Selective Mark observation contains an invalid match",
+        );
+      }
+    }
+    maps.resourcesByMark = setMap(
+      maps.resourcesByMark,
+      input.markSelector.key,
+      sortedIDs(input.markSelector.resourceIds),
+      writes,
+    );
+  }
+  return publishable(
+    maps,
+    {
+      changed_resources: detached.length,
+      delta_publications: 0,
+      full_rebuilds: 0,
+      structural_writes: writes.count,
+      touched_projection_keys: writes.count,
+    },
+    selectiveCoverage({
+      ...(input.assetPoints === undefined
+        ? {}
+        : { assetPoints: input.assetPoints }),
+      markSelectors:
+        input.markSelector === undefined ? [] : [input.markSelector.key],
+      resourceOneLevel:
+        input.resourceOneLevel === undefined
+          ? (input.resourceOneLevelPoints ?? [])
+          : [input.resourceOneLevel.parent],
+      ...(input.resourcePoints === undefined
+        ? {}
+        : { resourcePoints: input.resourcePoints }),
+    }),
+    input.observationStamp,
+  );
+}
+
+export function hasResourcePointCoverage(
+  generation: ReadModelGeneration,
+  id: IDString,
+): boolean {
+  return (
+    generation.coverage.kind === "complete" ||
+    generation.coverage.resource_points.has(id)
+  );
+}
+
+export function hasResourceOneLevelCoverage(
+  generation: ReadModelGeneration,
+  id: IDString,
+): boolean {
+  return (
+    generation.coverage.kind === "complete" ||
+    generation.coverage.resource_one_level.has(id)
+  );
+}
+
+export function hasAssetPointCoverage(
+  generation: ReadModelGeneration,
+  id: IDString,
+): boolean {
+  return (
+    generation.coverage.kind === "complete" ||
+    generation.coverage.asset_points_and_owners.has(id)
+  );
+}
+
+export function hasMarkSelectorCoverage(
+  generation: ReadModelGeneration,
+  key: MarkIdentityKey,
+): boolean {
+  return (
+    generation.coverage.kind === "complete" ||
+    generation.coverage.mark_selectors.has(key)
+  );
 }
 
 function readinessMap(
@@ -481,11 +785,9 @@ export function applyCompleteReadModelDelta(
   options: Readonly<{
     fullRebuild?: boolean;
     storageValidatedLocalDelta?: boolean;
+    localPublication?: boolean;
   }> = {},
 ): ReadModelGeneration {
-  if (current.coverage.kind !== "complete") {
-    throw new Error("P5-WP1 only accepts complete greedy generations");
-  }
   const changed = changedResources.map(freezeResourceSnapshot);
   const changedIDs = new Set<IDString>();
   for (const resource of changed) {
@@ -699,13 +1001,87 @@ export function applyCompleteReadModelDelta(
     }
   }
 
-  return publishable(maps, {
-    changed_resources: changed.length,
-    delta_publications:
-      current.statistics.delta_publications + (options.fullRebuild ? 0 : 1),
-    full_rebuilds:
-      current.statistics.full_rebuilds + (options.fullRebuild ? 1 : 0),
-    structural_writes: writes.count,
-    touched_projection_keys: touched.size,
-  });
+  let coverage: GenerationCoverage = current.coverage;
+  if (current.coverage.kind === "selective") {
+    const resourcePoints = new Set(current.coverage.resource_points);
+    const resourceOneLevel = new Set(current.coverage.resource_one_level);
+    const assetPoints = new Set(current.coverage.asset_points_and_owners);
+    const markSelectors = new Set(current.coverage.mark_selectors);
+    const localResourcePoints = new Set(current.coverage.local_resource_points);
+    for (const resource of oldResources) {
+      resourceOneLevel.delete(resource.data.parent_id as IDString);
+      resource.assets.forEach((asset) => assetPoints.delete(asset.id));
+      resource.marks.forEach((mark) =>
+        markSelectors.delete(markIdentityKey(mark)),
+      );
+    }
+    for (const resource of changed) {
+      resourcePoints.add(resource.data.id);
+      if (options.localPublication === true) {
+        localResourcePoints.add(resource.data.id);
+      }
+      resourceOneLevel.delete(resource.data.parent_id as IDString);
+      resource.assets.forEach((asset) => assetPoints.delete(asset.id));
+      resource.marks.forEach((mark) =>
+        markSelectors.delete(markIdentityKey(mark)),
+      );
+    }
+    coverage = selectiveCoverage({
+      assetPoints,
+      localResourcePoints,
+      markSelectors,
+      resourceOneLevel,
+      resourcePoints,
+    });
+  }
+
+  return publishable(
+    maps,
+    {
+      changed_resources: changed.length,
+      delta_publications:
+        current.statistics.delta_publications + (options.fullRebuild ? 0 : 1),
+      full_rebuilds:
+        current.statistics.full_rebuilds + (options.fullRebuild ? 1 : 0),
+      structural_writes: writes.count,
+      touched_projection_keys: touched.size,
+    },
+    coverage,
+  );
+}
+
+export function rebaseSelectiveLocalOverlays(
+  current: ReadModelGeneration,
+  observed: ReadModelGeneration,
+): ReadModelGeneration {
+  if (
+    current.coverage.kind === "complete" ||
+    observed.coverage.kind === "complete" ||
+    current.coverage.local_resource_points.size === 0
+  ) {
+    return observed;
+  }
+  const observedCoverage = observed.coverage;
+  const overlays = [...current.coverage.local_resource_points]
+    .map((id) => current.resourcesById.get(id))
+    .filter(
+      (resource): resource is ResourceSnapshot =>
+        resource !== undefined &&
+        !(
+          resource.data.is_deleted &&
+          resource.data.parent_id !== null &&
+          observedCoverage.resource_one_level.has(resource.data.parent_id) &&
+          !observed.resourcesById.has(resource.data.id)
+        ) &&
+        !isDeepStrictEqual(
+          resource,
+          observed.resourcesById.get(resource.data.id),
+        ),
+    );
+  return overlays.length === 0
+    ? observed
+    : applyCompleteReadModelDelta(observed, overlays, {
+        localPublication: true,
+        storageValidatedLocalDelta: true,
+      });
 }
