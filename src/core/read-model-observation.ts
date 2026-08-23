@@ -254,5 +254,18 @@ export interface CoreCommittedChangeObservationPort {
   ): Promise<CommittedChangeObservation>;
 }
 
+export type CoreObservationTransientCategory =
+  "storage-lock" | "storage-unavailable" | "storage-read";
+
+export class CoreObservationTransientError extends Error {
+  readonly category: CoreObservationTransientCategory;
+
+  constructor(category: CoreObservationTransientCategory) {
+    super("Core read-model observation failed transiently");
+    this.name = "CoreObservationTransientError";
+    this.category = category;
+  }
+}
+
 export const CORE_COMMITTED_CHANGE_OBSERVATION_PORT: Token<CoreCommittedChangeObservationPort> =
   readModelObservationTokens.token("committed-change-observation-port");

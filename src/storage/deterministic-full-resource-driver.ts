@@ -7,7 +7,10 @@ import {
   type ResourceSnapshot,
 } from "../domain/snapshots.js";
 import type { IDString } from "../domain/scalars.js";
-import type { FullResourceDriverAdapter } from "./full-resource-driver-adapter.js";
+import {
+  ResourceStorageSessionTransientError,
+  type FullResourceDriverAdapter,
+} from "./full-resource-driver-adapter.js";
 import {
   cloneAssetLogicalChange,
   canonicalResourceStorageJson,
@@ -278,7 +281,9 @@ export function createDeterministicFullResourceDriver(
       opened = false;
     },
     async acquireStorageSession(signal?: AbortSignal) {
-      if (!opened) throw new Error("Driver is not open");
+      if (!opened) {
+        throw new ResourceStorageSessionTransientError("unavailable");
+      }
       failures.hit("session.acquire");
       const releaseLease = await leaseFor(backing).acquire(signal);
       let leaseReleased = false;
@@ -289,7 +294,7 @@ export function createDeterministicFullResourceDriver(
       };
       if (activeSession) {
         releaseOwnedLease();
-        throw new Error("Adapter already owns a session");
+        throw new ResourceStorageSessionTransientError("lock");
       }
       activeSession = true;
       crashRelease = releaseOwnedLease;

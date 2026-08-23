@@ -1,6 +1,6 @@
 # P5-HARD1 / TASK-07.26-0059: Реалізувати synchronization actor, bounded retry і lifecycle
 
-Task Status: backlog
+Task Status: done
 Type: implementation/hardening
 Created: 2026-07-18
 Owner Role: Concurrency Engineer / Runtime Engineer
@@ -8,13 +8,13 @@ Current Run: RUN-001
 
 ## Поточний стан
 
-Run Status: prepared
-Progress: task package створено; implementation/hardening не активована.
-Acceptance: 0/10.
-Blockers: P5-WP1 має бути completed і accepted.
-Blocked Phase: dependency gate, не lifecycle blocker.
-Pending Decisions: після dependency gate потрібне окреме explicit рішення власника про activation RUN-001.
-Next Action: дочекатися accepted P5-WP1; потім активувати лише окремою командою.
+Run Status: completed
+Progress: completed and accepted by whole-task human review.
+Acceptance: 10/10; final independent `PASS / REVIEW_READY`, open P0–P3 `0`.
+Blockers: немає; P5-WP1 completed і accepted.
+Blocked Phase: n/a
+Pending Decisions: немає.
+Next Action: TASK-0060 може бути активована лише окремою explicit командою власника.
 
 ## Мета
 
@@ -89,7 +89,7 @@ Next Action: дочекатися accepted P5-WP1; потім активуват
 
 ## Прогони
 
-- [RUN-001](RUN-001/index.md) - prepared; dependency/activation pending.
+- [RUN-001](RUN-001/index.md) - completed and accepted implementation/hardening run.
 
 ## Дослідження
 
@@ -101,8 +101,8 @@ Next Action: дочекатися accepted P5-WP1; потім активуват
 
 ## Запити на рішення
 
-- Після completed/accepted P5-WP1: окремо `activate P5-HARD1 / TASK-07.26-0059` або залишити task у backlog.
-- Human review після execution: `approve | request changes | cancel`; fixation/follow-up decisions окремо, якщо виникнуть.
+- Resolved: користувач явно активував `P5-HARD1 / TASK-07.26-0059 / RUN-001` 2026-08-23 і дозволив субагентів.
+- Resolved: користувач схвалив whole-task result 2026-08-23; canonical fixation не потрібна, downstream не активовано.
 
 ## Downstream
 
@@ -110,18 +110,18 @@ Next Action: дочекатися accepted P5-WP1; потім активуват
 
 ## Human Review
 
-Status: not-ready
-Requested: n/a
-Reviewed: n/a
-Approval Source: n/a
+Status: approved
+Requested: 2026-08-23
+Reviewed: 2026-08-23
+Approval Source: explicit user command `Task approve`
 Approved Fixations: none
 Rejected Fixations: none
 Follow-up Decisions: none
-Decision Notes: task лише prepared; reviewed content ще не створено.
+Decision Notes: whole-task result approved; canonical fixation not-needed; downstream activation не надана.
 
 ## Фінальний результат
 
-Completed: n/a
-Final Run: n/a
-Summary: n/a
-Residual Risks: n/a
+Completed: 2026-08-23
+Final Run: RUN-001
+Summary: internal admission-epoch synchronization actor, bounded retry, exact fault taxonomy і lifecycle integration реалізовані; 346-test full gate та independent audit зелені.
+Residual Risks: concrete SQLite remaining-budget timeout, polling, live topology evidence і support claim належать P5-VS2; public lazy/refresh/config integration належить P5-VS1.

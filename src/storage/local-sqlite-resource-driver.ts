@@ -17,7 +17,10 @@ import {
   READONLY_COHERENT_METADATA_SNAPSHOT,
   type ReadonlyResourceDriver,
 } from "../core/resource-read-runtime.js";
-import type { FullResourceDriverAdapter } from "./full-resource-driver-adapter.js";
+import {
+  ResourceStorageSessionTransientError,
+  type FullResourceDriverAdapter,
+} from "./full-resource-driver-adapter.js";
 import {
   canonicalResourceStorageJson,
   cloneAssetLogicalChange,
@@ -345,8 +348,12 @@ export function createLocalSqliteFullResourceDriver(
       openedRoot = null;
     },
     async acquireStorageSession(signal?: AbortSignal) {
-      if (openedRoot === null) throw new Error("Driver is not open");
-      if (sessionActive) throw new Error("Driver already owns a session");
+      if (openedRoot === null) {
+        throw new ResourceStorageSessionTransientError("unavailable");
+      }
+      if (sessionActive) {
+        throw new ResourceStorageSessionTransientError("lock");
+      }
       if (signal?.aborted === true) throw signal.reason;
 
       sessionActive = true;
@@ -366,7 +373,7 @@ export function createLocalSqliteFullResourceDriver(
       } catch (error) {
         connection?.db.close();
         sessionActive = false;
-        throw normalizeSqliteIntegrityError(error);
+        throw normalizeSqliteSessionAcquireError(error);
       }
     },
   });
@@ -1886,6 +1893,29 @@ function normalizeSqliteIntegrityError(error: unknown): unknown {
     return new ResourceStorageIntegrityError("SQLite database is corrupt");
   }
   return error;
+}
+
+function normalizeSqliteSessionAcquireError(error: unknown): unknown {
+  const normalized = normalizeSqliteIntegrityError(error);
+  if (normalized instanceof ResourceRuntimeIntegrityError) return normalized;
+  if (typeof normalized === "object" && normalized !== null) {
+    if (
+      ("errcode" in normalized &&
+        (normalized.errcode === 5 || normalized.errcode === 6)) ||
+      ("code" in normalized &&
+        (normalized.code === "ERR_SQLITE_BUSY" ||
+          normalized.code === "ERR_SQLITE_LOCKED"))
+    ) {
+      return new ResourceStorageSessionTransientError("lock");
+    }
+    if (
+      ("errcode" in normalized && normalized.errcode === 14) ||
+      ("code" in normalized && normalized.code === "ERR_SQLITE_CANTOPEN")
+    ) {
+      return new ResourceStorageSessionTransientError("unavailable");
+    }
+  }
+  return normalized;
 }
 
 export function inspectLocalSqliteProfile(rootPath: string): Readonly<{

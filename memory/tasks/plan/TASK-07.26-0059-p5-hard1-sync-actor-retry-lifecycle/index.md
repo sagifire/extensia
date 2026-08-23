@@ -6,8 +6,8 @@
 
 ## Папки
 
-- [RUN-001](RUN-001/index.md) - prepared implementation/hardening run; не активований.
+- [RUN-001](RUN-001/index.md) - completed and accepted implementation/hardening run.
 
 ## Файли
 
-- [Task](task.md) - dashboard, hardening contract, залежності й activation gate.
+- [Task](task.md) - done dashboard, hardening contract, acceptance і downstream gate.

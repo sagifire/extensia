@@ -34,6 +34,7 @@ import {
   markIdentityKey,
 } from "./read-model-generation.js";
 import { createReadModelPublicationCoordinator } from "./read-model-coordinator.js";
+import { READ_MODEL_SYNCHRONIZATION_ACTOR } from "./read-model-synchronization.js";
 import {
   CORE_COMMITTED_CHANGE_OBSERVATION_PORT,
   CORE_METADATA_OBSERVATION_PORT,
@@ -360,6 +361,7 @@ describe("observation ports and deterministic seams", () => {
         registry.use(FULL_RESOURCE_CORE_MODULE);
       },
       exports: {
+        actor: singleCapability(READ_MODEL_SYNCHRONIZATION_ACTOR),
         committed: singleCapability(CORE_COMMITTED_CHANGE_OBSERVATION_PORT),
         faults: singleCapability(RUNTIME_FAULT_SINK),
         lifecycle: multiCapability(LIFECYCLE_CONTRIBUTIONS),
@@ -368,7 +370,13 @@ describe("observation ports and deterministic seams", () => {
     });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
+    await expect(
+      result.composition.capabilities.actor.refresh(),
+    ).resolves.toEqual({ code: "MODULE_NOT_READY", ok: false });
     await result.composition.capabilities.lifecycle[0]!.start();
+    await expect(
+      result.composition.capabilities.actor.refresh(),
+    ).resolves.toMatchObject({ attempts: 1, changed: false, ok: true });
     await expect(
       result.composition.capabilities.metadata.observeMetadata({
         kind: "storage-complete",

@@ -67,6 +67,13 @@ import {
   type CoreResourceWriteResult,
 } from "../system-extensions/default-api/resource-write-port.js";
 import { createGreedyResourceIndex } from "./resource-index.js";
+import { createReadModelPublicationCoordinator } from "./read-model-coordinator.js";
+import {
+  createReadModelSynchronizationActor,
+  createReadModelSynchronizationAttempt,
+  READ_MODEL_SYNCHRONIZATION_ACTOR,
+  type ReadModelSynchronizationActor,
+} from "./read-model-synchronization.js";
 import type { MutableGreedyResourceIndex } from "./resource-index-write-contracts.js";
 import {
   createAssetUploadPort,
@@ -106,6 +113,7 @@ interface FullResourceRuntime {
   readonly lifecycle: LifecycleContribution;
   readonly metadataObservation: CoreMetadataObservationPort;
   readonly committedChangeObservation: CoreCommittedChangeObservationPort;
+  readonly synchronizationActor: ReadModelSynchronizationActor;
   readonly faultSink: RuntimeFaultSink;
 }
 
@@ -164,7 +172,8 @@ function createReadPort(
 }
 
 function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
-  const index = createGreedyResourceIndex();
+  const coordinator = createReadModelPublicationCoordinator();
+  const index = createGreedyResourceIndex(coordinator);
   const actorId = generateIDString();
   const identities: ResourceOperationIdentitySource = Object.freeze({
     create: () =>
@@ -174,12 +183,21 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
   const metadataObservation = createFullMetadataObservationPort(driver);
   const committedChangeObservation =
     createFullCommittedChangeObservationPort(driver);
+  let synchronizationActor: ReadModelSynchronizationActor | null = null;
   const faultSink = createRuntimeFaultSink({
     closeIntake: () => {
       engine.failClose();
       index.clear();
     },
-    cleanup: () => undefined,
+    cleanup: () => synchronizationActor?.stop(),
+  });
+  synchronizationActor = createReadModelSynchronizationActor({
+    attempt: createReadModelSynchronizationAttempt({
+      coordinator,
+      observation: committedChangeObservation,
+    }),
+    faultSink,
+    initiallyOpen: false,
   });
 
   function coherentResourceMap(
@@ -827,6 +845,7 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
     writePort,
     metadataObservation,
     committedChangeObservation,
+    synchronizationActor,
     faultSink,
     lifecycle: lifecycleContribution({
       id: "core.resource-write",
@@ -851,7 +870,9 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
               },
             },
           );
+          synchronizationActor.openIntake();
         } catch {
+          await synchronizationActor.stop();
           index.clear();
           try {
             await driver.close();
@@ -862,7 +883,10 @@ function createRuntime(driver: FullResourceDriverAdapter): FullResourceRuntime {
         }
       },
       async stop() {
-        await engine.closeAndDrain();
+        const synchronizationDrain = synchronizationActor.stop();
+        const operationDrain = engine.closeAndDrain();
+        await synchronizationDrain;
+        await operationDrain;
         await faultSink.drain();
         try {
           await driver.close();
@@ -888,6 +912,7 @@ export const FULL_RESOURCE_CORE_MODULE: ReturnType<typeof defineModule> =
         token: CORE_COMMITTED_CHANGE_OBSERVATION_PORT,
         kind: "shared-service",
       },
+      { token: READ_MODEL_SYNCHRONIZATION_ACTOR, kind: "shared-service" },
       { token: RUNTIME_FAULT_SINK, kind: "shared-service" },
       {
         token: RUNTIME_FAULT_SINK_CONTRIBUTIONS,
@@ -928,6 +953,10 @@ export const FULL_RESOURCE_CORE_MODULE: ReturnType<typeof defineModule> =
       context
         .bind(CORE_COMMITTED_CHANGE_OBSERVATION_PORT)
         .toFactory(({ get }) => get(RUNTIME).committedChangeObservation)
+        .singleton();
+      context
+        .bind(READ_MODEL_SYNCHRONIZATION_ACTOR)
+        .toFactory(({ get }) => get(RUNTIME).synchronizationActor)
         .singleton();
       context
         .bind(RUNTIME_FAULT_SINK)

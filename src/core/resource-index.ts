@@ -17,7 +17,10 @@ import {
   buildCompleteReadModelGeneration,
   type ReadModelGenerationStatistics,
 } from "./read-model-generation.js";
-import { createReadModelPublicationCoordinator } from "./read-model-coordinator.js";
+import {
+  createReadModelPublicationCoordinator,
+  type ReadModelPublicationCoordinator,
+} from "./read-model-coordinator.js";
 
 export interface GreedyResourceIndex {
   readonly ready: boolean;
@@ -43,9 +46,9 @@ type GreedyResourceIndexInitializeOptions = NonNullable<
   Parameters<GreedyResourceIndex["initialize"]>[1]
 >;
 
-export function createGreedyResourceIndex(): MutableGreedyResourceIndex {
-  const coordinator = createReadModelPublicationCoordinator();
-
+export function createGreedyResourceIndex(
+  coordinator: ReadModelPublicationCoordinator = createReadModelPublicationCoordinator(),
+): MutableGreedyResourceIndex {
   function generation() {
     return coordinator.capture().generation;
   }

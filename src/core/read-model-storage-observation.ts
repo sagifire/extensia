@@ -7,7 +7,10 @@ import {
   type ResourceSnapshot,
 } from "../domain/snapshots.js";
 import type { IDString } from "../domain/scalars.js";
-import type { FullResourceDriverAdapter } from "../storage/full-resource-driver-adapter.js";
+import {
+  ResourceStorageSessionTransientError,
+  type FullResourceDriverAdapter,
+} from "../storage/full-resource-driver-adapter.js";
 import {
   cloneCommittedOperationEntry,
   parseJournalSequence,
@@ -18,12 +21,55 @@ import { buildCompleteReadModelGeneration } from "./read-model-generation.js";
 import { freezeResourceSnapshot } from "./read-model-generation.js";
 import {
   createCoreMetadataObservationPort,
+  CoreObservationTransientError,
   READONLY_COHERENT_METADATA_SNAPSHOT,
   type CoreCommittedChangeObservationPort,
   type CommittedChangeObservationRequest,
   type CoreMetadataObservationPort,
   type ReadonlyCoherentMetadataSnapshot,
 } from "./read-model-observation.js";
+
+async function* transientObservationRead<T>(
+  source: AsyncIterable<T> | Iterable<T>,
+): AsyncGenerator<T> {
+  try {
+    yield* source;
+  } catch (error) {
+    if (error instanceof ResourceStorageSessionTransientError) {
+      throw new CoreObservationTransientError(
+        error.category === "lock"
+          ? "storage-lock"
+          : error.category === "unavailable"
+            ? "storage-unavailable"
+            : "storage-read",
+      );
+    }
+    throw error;
+  }
+}
+
+async function acquireObservationSession(
+  driver: FullResourceDriverAdapter,
+  signal: AbortSignal | undefined,
+): Promise<
+  import("../storage/resource-write-protocol.js").ResourceStorageSession
+> {
+  try {
+    return await driver.acquireStorageSession(signal);
+  } catch (error) {
+    if (signal?.aborted === true) throw error;
+    if (error instanceof ResourceStorageSessionTransientError) {
+      throw new CoreObservationTransientError(
+        error.category === "lock"
+          ? "storage-lock"
+          : error.category === "unavailable"
+            ? "storage-unavailable"
+            : "storage-read",
+      );
+    }
+    throw error;
+  }
+}
 
 export interface ReadonlyMetadataDriver {
   listResources(): AsyncIterable<ResourceSnapshot>;
@@ -138,13 +184,13 @@ export function createFullCommittedChangeObservationPort(
         throw new TypeError("Committed-change observation request is invalid");
       }
       if (request.signal?.aborted === true) throw request.signal.reason;
-      const session = await driver.acquireStorageSession(request.signal);
+      const session = await acquireObservationSession(driver, request.signal);
       try {
         const completeJournal: CommittedOperationEntry[] = [];
         const operationIDs = new Set<IDString>();
         let expected = 1n;
-        for await (const candidate of session.readCommittedOperationsAfter(
-          null,
+        for await (const candidate of transientObservationRead(
+          session.readCommittedOperationsAfter(null),
         )) {
           const entry = freezeDetached(cloneCommittedOperationEntry(candidate));
           if (
@@ -175,10 +221,14 @@ export function createFullCommittedChangeObservationPort(
         );
         const resources: ResourceSnapshot[] = [];
         const payloadStates: AssetPayloadState[] = [];
-        for await (const resource of session.listResources()) {
+        for await (const resource of transientObservationRead(
+          session.listResources(),
+        )) {
           resources.push(freezeResourceSnapshot(resource));
         }
-        for await (const state of session.listAssetPayloadStates?.() ?? []) {
+        for await (const state of transientObservationRead(
+          session.listAssetPayloadStates?.() ?? [],
+        )) {
           payloadStates.push(
             Object.freeze({
               active_upload:

@@ -2,7 +2,7 @@
 
 ## Призначення
 
-Backlog-задача інтеграції lazy read-model coverage та exact experimental public refresh/config/inspection surface поверх hardened semantic runtime P5-HARD1.
+Backlog-задача інтеграції lazy read-model coverage та exact experimental public refresh/config/inspection surface поверх completed/accepted hardened semantic runtime P5-HARD1; очікує окремої explicit activation.
 
 ## Папки
 

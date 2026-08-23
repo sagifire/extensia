@@ -11,10 +11,10 @@ Current Run: RUN-001
 Run Status: prepared
 Progress: Task package підготовлено; implementation не розпочато.
 Acceptance: 0/10; execution ще не активовано.
-Blockers: activation gate не виконаний, доки P5-HARD1 / TASK-07.26-0059 не completed/accepted.
+Blockers: немає; P5-HARD1 / TASK-07.26-0059 completed і accepted.
 Blocked Phase: n/a
-Pending Decisions: explicit activation після виконання dependency gate.
-Next Action: після completed/accepted P5-HARD1 окремо активувати RUN-001.
+Pending Decisions: explicit activation RUN-001.
+Next Action: окремою explicit командою власника активувати RUN-001.
 
 ## Мета
 
