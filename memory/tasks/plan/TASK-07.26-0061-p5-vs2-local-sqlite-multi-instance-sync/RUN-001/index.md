@@ -2,7 +2,7 @@
 
 ## Призначення
 
-Review-ready corrective finalization: whole-task/FIX-001 approved and applied; FIX-002 pending separate approval after post-application audit omissions.
+Completed after whole-task/FIX-001/FIX-002 approval, exact application and repeated independent post-application audit `PASS`.
 
 ## Папки
 

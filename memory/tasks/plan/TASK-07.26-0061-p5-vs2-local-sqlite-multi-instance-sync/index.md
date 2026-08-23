@@ -2,14 +2,14 @@
 
 ## Призначення
 
-Review-ready corrective finalization: implementation/FIX-001 approved/applied, FIX-002 pending separate approval.
+Completed: implementation accepted 10/10, FIX-001/FIX-002 approved and applied exactly, repeated post-application audit `PASS`; downstream inactive.
 
 ## Папки
 
-- [RUN-001](RUN-001/index.md) - Review-ready corrective finalization run.
+- [RUN-001](RUN-001/index.md) - Completed approved implementation run; final audit `PASS`.
 
 ## Файли
 
 - [Task](task.md) - Контракт, dashboard, acceptance та activation gate задачі.
 - [FIX-001](FIX-001.md) - Required canonical current/product/technical memory synchronization; approved and applied exactly.
-- [FIX-002](FIX-002.md) - Required corrective proposal for two stale canonical P5-VS2 summary statements; pending separate approval.
+- [FIX-002](FIX-002.md) - Required correction for two stale canonical P5-VS2 summary statements; approved and applied exactly.

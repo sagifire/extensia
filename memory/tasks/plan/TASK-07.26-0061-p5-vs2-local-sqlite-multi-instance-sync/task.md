@@ -1,6 +1,6 @@
 # P5-VS2 / TASK-07.26-0061: Local SQLite multi-instance synchronization
 
-Task Status: review
+Task Status: done
 Type: implementation
 Created: 2026-07-18
 Owner Role: Storage Engineer / Concurrency Engineer
@@ -8,13 +8,13 @@ Current Run: RUN-001
 
 ## Поточний стан
 
-Run Status: review-ready
-Progress: whole-task і FIX-001 approved/applied; post-application audit виявив два canonical summary omissions, corrective FIX-002 review-ready pending approval.
-Acceptance: implementation 10/10; corrective canonical consistency finding лишається unresolved до FIX-002 approval/application.
+Run Status: completed
+Progress: whole-task, FIX-001 і FIX-002 approved; both fixations applied exact; repeated independent post-application audit `PASS`.
+Acceptance: 10/10; final audit `PASS`, open `P0/P1/P2/P3 = 0/0/0/0`.
 Blockers: немає; P5-VS1 / TASK-07.26-0060 completed/accepted.
 Blocked Phase: n/a
-Pending Decisions: corrective deterministic FIX-002 потребує separate human decision; topology support лишається unclaimed, downstream activation не надана.
-Next Action: independent review FIX-002, потім `FIX-002: approve | reject`; після application — repeated post-application audit і closure.
+Pending Decisions: немає; topology support лишається unclaimed, downstream activation не надана.
+Next Action: немає; P5-STAB лишається prepared/inactive та потребує окремої explicit activation.
 
 ## Мета
 
@@ -92,7 +92,7 @@ Next Action: independent review FIX-002, потім `FIX-002: approve | reject`;
 
 ## Прогони
 
-- [RUN-001](RUN-001/index.md) - review-ready implementation run.
+- [RUN-001](RUN-001/index.md) - completed implementation run; whole-task/FIX-001/FIX-002 approved, both fixations applied exact, final audit `PASS`.
 
 ## Дослідження
 
@@ -101,7 +101,7 @@ Next Action: independent review FIX-002, потім `FIX-002: approve | reject`;
 ## Фіксації
 
 - [FIX-001](FIX-001.md) — required canonical current/product/technical memory synchronization; approved and applied exactly.
-- [FIX-002](FIX-002.md) — required corrective exact proposal for two stale summaries found by post-application audit; pending review/approval.
+- [FIX-002](FIX-002.md) — required corrective exact fixation for two stale summaries; approved and applied exactly.
 
 ## Запити на рішення
 
@@ -116,15 +116,15 @@ Next Action: independent review FIX-002, потім `FIX-002: approve | reject`;
 Status: approved
 Requested: 2026-08-23
 Reviewed: 2026-08-23
-Approval Source: explicit user commands `task: approve` and `FIX-001: approve`
-Approved Fixations: FIX-001
+Approval Source: explicit user commands `task: approve`, `FIX-001: approve` and `FIX-002: approve`
+Approved Fixations: FIX-001, FIX-002
 Rejected Fixations: none
-Follow-up Decisions: pending
-Decision Notes: whole-task і FIX-001 approved separately; FIX-001 applied exact. Post-application audit виявив два omissions поза approved payload; corrective FIX-002 pending separate approval. Support claim відсутній; P5-STAB не активовано.
+Follow-up Decisions: FIX-002 approved
+Decision Notes: whole-task, FIX-001 і corrective FIX-002 approved separately; both fixations applied exact. Repeated post-application audit `PASS`, open `P0/P1/P2/P3 = 0/0/0/0`. Support claim відсутній; P5-STAB не активовано.
 
 ## Фінальний результат
 
-Completed: n/a
-Final Run: n/a
-Summary: whole-task implementation approved, FIX-001 applied; corrective FIX-002 pending separate approval після post-application canonical consistency finding.
+Completed: 2026-08-23
+Final Run: RUN-001
+Summary: P5-VS2 implementation accepted 10/10; FIX-001 і corrective FIX-002 applied exact; repeated independent post-application audit `PASS`; task/run closed done/completed without downstream activation.
 Residual Risks: synchronous final-call overshoot, full/full contention/fairness і non-SLA polling characterization належать downstream P5-STAB; topology support unclaimed.

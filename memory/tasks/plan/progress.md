@@ -101,11 +101,11 @@ Allowed parallelism: P4-DG1 і P4-DG2 могли активуватися окр
 - [x] **[Done]** [P5-WP1 / TASK-07.26-0058](TASK-07.26-0058-p5-wp1-read-model-generation-coordinator-foundation/index.md) - Whole-task approved: 10/10 acceptance, 317-test full gate, independent `PASS`; downstream не активовано.
 - [x] **[Done]** [P5-HARD1 / TASK-07.26-0059](TASK-07.26-0059-p5-hard1-sync-actor-retry-lifecycle/index.md) - Whole-task approved: 10/10 acceptance, 346-test full gate, final independent `PASS`; downstream не активовано.
 - [x] **[Done]** [P5-VS1 / TASK-07.26-0060](TASK-07.26-0060-p5-vs1-lazy-refresh-public-integration/index.md) - Whole-task approved: 10/10 acceptance, 359-test full gate, FIX-001 applied exactly, post-application audit `PASS`; downstream не активовано.
-- [ ] **[Review]** [P5-VS2 / TASK-07.26-0061](TASK-07.26-0061-p5-vs2-local-sqlite-multi-instance-sync/index.md) - Whole-task/FIX-001 approved/applied; post-application audit found two stale summaries, corrective FIX-002 pending separate approval. Support unclaimed, P5-STAB inactive.
-- [ ] **[Backlog]** [P5-STAB / TASK-07.26-0062](TASK-07.26-0062-p5-stab-phase-5-stabilization/index.md) - Prepared phase-wide stabilization/topology verdict; activation blocked by accepted TASK-0058…0061.
+- [x] **[Done]** [P5-VS2 / TASK-07.26-0061](TASK-07.26-0061-p5-vs2-local-sqlite-multi-instance-sync/index.md) - Whole-task/FIX-001/FIX-002 approved, both fixations applied exact, repeated post-application audit `PASS`; support unclaimed, downstream inactive.
+- [ ] **[Backlog]** [P5-STAB / TASK-07.26-0062](TASK-07.26-0062-p5-stab-phase-5-stabilization/index.md) - Prepared phase-wide stabilization/topology verdict; implementation predecessors accepted, separate explicit activation required.
 - [ ] **[Backlog]** [P5-AUD1 / TASK-07.26-0063](TASK-07.26-0063-p5-aud1-independent-phase-5-audit/index.md) - Prepared independent Phase 5 audit/human-gate recommendation; activation blocked by accepted P5-STAB.
 
-Canonical-now boundary: `P5-RS1`, `P5-DG1`, `P5-DG2`, `P5-WP1 / TASK-0058`, `P5-HARD1 / TASK-0059` і `P5-VS1 / TASK-0060` accepted/completed; relevant fixations applied. `P5-VS2 / TASK-0061` review-ready з whole-task/FIX-001 approved/applied і corrective FIX-002 pending; `P5-STAB -> P5-AUD1` лишаються backlog/prepared та inactive.
+Canonical-now boundary: `P5-RS1`, `P5-DG1`, `P5-DG2`, `P5-WP1 / TASK-0058`, `P5-HARD1 / TASK-0059`, `P5-VS1 / TASK-0060` і `P5-VS2 / TASK-0061` accepted/completed; relevant fixations applied. `P5-STAB -> P5-AUD1` лишаються backlog/prepared та inactive.
 
 ## Фаза 6 — Базова extension ecosystem
 

@@ -1,7 +1,7 @@
 # Результат виконання: RUN-001
 
 Related Task: [P5-VS2 / TASK-07.26-0061](../task.md)
-Run Status: review-ready
+Run Status: completed
 Activated: 2026-08-23
 Agent Role: Storage Engineer / Concurrency Engineer
 Review Method: self-review + independent-subagent audit before human review
@@ -12,7 +12,7 @@ P5-VS2 implementation і verification завершено. `local-sqlite-v1` full
 
 ## Acceptance
 
-Progress: 10/10 implementation criteria підтверджено self-review та fresh independent re-audit; run готовий до human review.
+Progress: 10/10 implementation criteria підтверджено self-review, human approval і final repeated independent post-application audit; run completed.
 
 1. PASS — full і readonly concrete adapters реалізують той самий opaque coherent capability; snapshots detached, raw connection/session/schema не виходять у Core або public surface.
 2. PASS — readonly startup/refresh/polling використовують read-only/query-only connection; exact process snapshot підтверджує незмінні DB bytes/hash/mtime, missing/recovery-required authority fail-close-ить без repair.
@@ -25,7 +25,7 @@ Progress: 10/10 implementation criteria підтверджено self-review т�
 9. PASS — process matrix покриває Resource create/update/move/delete, Mark/KV/Asset, successful lock wait, lock-to-success retry, session/catch-up/rebuild/event-loop/stale-age samples; manifest фіксує candidate profile, uncertified temp filesystem і repetition counts, а published JSON не містить roots, IDs, raw errors або secrets.
 10. PASS at implementation freeze — focused/process/package/full repository gates зелені, required deterministic `FIX-001` review-ready, support claim exact unclaimed, implementation re-audit не має open P0-P3.
 
-Post-approval finalization status: implementation acceptance лишається 10/10, але task closure заблоковано двома stale canonical summaries, exact correction яких запропоновано в required `FIX-002` і ще не approved/applied.
+Post-approval finalization status: implementation acceptance 10/10; corrective FIX-002 approved/applied exact; repeated independent post-application audit `PASS`, open `P0/P1/P2/P3 = 0/0/0/0`.
 
 ## Execution
 
@@ -46,15 +46,15 @@ Post-approval finalization status: implementation acceptance лишається 
 
 ## Verification
 
-Status: implementation gates green; corrective canonical finalization review ongoing.
+Status: PASS; implementation gates and corrective canonical finalization complete.
 
 - `npm.cmd run typecheck` — PASS після final self-review remediation.
 - Focused post-audit gate — 5 files / 88 tests PASS: concrete full/readonly observation, deadline/lock diagnostics, public capability gate, polling lifecycle/actor і local runtime external refresh.
 - `node memory/tasks/plan/TASK-07.26-0061-p5-vs2-local-sqlite-multi-instance-sync/RUN-001/multi-instance-evidence.mjs` — fresh PASS; `process-evidence.json` містить production two-process full/full, full/readonly, measured wait/retry та aligned polling-actor matrices.
-- `node memory/tasks/plan/TASK-07.26-0061-p5-vs2-local-sqlite-multi-instance-sync/RUN-001/fixation-validate.mjs` — pre-application PASS для FIX-001; current `--post --fixation=FIX-001.md` PASS для 5 targets / 11 operations; `--fixation=FIX-002.md` pre-application PASS для 2 targets / 2 operations.
+- `node memory/tasks/plan/TASK-07.26-0061-p5-vs2-local-sqlite-multi-instance-sync/RUN-001/fixation-validate.mjs` — pre-application PASS для FIX-001/FIX-002; current `--post --fixation=FIX-001.md` PASS для 5 targets / 11 operations і `--post --fixation=FIX-002.md` PASS для 2 targets / 2 operations.
 - `npm.cmd run check` — final post-audit-remediation PASS: typecheck, build, lint, format, 32 files / 366 tests, coverage, 206-file pack, `publint`, `attw` ESM profile і package smoke.
 - Final full coverage: statements `86.74%`, branches `81.43%`, functions `92.20%`, lines `88.18%`.
-- `git diff --check` — PASS; canonical diff містить exact approved/applied FIX-001 targets, тоді як corrective FIX-002 targets ще не змінені.
+- `git diff --check` — PASS; canonical diff містить exact approved/applied FIX-001 і FIX-002 targets.
 - `attw` має лише configured/ignored CommonJS-to-ESM warning у ESM-only profile; supported ESM/bundler resolutions зелені.
 
 ## Self-review
@@ -81,7 +81,7 @@ Initial audit verdict був `CHANGES_REQUIRED` з `P2 3 / P3 1`: deferred-BEGIN
 
 Fresh auditor verification: 5 files / 88 focused tests PASS; process harness PASS із successful wait `145.16 ms`, raw `lock → success` і timeout `250 → 159 ms`, aligned spread `2 ms <= 50`; fixation validator 5 targets / 11 operations PASS; full 32 files / 366 tests, coverage `86.74 / 81.43 / 92.20 / 88.18`, 206-file package, `publint`, `attw`, package smoke, privacy, UTF-8/language, canonical direct-diff і `git diff --check` green. Support лишається `UNCLAIMED_PENDING_P5_STAB_P5_AUD1_HUMAN_GATE`.
 
-Post-application audit: FIX-001 exact application підтверджено, але два stale canonical summary statements поза approved payload є open canonical-consistency finding. Required FIX-002 proposed, mechanically validated і pending separate human approval; final post-application `PASS` ще не заявляється.
+Post-application audit: FIX-001 exact application підтверджено, але два stale canonical summary statements поза approved payload вимагали separate FIX-002. FIX-002 approved/applied exact; final repeated post-application audit `PASS`, acceptance `10/10`, open `P0/P1/P2/P3 = 0/0/0/0`.
 
 ## Risks and Compromises
 
@@ -93,7 +93,7 @@ Post-application audit: FIX-001 exact application підтверджено, ал
 ## Memory Impact
 
 - Task/run/index/progress/state lifecycle updates є operational.
-- Canonical current Product/Domain/Technical memory синхронізовано approved/applied [FIX-001](../FIX-001.md), але post-application audit знайшов два omitted stale summaries; їх exact correction належить required [FIX-002](../FIX-002.md), pending separate approval.
+- Canonical current Product/Domain/Technical memory синхронізовано approved/applied [FIX-001](../FIX-001.md) і corrective approved/applied [FIX-002](../FIX-002.md); repeated post-application audit `PASS`.
 - Canonical target Domain, Knowledge і Project rules семантично не змінюються.
 
 ## Follow-up Proposals
@@ -107,3 +107,6 @@ Post-application audit: FIX-001 exact application підтверджено, ал
 - Run переведено в `finalizing`; exact canonical application і fresh independent post-application audit виконуються без activation P5-STAB.
 - `FIX-001` застосовано exact до п'яти approved canonical targets без deviations; pre-application SHA-256/cardinality і post-application old/new cardinality, target hash та `git diff --check` gates зелені.
 - Post-application audit підтвердив exact FIX-001 application, але знайшов два canonical summary omissions поза approved payload. Run повернуто в `review-ready`; окремий required deterministic [FIX-002](../FIX-002.md) proposed і не може бути applied без separate human approval.
+- 2026-08-23: користувач окремо схвалив `FIX-002: approve`; two-target correction застосовано exact, pre/post validator і target hashes green. Run повернуто в `finalizing` для repeated independent post-application audit.
+- Repeated independent post-application audit підтвердив exact FIX-001/FIX-002 application, canonical consistency, UTF-8/links, lifecycle, scope та downstream inactivity; verdict `PASS`, acceptance `10/10`, open `P0/P1/P2/P3 = 0/0/0/0`.
+- TASK-0061 / RUN-001 закрито як `done/completed`; topology support лишається unclaimed, P5-STAB/P5-AUD1 не активовано.
