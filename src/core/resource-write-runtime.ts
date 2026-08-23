@@ -86,7 +86,12 @@ import {
   CORE_METADATA_OBSERVATION_PORT,
   type CoreCommittedChangeObservationPort,
   type CoreMetadataObservationPort,
+  resolveSynchronizedObservationCapability,
 } from "./read-model-observation.js";
+import {
+  createReadModelPollingController,
+  type ReadModelPollingController,
+} from "./read-model-polling.js";
 import {
   createFullCommittedChangeObservationPort,
   createFullMetadataObservationPort,
@@ -168,9 +173,12 @@ function createRuntime(
   });
   const engine: OperationEngine = createOperationEngine(identities);
   const metadataObservation = createFullMetadataObservationPort(driver);
+  const coherentObservation =
+    resolveSynchronizedObservationCapability(driver) ?? undefined;
   const committedChangeObservation =
-    createFullCommittedChangeObservationPort(driver);
+    coherentObservation ?? createFullCommittedChangeObservationPort(driver);
   let synchronizationActor: ReadModelSynchronizationActor | null = null;
+  let polling: ReadModelPollingController | null = null;
   const faultSink = createRuntimeFaultSink({
     closeIntake: () => {
       engine.failClose();
@@ -186,6 +194,32 @@ function createRuntime(
     async attempt(context) {
       if (coordinator.ready) return refreshAttempt(context);
       try {
+        if (coherentObservation !== undefined) {
+          const startup = await coherentObservation.observeStartup({
+            attempt_admission_deadline_monotonic_ms:
+              context.attempt_admission_deadline_monotonic_ms,
+            signal: context.signal,
+          });
+          await index.initialize(
+            (async function* () {
+              yield* startup.complete.resources;
+            })(),
+            {
+              asset_readiness: new Map(
+                startup.complete.asset_readiness.map((item) => [
+                  item.asset_id,
+                  item.has_committed_representation,
+                ]),
+              ),
+              loading: config.loading,
+              synchronization: {
+                cursor: startup.observed_head,
+                kind: "synchronized",
+              },
+            },
+          );
+          return Object.freeze({ changed: true, ok: true as const });
+        }
         const state = await scanRecoveryCleanResourceState(
           driver,
           context.signal,
@@ -227,6 +261,18 @@ function createRuntime(
     initiallyOpen: false,
     retry: config.synchronization.retry,
   });
+  if (
+    config.synchronization.polling !== null &&
+    coherentObservation !== undefined
+  ) {
+    polling = createReadModelPollingController({
+      actor: synchronizationActor,
+      config: config.synchronization.polling,
+    });
+    coordinator.setCursorBehindListener(() => {
+      synchronizationActor?.requestBackground();
+    });
+  }
   const control = createReadModelControl({
     actor: synchronizationActor,
     config,
@@ -899,12 +945,13 @@ function createRuntime(
       order: 30,
       async start() {
         control.setLifecycle("building");
-        if (config.synchronization.mode === "polling") {
+        if (
+          config.synchronization.mode === "polling" &&
+          coherentObservation === undefined
+        ) {
           control.markStartupFailure("capability");
           control.setLifecycle("failed");
-          throw new Error(
-            "Polling activation belongs to the concrete synchronization slice",
-          );
+          throw new Error("Polling requires synchronized observation");
         }
         try {
           await driver.open();
@@ -924,9 +971,12 @@ function createRuntime(
           }
           control.markStartupObserved();
           control.setLifecycle("ready");
+          polling?.start();
         } catch {
           control.setLifecycle("failed");
+          polling?.close();
           await synchronizationActor.stop();
+          await polling?.drain();
           index.clear();
           try {
             await driver.close();
@@ -938,9 +988,11 @@ function createRuntime(
       },
       async stop() {
         control.setLifecycle("stopping");
+        polling?.close();
         const synchronizationDrain = synchronizationActor.stop();
         const operationDrain = engine.closeAndDrain();
         await synchronizationDrain;
+        await polling?.drain();
         await operationDrain;
         await faultSink.drain();
         try {

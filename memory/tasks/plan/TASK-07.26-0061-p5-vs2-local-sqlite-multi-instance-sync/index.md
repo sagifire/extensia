@@ -2,12 +2,14 @@
 
 ## Призначення
 
-Backlog-задача concrete `local-sqlite-v1` full/readonly committed-change observation, volatile cursor, polling і two-process synchronization evidence.
+Review-ready corrective finalization: implementation/FIX-001 approved/applied, FIX-002 pending separate approval.
 
 ## Папки
 
-- [RUN-001](RUN-001/index.md) - Prepared implementation run; не активований.
+- [RUN-001](RUN-001/index.md) - Review-ready corrective finalization run.
 
 ## Файли
 
 - [Task](task.md) - Контракт, dashboard, acceptance та activation gate задачі.
+- [FIX-001](FIX-001.md) - Required canonical current/product/technical memory synchronization; approved and applied exactly.
+- [FIX-002](FIX-002.md) - Required corrective proposal for two stale canonical P5-VS2 summary statements; pending separate approval.

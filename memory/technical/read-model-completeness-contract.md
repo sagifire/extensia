@@ -31,7 +31,7 @@ Public Phase 2 surface не розширюється speculative draft methods. 
 - `greedy` full/readonly startup публікує complete generation; `lazy` після equivalent global integrity gate публікує empty/selective generation і догружає exact Resource point/one-level observations.
 - Чинні public `getResource`/`getResourceTree` повертають success лише з exact coverage proof; negative proof зберігає missing semantics, unknown повертає typed storage read failure й не стає empty/partial success.
 - Full/readonly semantic metadata adapters мають однакову claimed read semantics; readonly supported path виконує лише observation calls. Internal `asset.owner.get` повертає exact owner ID + Asset або proven absent з complete point metadata; `mark.resources.get` повертає exact sorted Resource IDs з complete storage-global metadata лише через exact selector capability, а без неї fail-ить query unavailable до implicit full scan. Public global query catalog не доданий.
-- P5-WP1/P5-HARD1/P5-VS1 не реалізують profile-specific/certified `local-sqlite-v1` full+readonly observation, remaining-budget/lexical-seek behavior, polling scheduler або topology support; це лишається P5-VS2 і later gates.
+- P5-VS2 реалізувала profile-owned `local-sqlite-v1` full+readonly coherent observation, remaining-budget/lexical-seek behavior, exact dual threshold, lifecycle-owned polling і rerunnable process characterization. Це не topology support: P5-STAB, P5-AUD1 та explicit human gate лишаються mandatory.
 
 ### 2.3. Draft-only inputs
 
@@ -347,8 +347,8 @@ Use at least small/current parity, medium and pressure ladders chosen by impleme
 
 ## 14. Downstream contract
 
-`P5-WP1`, `P5-HARD1` і `P5-VS1` materialized та accepted у TASK-0058/0059/0060; TASK-0060/FIX-001 applied. `P5-VS2` concrete multi-instance sync/polling/contention -> `P5-STAB` -> `P5-AUD1` лишаються prepared, inactive й потребують separate explicit activation. P5-VS1 acceptance/application не активує downstream packages.
+`P5-WP1`, `P5-HARD1`, `P5-VS1` і `P5-VS2` materialized та accepted у TASK-0058/0059/0060/0061; відповідні required fixations applied. `P5-STAB` -> `P5-AUD1` лишаються prepared, inactive й потребують separate explicit activation. P5-VS2 acceptance/application не активує downstream packages.
 
 ## 15. Memory impact
 
-P5-VS1 implementation потребує current/materialization sync через TASK-0060/FIX-001 у domain current state, architecture, P5 contracts, public-read compatibility note і roadmap. Product requirements, target domain invariants і normative completeness rules не змінюються.
+P5-VS1 current/materialization sync застосовано через TASK-0060/FIX-001; P5-VS2 current/materialization sync застосовується exact через TASK-0061/FIX-001 у domain current state, architecture, P5 contracts і roadmap. Product requirements, target domain invariants і normative completeness rules не змінюються.

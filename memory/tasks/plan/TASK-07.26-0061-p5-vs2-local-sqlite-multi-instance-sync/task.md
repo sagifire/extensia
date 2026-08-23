@@ -1,6 +1,6 @@
 # P5-VS2 / TASK-07.26-0061: Local SQLite multi-instance synchronization
 
-Task Status: backlog
+Task Status: review
 Type: implementation
 Created: 2026-07-18
 Owner Role: Storage Engineer / Concurrency Engineer
@@ -8,13 +8,13 @@ Current Run: RUN-001
 
 ## Поточний стан
 
-Run Status: prepared
-Progress: Task package підготовлено; implementation не розпочато.
-Acceptance: 0/10; execution ще не активовано.
-Blockers: activation gate не виконаний, доки P5-VS1 / TASK-07.26-0060 не completed/accepted.
+Run Status: review-ready
+Progress: whole-task і FIX-001 approved/applied; post-application audit виявив два canonical summary omissions, corrective FIX-002 review-ready pending approval.
+Acceptance: implementation 10/10; corrective canonical consistency finding лишається unresolved до FIX-002 approval/application.
+Blockers: немає; P5-VS1 / TASK-07.26-0060 completed/accepted.
 Blocked Phase: n/a
-Pending Decisions: explicit activation після виконання dependency gate.
-Next Action: після completed/accepted P5-VS1 окремо активувати RUN-001.
+Pending Decisions: corrective deterministic FIX-002 потребує separate human decision; topology support лишається unclaimed, downstream activation не надана.
+Next Action: independent review FIX-002, потім `FIX-002: approve | reject`; після application — repeated post-application audit і closure.
 
 ## Мета
 
@@ -92,7 +92,7 @@ Next Action: після completed/accepted P5-VS1 окремо активува�
 
 ## Прогони
 
-- [RUN-001](RUN-001/index.md) - prepared; activation pending dependency gate й explicit рішення.
+- [RUN-001](RUN-001/index.md) - review-ready implementation run.
 
 ## Дослідження
 
@@ -100,11 +100,12 @@ Next Action: після completed/accepted P5-VS1 окремо активува�
 
 ## Фіксації
 
-Немає; змістові canonical memory changes під час execution потребуватимуть окремого FIX proposal.
+- [FIX-001](FIX-001.md) — required canonical current/product/technical memory synchronization; approved and applied exactly.
+- [FIX-002](FIX-002.md) — required corrective exact proposal for two stale summaries found by post-application audit; pending review/approval.
 
 ## Запити на рішення
 
-- Активувати RUN-001 лише після completed/accepted P5-VS1.
+- Resolved: користувач явно активував RUN-001 2026-08-23; dependency P5-VS1 completed/accepted.
 
 ## Запропоновані follow-up задачі
 
@@ -112,18 +113,18 @@ Next Action: після completed/accepted P5-VS1 окремо активува�
 
 ## Human Review
 
-Status: not-requested
-Requested: n/a
-Reviewed: n/a
-Approval Source: n/a
-Approved Fixations: none
+Status: approved
+Requested: 2026-08-23
+Reviewed: 2026-08-23
+Approval Source: explicit user commands `task: approve` and `FIX-001: approve`
+Approved Fixations: FIX-001
 Rejected Fixations: none
 Follow-up Decisions: pending
-Decision Notes: RUN-001 ще не активовано; support claim відсутній.
+Decision Notes: whole-task і FIX-001 approved separately; FIX-001 applied exact. Post-application audit виявив два omissions поза approved payload; corrective FIX-002 pending separate approval. Support claim відсутній; P5-STAB не активовано.
 
 ## Фінальний результат
 
 Completed: n/a
 Final Run: n/a
-Summary: pending execution, process evidence, stabilization/audit gates і human approval.
-Residual Risks: pending.
+Summary: whole-task implementation approved, FIX-001 applied; corrective FIX-002 pending separate approval після post-application canonical consistency finding.
+Residual Risks: synchronous final-call overshoot, full/full contention/fairness і non-SLA polling characterization належать downstream P5-STAB; topology support unclaimed.

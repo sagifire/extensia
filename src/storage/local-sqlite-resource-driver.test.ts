@@ -36,6 +36,7 @@ import {
 import type { CommittedOperationDraft } from "./resource-write-protocol.js";
 import { AssetStorageIntegrityError } from "./resource-runtime-integrity.js";
 import { createReadonlyMetadataObservationPort } from "../core/read-model-storage-observation.js";
+import { resolveSynchronizedObservationCapability } from "../core/read-model-observation.js";
 
 const ACTOR_ID = "20000000-0000-4000-8000-000000000001" as IDString;
 const OPERATION_ID = "30000000-0000-4000-8000-000000000001" as IDString;
@@ -118,6 +119,89 @@ async function commitOne(
 
 function fileHash(path: string): string {
   return createHash("sha256").update(readFileSync(path)).digest("hex");
+}
+
+async function seedObservationMatrix(
+  rootPath: string,
+  entryCount: number,
+  resourceCount: number,
+): Promise<void> {
+  const adapter = driver(rootPath);
+  await adapter.open();
+  const session = await adapter.acquireStorageSession();
+  await session.release();
+  await adapter.close();
+  const databasePath = inspectLocalSqliteProfile(rootPath).databasePath;
+  const db = new DatabaseSync(databasePath, { timeout: 1_000 });
+  db.exec("PRAGMA foreign_keys = ON; BEGIN IMMEDIATE;");
+  try {
+    const resources = Array.from({ length: resourceCount }, (_, index) =>
+      buildResourceSnapshot({
+        ...resource(
+          `10000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}` as IDString,
+          `R${index + 1}`,
+        ),
+        data: {
+          ...resource().data,
+          id: `10000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}` as IDString,
+          order_index: index,
+          title: `R${index + 1}`,
+        },
+      }),
+    );
+    const insertResource = db.prepare(
+      "INSERT INTO resources(id, snapshot_json, tombstoned, revision) VALUES (?, ?, 0, 1)",
+    );
+    resources.forEach((snapshot) =>
+      insertResource.run(
+        snapshot.data.id,
+        canonicalResourceStorageJson(snapshot),
+      ),
+    );
+    const affected = resources.map((snapshot) => snapshot.data.id);
+    const changes = affected.map((resourceId) => ({
+      kind: "resource.upsert" as const,
+      resource_id: resourceId,
+    }));
+    const fingerprint = computeResourceWriteSetFingerprint(resources);
+    const insertJournal = db.prepare(
+      `INSERT INTO journal(
+         sequence_text, sequence_length, operation_id, actor_id, type,
+         committed_at, write_set_fingerprint, entry_json
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    );
+    for (let index = 1; index <= entryCount; index += 1) {
+      const sequence = String(index);
+      const entry = {
+        actor_id: ACTOR_ID,
+        affected_resources: affected,
+        changes,
+        committed_at: (10 + index) as Timestamp,
+        operation_id:
+          `30000000-0000-4000-8000-${String(index).padStart(12, "0")}` as IDString,
+        schema_version: 1 as const,
+        sequence,
+        type: "resource.update" as const,
+        write_set_fingerprint: fingerprint,
+      };
+      insertJournal.run(
+        sequence,
+        sequence.length,
+        entry.operation_id,
+        entry.actor_id,
+        entry.type,
+        entry.committed_at,
+        entry.write_set_fingerprint,
+        canonicalResourceStorageJson(entry),
+      );
+    }
+    db.exec("COMMIT;");
+  } catch (error) {
+    db.exec("ROLLBACK;");
+    throw error;
+  } finally {
+    db.close();
+  }
 }
 
 describe("local SQLite Resource driver", () => {
@@ -576,6 +660,259 @@ describe("local SQLite Resource driver", () => {
     expect(interleavingBlocked).toBe(true);
     await readonly.close();
     expect(fileHash(databasePath)).toBe(before);
+  });
+
+  it("observes coherent committed changes symmetrically without readonly mutation", async () => {
+    const root = createRoot();
+    const diagnostics: import("./local-sqlite-resource-driver.js").LocalSqliteObservationDiagnostic[] =
+      [];
+    const full = await commitOne(root);
+    const fullObservation = resolveSynchronizedObservationCapability(full);
+    expect(fullObservation).not.toBeNull();
+    const fullStartup = await fullObservation!.observeStartup({
+      attempt_admission_deadline_monotonic_ms: performance.now() + 1_000,
+    });
+    expect(fullStartup.observed_head).toBe("1");
+    expect(fullStartup.complete.resources).toHaveLength(1);
+    await expect(
+      fullObservation!.observeCommittedChanges({
+        after: fullStartup.observed_head,
+        attempt_admission_deadline_monotonic_ms: performance.now() + 1_000,
+        incremental_entry_limit: 256,
+        incremental_resource_limit: 256,
+      }),
+    ).resolves.toMatchObject({ kind: "at-head", observed_head: "1" });
+    await full.close();
+
+    const readonly = createLocalSqliteReadonlyResourceDriver({
+      onObservationDiagnostic: (sample) => diagnostics.push(sample),
+      profile: "candidate-local-filesystem",
+      rootPath: root,
+      timeoutMs: 100,
+    });
+    await readonly.open();
+    const readonlyObservation =
+      resolveSynchronizedObservationCapability(readonly);
+    expect(readonlyObservation).not.toBeNull();
+    const readonlyStartup = await readonlyObservation!.observeStartup({
+      attempt_admission_deadline_monotonic_ms: performance.now() + 1_000,
+    });
+    expect(readonlyStartup.observed_head).toBe("1");
+
+    const writer = driver(root);
+    await writer.open();
+    const session = await writer.acquireStorageSession();
+    const current = await session.readResource(RESOURCE_ID);
+    expect(current).not.toBeNull();
+    const updated = buildResourceSnapshot({
+      ...current!,
+      data: { ...current!.data, title: "Two", updated_at: 3 as Timestamp },
+    });
+    const operationId = "30000000-0000-4000-8000-000000000002" as IDString;
+    const transaction = await session.begin(operationId);
+    await transaction.stageResource(updated);
+    await transaction.commit({
+      ...draft(updated, operationId),
+      type: "resource.update",
+    });
+    await session.release();
+    await writer.close();
+
+    const databasePath = inspectLocalSqliteProfile(root).databasePath;
+    const beforeRefresh = fileHash(databasePath);
+    const delta = await readonlyObservation!.observeCommittedChanges({
+      after: readonlyStartup.observed_head,
+      attempt_admission_deadline_monotonic_ms: performance.now() + 1_000,
+      incremental_entry_limit: 256,
+      incremental_resource_limit: 256,
+    });
+    expect(delta).toMatchObject({ kind: "delta", observed_head: "2" });
+    if (delta.kind !== "delta") throw new Error("Expected delta observation");
+    expect(delta.entries.map((entry) => entry.sequence)).toEqual(["2"]);
+    expect(delta.resources.map((item) => item.data.title)).toEqual(["Two"]);
+    expect(fileHash(databasePath)).toBe(beforeRefresh);
+    expect(diagnostics).toEqual([
+      expect.objectContaining({
+        configured_timeout_ms: expect.any(Number),
+        outcome: "success",
+        phase: "startup",
+        role: "readonly",
+      }),
+      expect.objectContaining({
+        configured_timeout_ms: expect.any(Number),
+        outcome: "success",
+        phase: "refresh",
+        role: "readonly",
+      }),
+    ]);
+    expect(
+      diagnostics.every((sample) => sample.configured_timeout_ms <= 100),
+    ).toBe(true);
+    await readonly.close();
+  });
+
+  it("uses exact 0/1/32/256/257 entry and distinct-Resource thresholds", async () => {
+    const distanceRoot = createRoot();
+    await seedObservationMatrix(distanceRoot, 257, 1);
+    const distanceReader = createLocalSqliteReadonlyResourceDriver({
+      profile: "candidate-local-filesystem",
+      rootPath: distanceRoot,
+    });
+    await distanceReader.open();
+    const distance = resolveSynchronizedObservationCapability(distanceReader)!;
+    const request = (after: string | null) =>
+      distance.observeCommittedChanges({
+        after: after as
+          import("./resource-write-protocol.js").JournalSequence | null,
+        attempt_admission_deadline_monotonic_ms: performance.now() + 2_000,
+        incremental_entry_limit: 256,
+        incremental_resource_limit: 256,
+      });
+    await expect(request("257")).resolves.toMatchObject({ kind: "at-head" });
+    await expect(request("256")).resolves.toMatchObject({
+      entries: [{ sequence: "257" }],
+      kind: "delta",
+    });
+    await expect(request("225")).resolves.toMatchObject({
+      entries: expect.arrayContaining([
+        expect.objectContaining({ sequence: "226" }),
+        expect.objectContaining({ sequence: "257" }),
+      ]),
+      kind: "delta",
+    });
+    const boundary = await request("1");
+    expect(boundary.kind).toBe("delta");
+    if (boundary.kind === "delta") expect(boundary.entries).toHaveLength(256);
+    await expect(request(null)).resolves.toMatchObject({ kind: "rebuild" });
+    await distanceReader.close();
+
+    const aggregateRoot = createRoot();
+    await seedObservationMatrix(aggregateRoot, 1, 257);
+    const aggregateReader = createLocalSqliteReadonlyResourceDriver({
+      profile: "candidate-local-filesystem",
+      rootPath: aggregateRoot,
+    });
+    await aggregateReader.open();
+    const aggregate =
+      resolveSynchronizedObservationCapability(aggregateReader)!;
+    await expect(
+      aggregate.observeCommittedChanges({
+        after: null,
+        attempt_admission_deadline_monotonic_ms: performance.now() + 2_000,
+        incremental_entry_limit: 256,
+        incremental_resource_limit: 256,
+      }),
+    ).resolves.toMatchObject({ kind: "rebuild" });
+    await aggregateReader.close();
+  });
+
+  it("caps each SQLite busy wait by the remaining admission budget", async () => {
+    const root = createRoot();
+    const initialized = await commitOne(root);
+    await initialized.close();
+    const samples: import("./local-sqlite-resource-driver.js").LocalSqliteObservationDiagnostic[] =
+      [];
+    const readonly = createLocalSqliteReadonlyResourceDriver({
+      onObservationDiagnostic: (sample) => samples.push(sample),
+      profile: "candidate-local-filesystem",
+      rootPath: root,
+      timeoutMs: 1_000,
+    });
+    await readonly.open();
+    const observation = resolveSynchronizedObservationCapability(readonly)!;
+    const startup = await observation.observeStartup({
+      attempt_admission_deadline_monotonic_ms: performance.now() + 1_000,
+    });
+    const databasePath = inspectLocalSqliteProfile(root).databasePath;
+    const child = spawn(
+      process.execPath,
+      [
+        "-e",
+        `const { DatabaseSync } = require('node:sqlite');
+         const db = new DatabaseSync(process.argv[1], { timeout: 1000 });
+         db.exec('PRAGMA locking_mode=EXCLUSIVE; BEGIN EXCLUSIVE;');
+         process.stdout.write('LOCKED\\n');
+         setInterval(() => {}, 1000);`,
+        databasePath,
+      ],
+      { stdio: ["ignore", "pipe", "pipe"] },
+    );
+    await waitForOutput(child, "LOCKED");
+    await expect(
+      observation.observeCommittedChanges({
+        after: startup.observed_head,
+        attempt_admission_deadline_monotonic_ms: performance.now() + 100,
+        incremental_entry_limit: 256,
+        incremental_resource_limit: 256,
+      }),
+    ).rejects.toMatchObject({ category: "storage-lock" });
+    child.kill();
+    await once(child, "exit");
+    const sample = samples.at(-1)!;
+    expect(sample).toMatchObject({
+      outcome: "lock",
+      phase: "refresh",
+      role: "readonly",
+    });
+    expect(sample.configured_timeout_ms).toBeGreaterThan(0);
+    expect(sample.configured_timeout_ms).toBeLessThanOrEqual(100);
+    expect(sample.actual_wait_ms).toBeGreaterThanOrEqual(0);
+    expect(sample.synchronous_overshoot_ms).toBeGreaterThanOrEqual(0);
+    await readonly.close();
+  });
+
+  it("measures a successful cross-process read-lock wait before observation", async () => {
+    const root = createRoot();
+    const initialized = await commitOne(root);
+    await initialized.close();
+    const samples: import("./local-sqlite-resource-driver.js").LocalSqliteObservationDiagnostic[] =
+      [];
+    const readonly = createLocalSqliteReadonlyResourceDriver({
+      onObservationDiagnostic: (sample) => samples.push(sample),
+      profile: "candidate-local-filesystem",
+      rootPath: root,
+      timeoutMs: 1_000,
+    });
+    await readonly.open();
+    const observation = resolveSynchronizedObservationCapability(readonly)!;
+    const startup = await observation.observeStartup({
+      attempt_admission_deadline_monotonic_ms: performance.now() + 1_000,
+    });
+    const databasePath = inspectLocalSqliteProfile(root).databasePath;
+    const child = spawn(
+      process.execPath,
+      [
+        "-e",
+        `const { DatabaseSync } = require('node:sqlite');
+         const db = new DatabaseSync(process.argv[1], { timeout: 1000 });
+         db.exec('PRAGMA locking_mode=EXCLUSIVE; BEGIN EXCLUSIVE;');
+         process.stdout.write('LOCKED\\n');
+         setTimeout(() => { db.exec('COMMIT'); db.close(); }, 180);`,
+        databasePath,
+      ],
+      { stdio: ["ignore", "pipe", "pipe"] },
+    );
+    await waitForOutput(child, "LOCKED");
+    await expect(
+      observation.observeCommittedChanges({
+        after: startup.observed_head,
+        attempt_admission_deadline_monotonic_ms: performance.now() + 750,
+        incremental_entry_limit: 256,
+        incremental_resource_limit: 256,
+      }),
+    ).resolves.toMatchObject({ kind: "at-head" });
+    await once(child, "exit");
+    const sample = samples.at(-1)!;
+    expect(sample).toMatchObject({
+      outcome: "success",
+      phase: "refresh",
+      role: "readonly",
+    });
+    expect(sample.actual_wait_ms).toBeGreaterThanOrEqual(100);
+    expect(sample.session_duration_ms).toBeGreaterThanOrEqual(
+      sample.actual_wait_ms,
+    );
+    await readonly.close();
   });
 
   it("fails readonly closed on a hot rollback journal without changing bytes", async () => {

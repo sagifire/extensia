@@ -1,4 +1,4 @@
-import type { ExtensiaModule } from "../public/contracts.js";
+import type { ExtensiaConfig, ExtensiaModule } from "../public/contracts.js";
 import {
   createExtensia,
   resolveInternalAssetUploadPort,
@@ -13,6 +13,7 @@ import type { CoreAssetUploadPort } from "../system-extensions/default-api/asset
 
 export interface LocalSqliteExtensiaConfig {
   readonly mode: "full" | "readonly";
+  readonly readModel?: ExtensiaConfig["readModel"];
   readonly storage: LocalSqliteDriverOptions;
 }
 
@@ -31,7 +32,10 @@ export function createLocalSqliteExtensia(
         )
       : createLocalSqliteReadonlyResourceDriver(config.storage);
 
-  return createExtensia({ storage: { driver } });
+  return createExtensia({
+    ...(config.readModel === undefined ? {} : { readModel: config.readModel }),
+    storage: { driver },
+  });
 }
 
 export function resolveLocalSqliteAssetUploadPort(

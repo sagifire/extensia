@@ -1,4 +1,8 @@
 import type { FullResourceDriverAdapter } from "../storage/full-resource-driver-adapter.js";
+import {
+  attachSynchronizedObservationCapability,
+  resolveSynchronizedObservationCapability,
+} from "../core/read-model-observation.js";
 import { isIDString, isTimestamp } from "../domain/scalars.js";
 import { hasValidAssetArrayInvariants } from "../domain/asset-metadata.js";
 import { buildResourceSnapshot, isAssetSnapshot } from "../domain/snapshots.js";
@@ -490,6 +494,11 @@ export function defineFullResourceDriver(
         Reflect.apply(acquireStorageSession, definition, [signal]),
       ).then(validateSession),
   });
+  const synchronizedObservation =
+    resolveSynchronizedObservationCapability(definition);
+  if (synchronizedObservation !== null) {
+    attachSynchronizedObservationCapability(captured, synchronizedObservation);
+  }
   const handle = Object.freeze({ mode: "full" }) as FullResourceDriver;
   definitions.set(handle, captured);
   return handle;

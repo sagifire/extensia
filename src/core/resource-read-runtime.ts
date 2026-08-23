@@ -17,13 +17,18 @@ import {
 import { createGreedyResourceIndex } from "./resource-index.js";
 import {
   CORE_METADATA_OBSERVATION_PORT,
+  COHERENT_SYNCHRONIZED_OBSERVATION,
   READONLY_COHERENT_METADATA_SNAPSHOT,
-  READONLY_SYNCHRONIZED_OBSERVATION,
+  resolveSynchronizedObservationCapability,
   type CoreMetadataCompleteObservation,
   type CoreMetadataObservationPort,
   type ReadonlyCoherentMetadataSnapshot,
   type ReadonlySynchronizedObservationCapability,
 } from "./read-model-observation.js";
+import {
+  createReadModelPollingController,
+  type ReadModelPollingController,
+} from "./read-model-polling.js";
 import { createReadonlyMetadataObservationPort } from "./read-model-storage-observation.js";
 import {
   createRuntimeFaultSink,
@@ -56,7 +61,7 @@ export interface ReadonlyResourceDriver {
   close(): Promise<void>;
   listResources(): AsyncIterable<ResourceSnapshot>;
   [READONLY_COHERENT_METADATA_SNAPSHOT]?(): Promise<ReadonlyCoherentMetadataSnapshot>;
-  readonly [READONLY_SYNCHRONIZED_OBSERVATION]?: ReadonlySynchronizedObservationCapability;
+  readonly [COHERENT_SYNCHRONIZED_OBSERVATION]?: ReadonlySynchronizedObservationCapability;
 }
 
 export {
@@ -90,8 +95,10 @@ function createResourceReadRuntime(
   const coordinator = createReadModelPublicationCoordinator();
   const index = createGreedyResourceIndex(coordinator);
   const metadataObservation = createReadonlyMetadataObservationPort(driver);
-  const synchronizedObservation = driver[READONLY_SYNCHRONIZED_OBSERVATION];
+  const synchronizedObservation =
+    resolveSynchronizedObservationCapability(driver) ?? undefined;
   let synchronizationActor: ReadModelSynchronizationActor | null = null;
+  let polling: ReadModelPollingController | null = null;
   const faultSink = createRuntimeFaultSink({
     closeIntake: () => index.clear(),
     cleanup: () => synchronizationActor?.stop(),
@@ -145,9 +152,11 @@ function createResourceReadRuntime(
     synchronizationActor = createReadModelSynchronizationActor({
       async attempt(context) {
         if (coordinator.ready) return refreshAttempt(context);
-        const startup = await synchronizedObservation.observeStartup(
-          context.signal,
-        );
+        const startup = await synchronizedObservation.observeStartup({
+          attempt_admission_deadline_monotonic_ms:
+            context.attempt_admission_deadline_monotonic_ms,
+          signal: context.signal,
+        });
         await initialize(startup.complete, {
           cursor: startup.observed_head,
           kind: "synchronized",
@@ -158,6 +167,12 @@ function createResourceReadRuntime(
       initiallyOpen: false,
       retry: config.synchronization.retry,
     });
+    if (config.synchronization.polling !== null) {
+      polling = createReadModelPollingController({
+        actor: synchronizationActor,
+        config: config.synchronization.polling,
+      });
+    }
   }
   const control = createReadModelControl({
     actor: synchronizationActor,
@@ -178,7 +193,9 @@ function createResourceReadRuntime(
   });
 
   async function closeAfterRejectedStart(): Promise<void> {
+    polling?.close();
     await synchronizationActor?.stop();
+    await polling?.drain();
     index.clear();
     try {
       await driver.close();
@@ -199,12 +216,13 @@ function createResourceReadRuntime(
       order: 30,
       async start(): Promise<void> {
         control.setLifecycle("building");
-        if (config.synchronization.mode === "polling") {
+        if (
+          config.synchronization.mode === "polling" &&
+          synchronizationActor === null
+        ) {
           control.markStartupFailure("capability");
           control.setLifecycle("failed");
-          throw new Error(
-            "Polling activation belongs to the concrete synchronization slice",
-          );
+          throw new Error("Polling requires synchronized observation");
         }
         try {
           await driver.open();
@@ -234,6 +252,7 @@ function createResourceReadRuntime(
             await initialize(observation, { kind: "static-unsupported" });
           }
           control.setLifecycle("ready");
+          polling?.start();
         } catch {
           control.setLifecycle("failed");
           await closeAfterRejectedStart();
@@ -242,7 +261,9 @@ function createResourceReadRuntime(
       },
       async stop(): Promise<void> {
         control.setLifecycle("stopping");
+        polling?.close();
         await synchronizationActor?.stop();
+        await polling?.drain();
         try {
           await driver.close();
         } finally {

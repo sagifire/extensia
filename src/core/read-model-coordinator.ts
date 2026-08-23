@@ -55,6 +55,7 @@ export interface ReadModelPublicationCoordinator {
     cursor?: JournalSequence | null,
   ): ReadModelCoordinatorCandidate;
   publishCandidate(candidate: ReadModelCoordinatorCandidate): boolean;
+  setCursorBehindListener(listener: (() => void) | null): void;
   isCursorBehind(): boolean;
   clear(): void;
 }
@@ -101,6 +102,7 @@ function assertCandidateCursor(
 
 export function createReadModelPublicationCoordinator(): ReadModelPublicationCoordinator {
   let state: ReadModelCoordinatorState | null = null;
+  let cursorBehindListener: (() => void) | null = null;
 
   function assertReady(): ReadModelCoordinatorState {
     if (state === null) throw new Error("Read-model coordinator is not ready");
@@ -188,6 +190,13 @@ export function createReadModelPublicationCoordinator(): ReadModelPublicationCoo
                   revision: latest.revision + 1,
                 },
           );
+          if (state.kind === "synchronized" && state.cursor_behind) {
+            try {
+              cursorBehindListener?.();
+            } catch {
+              // Publication is committed/no-fail; polling is only a trigger.
+            }
+          }
           return state;
         },
       });
@@ -250,8 +259,12 @@ export function createReadModelPublicationCoordinator(): ReadModelPublicationCoo
     isCursorBehind(): boolean {
       return state?.kind === "synchronized" && state.cursor_behind;
     },
+    setCursorBehindListener(listener: (() => void) | null): void {
+      cursorBehindListener = listener;
+    },
     clear(): void {
       state = null;
+      cursorBehindListener = null;
     },
   });
 }

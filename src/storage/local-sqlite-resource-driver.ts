@@ -14,9 +14,19 @@ import {
   type ResourceSnapshot,
 } from "../domain/snapshots.js";
 import {
+  COHERENT_SYNCHRONIZED_OBSERVATION,
   READONLY_COHERENT_METADATA_SNAPSHOT,
-  type ReadonlyResourceDriver,
-} from "../core/resource-read-runtime.js";
+  CoreObservationTransientError,
+  type CommittedChangeObservation,
+  type CommittedChangeObservationRequest,
+  type CoreMetadataCompleteObservation,
+  type ReadonlySynchronizedObservationCapability,
+} from "../core/read-model-observation.js";
+import {
+  buildCompleteReadModelGeneration,
+  createObservationStamp,
+} from "../core/read-model-generation.js";
+import type { ReadonlyResourceDriver } from "../core/resource-read-runtime.js";
 import {
   ResourceStorageSessionTransientError,
   type FullResourceDriverAdapter,
@@ -270,6 +280,20 @@ export interface LocalSqliteDriverOptions {
     canonicalRootPath: string,
   ) => LocalSqliteFilesystemProfileEvidence | null;
   readonly faults?: LocalSqliteFaultInjector;
+  readonly onObservationDiagnostic?: (
+    sample: LocalSqliteObservationDiagnostic,
+  ) => void;
+}
+
+export interface LocalSqliteObservationDiagnostic {
+  readonly role: "full" | "readonly";
+  readonly phase: "startup" | "refresh";
+  readonly strategy: "startup" | "at-head" | "delta" | "rebuild";
+  readonly outcome: "success" | "lock" | "unavailable" | "read" | "integrity";
+  readonly configured_timeout_ms: number;
+  readonly actual_wait_ms: number;
+  readonly session_duration_ms: number;
+  readonly synchronous_overshoot_ms: number;
 }
 
 interface NormalizedOptions {
@@ -281,6 +305,9 @@ interface NormalizedOptions {
     canonicalRootPath: string,
   ) => LocalSqliteFilesystemProfileEvidence | null;
   readonly faults?: LocalSqliteFaultInjector;
+  readonly onObservationDiagnostic?: (
+    sample: LocalSqliteObservationDiagnostic,
+  ) => void;
 }
 
 interface ResolvedRoot {
@@ -336,7 +363,114 @@ export function createLocalSqliteFullResourceDriver(
   let sessionActive = false;
   let uploadHandleAuthority = createAssetUploadHandleAuthority();
 
+  async function observe<T>(
+    phase: "startup" | "refresh",
+    deadline: number,
+    signal: AbortSignal | undefined,
+    read: (db: DatabaseSync) => T,
+  ): Promise<T> {
+    if (openedRoot === null)
+      throw new CoreObservationTransientError("storage-unavailable");
+    if (sessionActive) throw new CoreObservationTransientError("storage-lock");
+    throwIfObservationAborted(signal);
+    const configuredTimeout = observationTimeout(options, deadline);
+    const started = performance.now();
+    sessionActive = true;
+    let connection: ConnectionState | null = null;
+    let waitEnded = started;
+    let outcome: LocalSqliteObservationDiagnostic["outcome"] = "success";
+    let strategy: LocalSqliteObservationDiagnostic["strategy"] =
+      phase === "startup" ? "startup" : "at-head";
+    try {
+      const attemptOptions = { ...options, timeoutMs: configuredTimeout };
+      if (phase === "startup") {
+        connection = openFullConnection(openedRoot, attemptOptions);
+      } else {
+        const db = openReadonlyObservationConnection(
+          openedRoot,
+          attemptOptions,
+        );
+        db.exec("BEGIN;");
+        acquireObservationReadLock(db);
+        connection = {
+          db,
+          recovery: {
+            completed_operations: 0,
+            rolled_back_operations: 0,
+            status: "clean",
+          },
+        };
+      }
+      waitEnded = performance.now();
+      throwIfObservationAborted(signal);
+      const result = read(connection.db);
+      if (
+        phase === "refresh" &&
+        typeof result === "object" &&
+        result !== null &&
+        "kind" in result &&
+        (result.kind === "at-head" ||
+          result.kind === "delta" ||
+          result.kind === "rebuild")
+      ) {
+        strategy = result.kind;
+      }
+      if (phase === "refresh") connection.db.exec("COMMIT;");
+      return result;
+    } catch (error) {
+      waitEnded = performance.now();
+      const normalized = normalizeCoreObservationError(error, signal);
+      outcome = observationOutcome(normalized);
+      throw normalized;
+    } finally {
+      try {
+        rollbackObservation(connection?.db ?? null);
+        connection?.db.close();
+      } finally {
+        sessionActive = false;
+        emitObservationDiagnostic(options, {
+          actual_wait_ms: Math.max(0, waitEnded - started),
+          configured_timeout_ms: configuredTimeout,
+          outcome,
+          phase,
+          role: "full",
+          session_duration_ms: Math.max(0, performance.now() - started),
+          strategy,
+          synchronous_overshoot_ms: Math.max(0, performance.now() - deadline),
+        });
+      }
+    }
+  }
+
+  const synchronizedObservation: ReadonlySynchronizedObservationCapability =
+    Object.freeze({
+      async observeCommittedChanges(
+        request: CommittedChangeObservationRequest,
+      ) {
+        validateCommittedObservationRequest(request);
+        return observe(
+          "refresh",
+          request.attempt_admission_deadline_monotonic_ms,
+          request.signal,
+          (db) => observeCommittedChangesFromDatabase(db, request),
+        );
+      },
+      async observeStartup(
+        request: Parameters<
+          ReadonlySynchronizedObservationCapability["observeStartup"]
+        >[0],
+      ) {
+        return observe(
+          "startup",
+          request.attempt_admission_deadline_monotonic_ms,
+          request.signal,
+          observeStartupFromDatabase,
+        );
+      },
+    });
+
   return Object.freeze({
+    [COHERENT_SYNCHRONIZED_OBSERVATION]: synchronizedObservation,
     mode: "full" as const,
     async open() {
       if (openedRoot !== null) throw new Error("Driver is already open");
@@ -386,7 +520,90 @@ export function createLocalSqliteReadonlyResourceDriver(
   let root: ResolvedRoot | null = null;
   let db: DatabaseSync | null = null;
 
+  async function observe<T>(
+    phase: "startup" | "refresh",
+    deadline: number,
+    signal: AbortSignal | undefined,
+    read: (database: DatabaseSync) => T,
+  ): Promise<T> {
+    if (db === null || root === null)
+      throw new CoreObservationTransientError("storage-unavailable");
+    throwIfObservationAborted(signal);
+    const configuredTimeout = observationTimeout(options, deadline);
+    const started = performance.now();
+    let waitEnded = started;
+    let outcome: LocalSqliteObservationDiagnostic["outcome"] = "success";
+    let strategy: LocalSqliteObservationDiagnostic["strategy"] =
+      phase === "startup" ? "startup" : "at-head";
+    try {
+      db.exec(`PRAGMA busy_timeout = ${configuredTimeout}; BEGIN;`);
+      acquireObservationReadLock(db);
+      waitEnded = performance.now();
+      throwIfObservationAborted(signal);
+      if (phase === "startup") validateDatabase(db, true);
+      const result = read(db);
+      if (
+        phase === "refresh" &&
+        typeof result === "object" &&
+        result !== null &&
+        "kind" in result &&
+        (result.kind === "at-head" ||
+          result.kind === "delta" ||
+          result.kind === "rebuild")
+      ) {
+        strategy = result.kind;
+      }
+      db.exec("COMMIT;");
+      return result;
+    } catch (error) {
+      waitEnded = performance.now();
+      rollbackObservation(db);
+      const normalized = normalizeCoreObservationError(error, signal);
+      outcome = observationOutcome(normalized);
+      throw normalized;
+    } finally {
+      emitObservationDiagnostic(options, {
+        actual_wait_ms: Math.max(0, waitEnded - started),
+        configured_timeout_ms: configuredTimeout,
+        outcome,
+        phase,
+        role: "readonly",
+        session_duration_ms: Math.max(0, performance.now() - started),
+        strategy,
+        synchronous_overshoot_ms: Math.max(0, performance.now() - deadline),
+      });
+    }
+  }
+
+  const synchronizedObservation: ReadonlySynchronizedObservationCapability =
+    Object.freeze({
+      async observeCommittedChanges(
+        request: CommittedChangeObservationRequest,
+      ) {
+        validateCommittedObservationRequest(request);
+        return observe(
+          "refresh",
+          request.attempt_admission_deadline_monotonic_ms,
+          request.signal,
+          (database) => observeCommittedChangesFromDatabase(database, request),
+        );
+      },
+      async observeStartup(
+        request: Parameters<
+          ReadonlySynchronizedObservationCapability["observeStartup"]
+        >[0],
+      ) {
+        return observe(
+          "startup",
+          request.attempt_admission_deadline_monotonic_ms,
+          request.signal,
+          observeStartupFromDatabase,
+        );
+      },
+    });
+
   return Object.freeze({
+    [COHERENT_SYNCHRONIZED_OBSERVATION]: synchronizedObservation,
     mode: "readonly" as const,
     async open() {
       if (db !== null) throw new Error("Driver is already open");
@@ -410,7 +627,6 @@ export function createLocalSqliteReadonlyResourceDriver(
         candidate.exec("PRAGMA trusted_schema = OFF; PRAGMA query_only = ON;");
         assertPragma(candidate, "query_only", 1);
         options.faults?.hit("readonly.after-open");
-        validateDatabase(candidate, true);
         db = candidate;
       } catch (error) {
         candidate?.close();
@@ -494,16 +710,119 @@ function normalizeOptions(input: LocalSqliteDriverOptions): NormalizedOptions {
   ) {
     throw new TypeError("Local SQLite filesystem profile verifier is invalid");
   }
+  if (
+    input.onObservationDiagnostic !== undefined &&
+    typeof input.onObservationDiagnostic !== "function"
+  ) {
+    throw new TypeError("Local SQLite observation diagnostic sink is invalid");
+  }
   return {
     rootPath: input.rootPath,
     timeoutMs,
     reconciliationDelayMs,
     profile,
     ...(input.faults === undefined ? {} : { faults: input.faults }),
+    ...(input.onObservationDiagnostic === undefined
+      ? {}
+      : { onObservationDiagnostic: input.onObservationDiagnostic }),
     ...(input.verifyFilesystemProfile === undefined
       ? {}
       : { verifyFilesystemProfile: input.verifyFilesystemProfile }),
   };
+}
+
+function observationTimeout(
+  options: NormalizedOptions,
+  deadline: number,
+): number {
+  if (!Number.isFinite(deadline)) {
+    throw new TypeError("SQLite observation deadline is invalid");
+  }
+  const remaining = Math.floor(deadline - performance.now());
+  if (remaining <= 0) {
+    throw new CoreObservationTransientError("storage-lock");
+  }
+  return Math.min(options.timeoutMs, remaining);
+}
+
+function emitObservationDiagnostic(
+  options: NormalizedOptions,
+  sample: LocalSqliteObservationDiagnostic,
+): void {
+  try {
+    options.onObservationDiagnostic?.(Object.freeze({ ...sample }));
+  } catch {
+    // Diagnostics must not affect storage correctness or caller settlement.
+  }
+}
+
+function rollbackObservation(db: DatabaseSync | null): void {
+  if (db === null || !db.isTransaction) return;
+  try {
+    db.exec("ROLLBACK;");
+  } catch {
+    // The primary observation failure remains authoritative.
+  }
+}
+
+function acquireObservationReadLock(db: DatabaseSync): void {
+  db.prepare("PRAGMA schema_version").get();
+}
+
+function throwIfObservationAborted(signal: AbortSignal | undefined): void {
+  if (signal?.aborted === true) throw signal.reason;
+}
+
+function observationOutcome(
+  error: unknown,
+): LocalSqliteObservationDiagnostic["outcome"] {
+  if (error instanceof CoreObservationTransientError) {
+    return error.category === "storage-lock"
+      ? "lock"
+      : error.category === "storage-unavailable"
+        ? "unavailable"
+        : "read";
+  }
+  if (error instanceof ResourceRuntimeIntegrityError) return "integrity";
+  return "read";
+}
+
+function normalizeCoreObservationError(
+  error: unknown,
+  signal: AbortSignal | undefined,
+): unknown {
+  if (signal?.aborted === true) return signal.reason;
+  if (
+    error instanceof CoreObservationTransientError ||
+    error instanceof ResourceRuntimeIntegrityError ||
+    error instanceof TypeError
+  ) {
+    return error;
+  }
+  const normalized = normalizeSqliteSessionAcquireError(error);
+  if (normalized instanceof ResourceStorageSessionTransientError) {
+    return new CoreObservationTransientError(
+      normalized.category === "lock"
+        ? "storage-lock"
+        : normalized.category === "unavailable"
+          ? "storage-unavailable"
+          : "storage-read",
+    );
+  }
+  if (normalized instanceof ResourceRuntimeIntegrityError) return normalized;
+  return new CoreObservationTransientError("storage-read");
+}
+
+function validateCommittedObservationRequest(
+  request: CommittedChangeObservationRequest,
+): void {
+  if (
+    request.incremental_entry_limit !== 256 ||
+    request.incremental_resource_limit !== 256 ||
+    !Number.isFinite(request.attempt_admission_deadline_monotonic_ms)
+  ) {
+    throw new TypeError("Committed-change observation request is invalid");
+  }
 }
 
 function resolveStorageRoot(options: NormalizedOptions): ResolvedRoot {
@@ -608,6 +927,41 @@ function openFullConnection(
         status: recovered ? "recovered" : "clean",
       },
     };
+  } catch (error) {
+    db.close();
+    throw normalizeSqliteIntegrityError(error);
+  }
+}
+
+function openReadonlyObservationConnection(
+  root: ResolvedRoot,
+  options: NormalizedOptions,
+): DatabaseSync {
+  assertSafeOwnedFile(root.databasePath);
+  if (!existsSync(root.databasePath)) {
+    throw new ResourceStorageSessionTransientError("unavailable");
+  }
+  const db = new DatabaseSync(root.databasePath, {
+    allowExtension: false,
+    defensive: true,
+    enableDoubleQuotedStringLiterals: false,
+    enableForeignKeyConstraints: true,
+    readOnly: true,
+    timeout: options.timeoutMs,
+  });
+  try {
+    const location = db.location();
+    if (
+      location === null ||
+      realpathOrResolved(location) !== root.databasePath
+    ) {
+      throw new ResourceStorageIntegrityError(
+        "SQLite opened an unexpected observation database location",
+      );
+    }
+    db.exec("PRAGMA trusted_schema = OFF; PRAGMA query_only = ON;");
+    assertPragma(db, "query_only", 1);
+    return db;
   } catch (error) {
     db.close();
     throw normalizeSqliteIntegrityError(error);
@@ -1111,6 +1465,174 @@ function loadJournal(db: DatabaseSync): CommittedOperationEntry[] {
     )
     .all() as JournalRow[];
   return rows.map(decodeJournalRow);
+}
+
+function loadJournalAfter(
+  db: DatabaseSync,
+  after: JournalSequence | null,
+): CommittedOperationEntry[] {
+  if (after === null) return loadJournal(db);
+  const rows = db
+    .prepare(
+      `SELECT sequence_text, sequence_length, operation_id, actor_id, type,
+              committed_at, write_set_fingerprint, entry_json
+         FROM journal
+        WHERE sequence_length > ?
+           OR (sequence_length = ? AND sequence_text > ?)
+        ORDER BY sequence_length, sequence_text`,
+    )
+    .all(after.length, after.length, after) as JournalRow[];
+  return rows.map(decodeJournalRow);
+}
+
+function readJournalHead(db: DatabaseSync): JournalSequence | null {
+  const row = db
+    .prepare(
+      `SELECT sequence_text, sequence_length
+         FROM journal
+        ORDER BY sequence_length DESC, sequence_text DESC
+        LIMIT 1`,
+    )
+    .get() as
+    | { readonly sequence_text: unknown; readonly sequence_length: unknown }
+    | undefined;
+  if (row === undefined) return null;
+  if (
+    typeof row.sequence_text !== "string" ||
+    row.sequence_length !== row.sequence_text.length
+  ) {
+    throw new ResourceStorageIntegrityError("SQLite journal head is invalid");
+  }
+  parseJournalSequence(row.sequence_text as JournalSequence);
+  return row.sequence_text as JournalSequence;
+}
+
+function loadResourcesByIDs(
+  db: DatabaseSync,
+  ids: ReadonlySet<IDString>,
+): ResourceSnapshot[] {
+  const statement = db.prepare(
+    "SELECT id, snapshot_json, tombstoned, revision FROM resources WHERE id = ?",
+  );
+  return [...ids]
+    .sort((left, right) => left.localeCompare(right))
+    .map((id) => {
+      const row = statement.get(id) as ResourceRow | undefined;
+      if (row === undefined) {
+        throw new ResourceStorageIntegrityError(
+          "Committed journal references a missing Resource",
+        );
+      }
+      return decodeResourceRow(row);
+    });
+}
+
+function completeMetadataObservation(
+  resources: readonly ResourceSnapshot[],
+  payloadStates: readonly AssetPayloadState[],
+): CoreMetadataCompleteObservation {
+  if (!validateAssetStorageInvariants(resources, payloadStates)) {
+    throw new ResourceStorageIntegrityError(
+      "SQLite synchronized metadata violates Asset invariants",
+    );
+  }
+  const generation = buildCompleteReadModelGeneration(resources, {
+    payloadStates,
+  });
+  return Object.freeze({
+    asset_readiness: Object.freeze(
+      payloadStates
+        .filter((state) => state.active_upload !== null)
+        .map((state) =>
+          Object.freeze({
+            asset_id: state.asset_id,
+            has_committed_representation: state.committed,
+          }),
+        )
+        .sort((left, right) => left.asset_id.localeCompare(right.asset_id)),
+    ),
+    kind: "storage-complete" as const,
+    observation_stamp: generation.observationStamp,
+    resources: Object.freeze(resources.map(buildResourceSnapshot)),
+  });
+}
+
+function observeStartupFromDatabase(db: DatabaseSync): {
+  readonly complete: CoreMetadataCompleteObservation;
+  readonly observed_head: JournalSequence | null;
+} {
+  const journal = loadJournal(db);
+  validateContiguousJournal(journal);
+  const resources = loadResources(db);
+  const payloadStates = loadAssetPayloadStates(db);
+  return Object.freeze({
+    complete: completeMetadataObservation(resources, payloadStates),
+    observed_head: journal.at(-1)?.sequence ?? null,
+  });
+}
+
+function observeCommittedChangesFromDatabase(
+  db: DatabaseSync,
+  request: CommittedChangeObservationRequest,
+): CommittedChangeObservation {
+  const observedHead = readJournalHead(db);
+  const cursor =
+    request.after === null ? 0n : parseJournalSequence(request.after);
+  const head = observedHead === null ? 0n : parseJournalSequence(observedHead);
+  if (cursor > head) {
+    throw new ResourceStorageIntegrityError(
+      "Committed-change cursor is ahead of the observed journal head",
+    );
+  }
+  const entries = loadJournalAfter(db, request.after);
+  let expected = cursor + 1n;
+  const operationIDs = new Set<IDString>();
+  const affected = new Set<IDString>();
+  for (const entry of entries) {
+    if (
+      parseJournalSequence(entry.sequence) !== expected ||
+      operationIDs.has(entry.operation_id)
+    ) {
+      throw new ResourceStorageIntegrityError(
+        "Committed-change range is not contiguous and unique",
+      );
+    }
+    expected += 1n;
+    operationIDs.add(entry.operation_id);
+    entry.affected_resources.forEach((id) => affected.add(id));
+  }
+  if (expected !== head + 1n) {
+    throw new ResourceStorageIntegrityError(
+      "Committed-change range does not reach the observed journal head",
+    );
+  }
+  if (entries.length === 0) {
+    return Object.freeze({
+      kind: "at-head" as const,
+      observation_stamp: createObservationStamp(),
+      observed_head: observedHead,
+    });
+  }
+  if (
+    entries.length > request.incremental_entry_limit ||
+    affected.size > request.incremental_resource_limit
+  ) {
+    const resources = loadResources(db);
+    const payloadStates = loadAssetPayloadStates(db);
+    return Object.freeze({
+      complete: completeMetadataObservation(resources, payloadStates),
+      kind: "rebuild" as const,
+      observed_head: observedHead,
+      validated_range: "all-after-cursor-through-head" as const,
+    });
+  }
+  return Object.freeze({
+    entries: Object.freeze(entries.map(cloneCommittedOperationEntry)),
+    kind: "delta" as const,
+    observation_stamp: createObservationStamp(),
+    observed_head: observedHead!,
+    resources: Object.freeze(loadResourcesByIDs(db, affected)),
+  });
 }
 
 function loadOperation(

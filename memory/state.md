@@ -8,7 +8,7 @@ Internal Stage: `v2`
 
 ## Поточний фокус
 
-Phase 1, Phase 2, Phase 3 і Phase 4 завершені. `P5-RS1 / TASK-0055`, `P5-DG1 / TASK-0056`, `P5-DG2 / TASK-0057`, `P5-WP1 / TASK-0058`, `P5-HARD1 / TASK-0059` і `P5-VS1 / TASK-0060` accepted/completed; relevant fixations applied. `P5-VS2/P5-STAB/P5-AUD1` лишаються backlog/prepared.
+Phase 1, Phase 2, Phase 3 і Phase 4 завершені. `P5-RS1 / TASK-0055`, `P5-DG1 / TASK-0056`, `P5-DG2 / TASK-0057`, `P5-WP1 / TASK-0058`, `P5-HARD1 / TASK-0059` і `P5-VS1 / TASK-0060` accepted/completed; relevant fixations applied. `P5-VS2 / TASK-0061` review-ready з corrective FIX-002 pending; `P5-STAB/P5-AUD1` лишаються backlog/prepared.
 
 ## Поточний стан продукту
 
@@ -35,7 +35,7 @@ Phase 1, Phase 2, Phase 3 і Phase 4 завершені. `P5-RS1 / TASK-0055`, `
 - `P5-WP1 / TASK-0058 / RUN-001` done/completed: foundation реалізована, final 317-test gate і independent `PASS` зелені, whole-task result approved; downstream не активовано.
 - `P5-HARD1 / TASK-0059 / RUN-001` done/completed: internal sync actor/retry/lifecycle hardening, 346-test full gate і final independent `PASS` accepted whole-task review; downstream не активовано.
 - `P5-VS1 / TASK-0060 / RUN-001` done/completed: 10/10 acceptance, 359-test full gate, whole-task approved, FIX-001 applied exactly, independent post-application `PASS`; downstream inactive.
-- `P5-VS2 / TASK-0061 / RUN-001` backlog/prepared: concrete local SQLite multi-instance sync/polling/contention; waits for accepted P5-VS1.
+- `P5-VS2 / TASK-0061 / RUN-001` review/review-ready: whole-task/FIX-001 approved/applied; post-application audit found two canonical summary omissions, corrective FIX-002 pending separate approval. Support claim відсутній, P5-STAB inactive.
 - `P5-STAB / TASK-0062 / RUN-001` backlog/prepared: Phase 5 stabilization and topology verdict; waits for accepted implementation waves.
 - `P5-AUD1 / TASK-0063 / RUN-001` backlog/prepared: independent Phase 5 audit/human-gate recommendation; waits for accepted P5-STAB.
 - `TASK-07.26-0038` done: Phase 4 planning і canonical preparation двох owner gates прийняті whole-task human review; repeated independent audit без open P0-P3.
@@ -79,6 +79,9 @@ Phase 1, Phase 2, Phase 3 і Phase 4 завершені. `P5-RS1 / TASK-0055`, `
 
 ## Останні рішення
 
+- Користувач 2026-08-23 явно схвалив whole-task result і FIX-001 для `P5-VS2 / TASK-0061`; exact canonical application виконано, fresh independent post-application audit pending, downstream inactive.
+- `P5-VS2 / TASK-0061 / RUN-001` передано в human review після remediation deferred-BEGIN wait diagnostics, exact process evidence, deterministic FIX-001, 366-test full gate і fresh independent `REVIEW_READY`; P5-STAB/P5-AUD1 inactive.
+- Користувач 2026-08-23 явно активував `P5-VS2 / TASK-0061 / RUN-001` і дозволив субагентів; це не активує P5-STAB/P5-AUD1 і не створює topology support claim.
 - Користувач 2026-08-23 явно схвалив whole-task result і FIX-001 для `P5-VS1 / TASK-0060`; exact application та independent post-application `PASS` завершили task як done/completed без downstream activation.
 - `P5-VS1 / TASK-0060 / RUN-001` передано в human review після capability-gated Mark remediation, 359-test full gate і independent `PASS — REVIEW_READY`; згодом whole-task/FIX-001 схвалено й fixation застосовано exact, downstream не активовано.
 - Користувач 2026-08-23 явно активував `P5-VS1 / TASK-0060 / RUN-001` і дозволив субагентів; це не активує downstream Phase 5 tasks.
@@ -176,7 +179,7 @@ Phase 1, Phase 2, Phase 3 і Phase 4 завершені. `P5-RS1 / TASK-0055`, `
 
 ## Наступні кроки
 
-1. За окремою explicit командою можна активувати `P5-VS2 / TASK-0061`; TASK-0062…0063 лишаються inactive й gated своїми predecessors.
+1. Завершити `P5-VS2 / TASK-0061` через review/application corrective `FIX-002`; TASK-0062…0063 лишаються inactive й gated своїми predecessors.
 2. За окремим owner рішенням можна активувати TASK-0044 або TASK-0048; client-server vendor tasks потребують окремого створення/activation.
 
 ## Відкриті питання

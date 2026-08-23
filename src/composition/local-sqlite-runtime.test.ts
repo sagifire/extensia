@@ -790,4 +790,47 @@ describe("internal local SQLite production composition", () => {
     });
     await third.stop();
   });
+
+  it("refreshes a long-lived readonly runtime through the concrete semantic seam", async () => {
+    const root = createRoot();
+    const writer = createLocalSqliteExtensia({
+      mode: "full",
+      storage: sqliteOptions(root),
+    });
+    await expect(writer.start()).resolves.toMatchObject({ ok: true });
+    const reader = createLocalSqliteExtensia({
+      mode: "readonly",
+      readModel: { synchronization: { mode: "manual" } },
+      storage: sqliteOptions(root),
+    });
+    await expect(reader.start()).resolves.toMatchObject({ ok: true });
+
+    const created = mustWrite(
+      await writer.storage()!.createResource({ title: "external" }),
+    );
+    await expect(
+      reader.query()!.getResource(created.resource.data.id),
+    ).resolves.toMatchObject({
+      error: { code: "RESOURCE_NOT_FOUND" },
+      ok: false,
+    });
+    await expect(reader.query()!.refresh()).resolves.toMatchObject({
+      ok: true,
+      value: { changed: true, observed: true },
+    });
+    await expect(
+      reader.query()!.getResource(created.resource.data.id),
+    ).resolves.toMatchObject({
+      ok: true,
+      value: { data: { title: "external" } },
+    });
+    expect(reader.inspect().read_model.synchronization).toMatchObject({
+      freshness: "observed",
+      mode: "manual",
+      state: "idle",
+    });
+
+    await expect(reader.stop()).resolves.toMatchObject({ ok: true });
+    await expect(writer.stop()).resolves.toMatchObject({ ok: true });
+  });
 });

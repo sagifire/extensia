@@ -1,0 +1,365 @@
+{
+  "environment": {
+    "arch": "x64",
+    "filesystem": {
+      "certification": "not-claimed",
+      "root_source": "os-temp-directory"
+    },
+    "node": "v24.19.0",
+    "platform": "win32",
+    "storage_profile": "candidate-local-filesystem",
+    "sqlite": "3.53.3"
+  },
+  "full_full": {
+    "contention": {
+      "lock_failures": 12,
+      "successes": 4
+    },
+    "diagnostics": {
+      "first": [
+        {
+          "actual_wait_ms": 16.02030000000002,
+          "configured_timeout_ms": 250,
+          "outcome": "success",
+          "phase": "startup",
+          "role": "full",
+          "session_duration_ms": 18.56880000000001,
+          "strategy": "startup",
+          "synchronous_overshoot_ms": 0,
+          "recorded_at_epoch_ms": 1787484837202
+        },
+        {
+          "actual_wait_ms": 1.6067999999999927,
+          "configured_timeout_ms": 250,
+          "outcome": "success",
+          "phase": "refresh",
+          "role": "full",
+          "session_duration_ms": 2.711699999999979,
+          "strategy": "delta",
+          "synchronous_overshoot_ms": 0,
+          "recorded_at_epoch_ms": 1787484837291
+        },
+        {
+          "actual_wait_ms": 1.2963000000000306,
+          "configured_timeout_ms": 250,
+          "outcome": "success",
+          "phase": "refresh",
+          "role": "full",
+          "session_duration_ms": 1.6872000000000185,
+          "strategy": "delta",
+          "synchronous_overshoot_ms": 0,
+          "recorded_at_epoch_ms": 1787484837362
+        },
+        {
+          "actual_wait_ms": 1.1778999999999655,
+          "configured_timeout_ms": 250,
+          "outcome": "success",
+          "phase": "refresh",
+          "role": "full",
+          "session_duration_ms": 2.2425999999999817,
+          "strategy": "delta",
+          "synchronous_overshoot_ms": 0,
+          "recorded_at_epoch_ms": 1787484837419
+        },
+        {
+          "actual_wait_ms": 1.2900999999999954,
+          "configured_timeout_ms": 250,
+          "outcome": "success",
+          "phase": "refresh",
+          "role": "full",
+          "session_duration_ms": 1.9315999999999462,
+          "strategy": "delta",
+          "synchronous_overshoot_ms": 0,
+          "recorded_at_epoch_ms": 1787484837439
+        }
+      ],
+      "restarted": [
+        {
+          "actual_wait_ms": 5.961399999999998,
+          "configured_timeout_ms": 250,
+          "outcome": "success",
+          "phase": "startup",
+          "role": "full",
+          "session_duration_ms": 11.942799999999977,
+          "strategy": "startup",
+          "synchronous_overshoot_ms": 0,
+          "recorded_at_epoch_ms": 1787484839311
+        }
+      ]
+    },
+    "operation_families": [
+      "resource.create",
+      "resource.update",
+      "resource.move",
+      "resource.delete",
+      "resource.marks.set",
+      "resource.kv.set",
+      "asset.create"
+    ],
+    "restart": true
+  },
+  "full_readonly": {
+    "distances": [
+      {
+        "count": 0,
+        "sample": {
+          "actual_wait_ms": 0.3357000000000028,
+          "configured_timeout_ms": 250,
+          "outcome": "success",
+          "phase": "refresh",
+          "role": "readonly",
+          "session_duration_ms": 0.5090000000000146,
+          "strategy": "at-head",
+          "synchronous_overshoot_ms": 0,
+          "recorded_at_epoch_ms": 1787484839609
+        }
+      },
+      {
+        "count": 1,
+        "sample": {
+          "actual_wait_ms": 0.20429999999998927,
+          "configured_timeout_ms": 250,
+          "outcome": "success",
+          "phase": "refresh",
+          "role": "readonly",
+          "session_duration_ms": 0.607200000000006,
+          "strategy": "delta",
+          "synchronous_overshoot_ms": 0,
+          "recorded_at_epoch_ms": 1787484839626
+        }
+      },
+      {
+        "count": 32,
+        "sample": {
+          "actual_wait_ms": 0.22509999999999764,
+          "configured_timeout_ms": 250,
+          "outcome": "success",
+          "phase": "refresh",
+          "role": "readonly",
+          "session_duration_ms": 1.1748000000000047,
+          "strategy": "delta",
+          "synchronous_overshoot_ms": 0,
+          "recorded_at_epoch_ms": 1787484840107
+        }
+      },
+      {
+        "count": 256,
+        "sample": {
+          "actual_wait_ms": 0.2933000000002721,
+          "configured_timeout_ms": 250,
+          "outcome": "success",
+          "phase": "refresh",
+          "role": "readonly",
+          "session_duration_ms": 5.831500000000233,
+          "strategy": "delta",
+          "synchronous_overshoot_ms": 0,
+          "recorded_at_epoch_ms": 1787484844341
+        }
+      },
+      {
+        "count": 257,
+        "sample": {
+          "actual_wait_ms": 0.2837999999992462,
+          "configured_timeout_ms": 250,
+          "outcome": "success",
+          "phase": "refresh",
+          "role": "readonly",
+          "session_duration_ms": 8.682099999999991,
+          "strategy": "rebuild",
+          "synchronous_overshoot_ms": 0,
+          "recorded_at_epoch_ms": 1787484849344
+        }
+      }
+    ],
+    "lock_wait": {
+      "retry_recovery": {
+        "elapsed_ms": 424.35279999999875,
+        "hold_ms": 400,
+        "samples": [
+          {
+            "actual_wait_ms": 319.7073999999993,
+            "configured_timeout_ms": 250,
+            "outcome": "lock",
+            "phase": "refresh",
+            "role": "readonly",
+            "session_duration_ms": 320.0504000000001,
+            "strategy": "at-head",
+            "synchronous_overshoot_ms": 0,
+            "recorded_at_epoch_ms": 1787484849815
+          },
+          {
+            "actual_wait_ms": 83.15790000000015,
+            "configured_timeout_ms": 159,
+            "outcome": "success",
+            "phase": "refresh",
+            "role": "readonly",
+            "session_duration_ms": 83.73079999999936,
+            "strategy": "at-head",
+            "synchronous_overshoot_ms": 0,
+            "recorded_at_epoch_ms": 1787484849919
+          }
+        ]
+      },
+      "successful": {
+        "elapsed_ms": 146.24389999999948,
+        "hold_ms": 140,
+        "samples": [
+          {
+            "actual_wait_ms": 145.16090000000077,
+            "configured_timeout_ms": 250,
+            "outcome": "success",
+            "phase": "refresh",
+            "role": "readonly",
+            "session_duration_ms": 145.67619999999988,
+            "strategy": "at-head",
+            "synchronous_overshoot_ms": 0,
+            "recorded_at_epoch_ms": 1787484849493
+          }
+        ]
+      }
+    },
+    "polling": {
+      "inspection": {
+        "freshness": "observed",
+        "last_failure": null,
+        "last_observed_at": 1787484850303,
+        "mode": "polling",
+        "state": "idle"
+      },
+      "stale_age_ms": 261.52419999999984
+    },
+    "readonly_diagnostics": [
+      {
+        "actual_wait_ms": 0.4338999999999942,
+        "configured_timeout_ms": 250,
+        "outcome": "success",
+        "phase": "startup",
+        "role": "readonly",
+        "session_duration_ms": 34.672799999999995,
+        "strategy": "startup",
+        "synchronous_overshoot_ms": 0,
+        "recorded_at_epoch_ms": 1787484850845
+      }
+    ],
+    "restart": true,
+    "zero_write_snapshot_equal": true
+  },
+  "polling_herd": {
+    "diagnostics": {
+      "first": [
+        {
+          "actual_wait_ms": 16.7449,
+          "configured_timeout_ms": 250,
+          "outcome": "success",
+          "phase": "startup",
+          "role": "full",
+          "session_duration_ms": 19.4238,
+          "strategy": "startup",
+          "synchronous_overshoot_ms": 0,
+          "recorded_at_epoch_ms": 1787484851100
+        },
+        {
+          "actual_wait_ms": 1.4261000000000195,
+          "configured_timeout_ms": 250,
+          "outcome": "success",
+          "phase": "refresh",
+          "role": "full",
+          "session_duration_ms": 1.8377000000000123,
+          "strategy": "at-head",
+          "synchronous_overshoot_ms": 0,
+          "recorded_at_epoch_ms": 1787484851114
+        },
+        {
+          "actual_wait_ms": 1.460800000000006,
+          "configured_timeout_ms": 250,
+          "outcome": "success",
+          "phase": "refresh",
+          "role": "full",
+          "session_duration_ms": 1.752999999999986,
+          "strategy": "at-head",
+          "synchronous_overshoot_ms": 0,
+          "recorded_at_epoch_ms": 1787484851402
+        },
+        {
+          "actual_wait_ms": 1.8489999999999895,
+          "configured_timeout_ms": 250,
+          "outcome": "success",
+          "phase": "refresh",
+          "role": "full",
+          "session_duration_ms": 2.2409000000000106,
+          "strategy": "at-head",
+          "synchronous_overshoot_ms": 0,
+          "recorded_at_epoch_ms": 1787484851426
+        }
+      ],
+      "second": [
+        {
+          "actual_wait_ms": 3.475599999999986,
+          "configured_timeout_ms": 250,
+          "outcome": "success",
+          "phase": "startup",
+          "role": "full",
+          "session_duration_ms": 4.201400000000007,
+          "strategy": "startup",
+          "synchronous_overshoot_ms": 0,
+          "recorded_at_epoch_ms": 1787484851131
+        },
+        {
+          "actual_wait_ms": 2.0379000000000076,
+          "configured_timeout_ms": 250,
+          "outcome": "success",
+          "phase": "refresh",
+          "role": "full",
+          "session_duration_ms": 2.515000000000015,
+          "strategy": "at-head",
+          "synchronous_overshoot_ms": 0,
+          "recorded_at_epoch_ms": 1787484851147
+        },
+        {
+          "actual_wait_ms": 1.3034999999999854,
+          "configured_timeout_ms": 250,
+          "outcome": "success",
+          "phase": "refresh",
+          "role": "full",
+          "session_duration_ms": 1.574200000000019,
+          "strategy": "at-head",
+          "synchronous_overshoot_ms": 0,
+          "recorded_at_epoch_ms": 1787484851400
+        },
+        {
+          "actual_wait_ms": 15.065300000000036,
+          "configured_timeout_ms": 250,
+          "outcome": "success",
+          "phase": "refresh",
+          "role": "full",
+          "session_duration_ms": 16.55630000000002,
+          "strategy": "delta",
+          "synchronous_overshoot_ms": 0,
+          "recorded_at_epoch_ms": 1787484851429
+        }
+      ]
+    },
+    "eventual_visibility": true,
+    "phase_alignment": {
+      "barrier": "shared-observation-epoch-through-polling-actors",
+      "aligned_refresh_spread_ms": 2,
+      "maximum_spread_ms": 50
+    },
+    "outcomes": [
+      "success",
+      "success"
+    ]
+  },
+  "process_gate": "PASS",
+  "repetitions": {
+    "distance_matrix_runs": 1,
+    "full_full_contention_pairs": 8,
+    "harness_runs": 1,
+    "polling_herd_runs": 1
+  },
+  "support_claim": "UNCLAIMED_PENDING_P5_STAB_P5_AUD1_HUMAN_GATE",
+  "event_loop_delay_ms": {
+    "max": 33.816575,
+    "mean": 11.035536305110602
+  }
+}

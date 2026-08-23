@@ -630,6 +630,32 @@ describe("experimental Phase 5 read-model integration", () => {
     });
     expect(events).toEqual([]);
 
+    const fullEvents: string[] = [];
+    const genericFullFixture = createDeterministicFullResourceDriver();
+    const genericFullAdapter = {
+      ...genericFullFixture.adapter,
+      async open() {
+        fullEvents.push("open");
+        await genericFullFixture.adapter.open();
+      },
+    };
+    const genericFullPolling = createExtensia({
+      readModel: {
+        synchronization: {
+          mode: "polling",
+          polling: { intervalMs: 60_001 },
+        },
+      },
+      storage: {
+        driver: defineFullResourceDriver(genericFullAdapter),
+      },
+    });
+    await expect(genericFullPolling.start()).resolves.toMatchObject({
+      ok: false,
+      error: { code: "START_FAILED" },
+    });
+    expect(fullEvents).toEqual([]);
+
     const defaultsFixture = createDeterministicFullResourceDriver();
     const defaults = createExtensia({
       readModel: {

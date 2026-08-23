@@ -21,9 +21,11 @@ import { ResourceRuntimeIntegrityError } from "../storage/resource-runtime-integ
 export const READONLY_COHERENT_METADATA_SNAPSHOT: unique symbol = Symbol(
   "extensia.internal.readonly-coherent-metadata-snapshot",
 );
-export const READONLY_SYNCHRONIZED_OBSERVATION: unique symbol = Symbol(
-  "extensia.internal.readonly-synchronized-observation",
+export const COHERENT_SYNCHRONIZED_OBSERVATION: unique symbol = Symbol(
+  "extensia.internal.coherent-synchronized-observation",
 );
+export const READONLY_SYNCHRONIZED_OBSERVATION: typeof COHERENT_SYNCHRONIZED_OBSERVATION =
+  COHERENT_SYNCHRONIZED_OBSERVATION;
 
 export interface ReadonlyCoherentMetadataSnapshot {
   readonly resources: readonly ResourceSnapshot[];
@@ -297,10 +299,43 @@ export interface CoreCommittedChangeObservationPort {
 }
 
 export interface ReadonlySynchronizedObservationCapability extends CoreCommittedChangeObservationPort {
-  observeStartup(signal?: AbortSignal): Promise<{
+  observeStartup(request: {
+    readonly attempt_admission_deadline_monotonic_ms: number;
+    readonly signal?: AbortSignal;
+  }): Promise<{
     readonly complete: CoreMetadataCompleteObservation;
     readonly observed_head: JournalSequence | null;
   }>;
+}
+
+const synchronizedObservationCapabilities = new WeakMap<
+  object,
+  ReadonlySynchronizedObservationCapability
+>();
+
+export function attachSynchronizedObservationCapability<T extends object>(
+  target: T,
+  capability: ReadonlySynchronizedObservationCapability,
+): T {
+  synchronizedObservationCapabilities.set(target, capability);
+  return target;
+}
+
+export function resolveSynchronizedObservationCapability(
+  target: object,
+): ReadonlySynchronizedObservationCapability | null {
+  const registered = synchronizedObservationCapabilities.get(target);
+  if (registered !== undefined) return registered;
+  const descriptor = Object.getOwnPropertyDescriptor(
+    target,
+    COHERENT_SYNCHRONIZED_OBSERVATION,
+  );
+  return descriptor !== undefined &&
+    "value" in descriptor &&
+    typeof descriptor.value === "object" &&
+    descriptor.value !== null
+    ? (descriptor.value as ReadonlySynchronizedObservationCapability)
+    : null;
 }
 
 export type CoreObservationTransientCategory =
